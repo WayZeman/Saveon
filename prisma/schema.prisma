@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String   @default("")
+  email        String   @unique
+  password     String
+  recoveryCode String?  // хеш 4-значного коду для відновлення пароля
+  role         String   @default("user")
+  partnerId    String?
+  createdAt    DateTime @default(now())
+
+  categories    Category[]    @relation("UserCategories")
+  transactions  Transaction[]
+  goalsCreated  Goal[]        @relation("GoalCreatedBy")
+}
+
+model Category {
+  id       String   @id @default(cuid())
+  name     String
+  userId   String?
+  isShared Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user         User?         @relation("UserCategories", fields: [userId], references: [id], onDelete: SetNull)
+  transactions Transaction[]
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  amount     Float
+  type       String
+  categoryId String
+  userId     String
+  createdAt  DateTime @default(now())
+  goalId     String?
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  goal     Goal?    @relation(fields: [goalId], references: [id], onDelete: SetNull)
+}
+
+model Goal {
+  id           String    @id @default(cuid())
+  title        String
+  targetAmount Float
+  currentAmount Float    @default(0)
+  createdBy    String
+  isShared     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  realizedAt   DateTime?
+
+  createdByUser User          @relation("GoalCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+}

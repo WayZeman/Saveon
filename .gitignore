@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+.next/
+out/
+build/
+dist/
+
+# Env (секрети не комітити)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database (SQLite — локальні файли)
+*.db
+*.db-journal
+prisma/*.db
+
+# Logs
+*.log
+npm-debug.log*
+dev.log
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cursor/
+terminals/

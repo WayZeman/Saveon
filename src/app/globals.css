@@ -1,0 +1,443 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Dark theme (default) ── */
+:root,
+.theme-dark {
+  --bg: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-elevated: #1c1c1e;
+  --surface: #1c1c1e;
+  --surface-secondary: #2c2c2e;
+  --surface-tertiary: #3a3a3c;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #6e6e73;
+  --accent-blue: #0a84ff;
+  --accent-green: #30d158;
+  --accent-red: #ff453a;
+  --accent-orange: #ff9f0a;
+  --accent-purple: #bf5af2;
+  --accent-teal: #64d2ff;
+  --gradient-start: #0a84ff;
+  --gradient-end: #5e5ce6;
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-bg-focus: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(28, 28, 30, 0.72);
+  --card-bg: rgba(28, 28, 30, 0.65);
+  --modal-bg: rgba(28, 28, 30, 0.92);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --option-bg: #1c1c1e;
+  --autofill-bg: #1c1c1e;
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.3);
+  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.6);
+  --focus-ring: rgba(10, 132, 255, 0.15);
+  --space-page: 1.25rem;
+  --space-section: 1.75rem;
+  --space-card: 1.25rem;
+  --radius-card: 1rem;
+  --radius-btn: 0.75rem;
+}
+
+/* ── Light theme ── */
+.theme-light {
+  --bg: #ffffff;
+  --bg-secondary: #f5f5f7;
+  --bg-elevated: #ffffff;
+  --surface: #f5f5f7;
+  --surface-secondary: #e8e8ed;
+  --surface-tertiary: #d1d1d6;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.15);
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #a1a1a6;
+  --accent-blue: #007aff;
+  --accent-green: #28cd41;
+  --accent-red: #ff3b30;
+  --accent-orange: #ff9500;
+  --accent-purple: #af52de;
+  --accent-teal: #55bef0;
+  --gradient-start: #007aff;
+  --gradient-end: #5856d6;
+  --input-bg: rgba(0, 0, 0, 0.04);
+  --input-bg-focus: rgba(0, 0, 0, 0.06);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --card-bg: rgba(255, 255, 255, 0.65);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --option-bg: #ffffff;
+  --autofill-bg: #ffffff;
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.15);
+  --focus-ring: rgba(0, 122, 255, 0.12);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --space-page: 2rem;
+    --space-section: 2.5rem;
+    --space-card: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --space-page: 2.5rem;
+    --space-section: 3rem;
+  }
+}
+
+/* Пропорції на дуже малих екранах (телефони) */
+@media (max-width: 380px) {
+  :root {
+    --space-page: 1rem;
+    --space-section: 1.25rem;
+    --space-card: 1rem;
+    --radius-card: 0.875rem;
+  }
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  color-scheme: dark;
+}
+.theme-light {
+  color-scheme: light;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .pt-safe-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+::selection {
+  background: rgba(10, 132, 255, 0.3);
+  color: #fff;
+}
+.theme-light ::selection {
+  background: rgba(0, 122, 255, 0.2);
+  color: #000;
+}
+
+input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.page-container {
+  width: 100%;
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-page);
+  padding-right: var(--space-page);
+  padding-bottom: 2rem;
+}
+
+.section-spacing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--border);
+}
+
+/* Підписи відсотків на діаграмі категорій — дрібний шрифт, щоб не налазили */
+.categories-chart .recharts-pie-label text {
+  font-size: 10px;
+  fill: var(--text);
+  font-weight: 600;
+}
+.categories-chart .recharts-label-lines {
+  stroke: var(--text-tertiary);
+}
+
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.glass-modal {
+  background: var(--modal-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--border-strong);
+}
+
+/* Мобільна шапка: м’який, ледь помітний перехід знизу */
+.mobile-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  height: calc(env(safe-area-inset-top, 0px) + 32px);
+  pointer-events: none;
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  background: rgba(0, 0, 0, 0.08);
+  mask-image: linear-gradient(to bottom, black 0%, black 18%, transparent 72%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 18%, transparent 72%);
+}
+.theme-light .mobile-top-bar {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+@layer utilities {
+  .animate-in {
+    animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .animate-stagger-1 { animation-delay: 0.06s; }
+  .animate-stagger-2 { animation-delay: 0.12s; }
+  .animate-stagger-3 { animation-delay: 0.18s; }
+  .animate-stagger-4 { animation-delay: 0.24s; }
+  .animate-stagger-5 { animation-delay: 0.3s; }
+  .animate-apple-reveal {
+    animation: appleReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .transition-apple {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .focus-ring {
+    @apply outline-none ring-2 ring-[var(--accent-blue)] ring-offset-2 ring-offset-[var(--bg)];
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Apple-style: плавна поява (spring-like) */
+@keyframes appleReveal {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Екран завантаження: лого */
+@keyframes splashLogoIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Екран завантаження: назва під лого */
+@keyframes splashTitleIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Тонка лінія прогресу */
+@keyframes splashProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Ефект злиття крапель: плавний рух + пульсація масштабу */
+@keyframes dropletMerge {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(8%, -6%) scale(1.15); }
+  50% { transform: translate(-5%, 4%) scale(1.22); }
+  75% { transform: translate(-3%, -3%) scale(1.1); }
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.12;
+  animation: dropletMerge 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+.theme-light .particle { opacity: 0.08; }
+.particle-1 { width: 320px; height: 320px; left: 5%; top: 10%; background: var(--accent-blue); animation-delay: 0s; animation-duration: 14s; }
+.particle-2 { width: 260px; height: 260px; right: 10%; top: 20%; background: var(--accent-purple); animation-delay: -2.5s; animation-duration: 13s; }
+.particle-3 { width: 220px; height: 220px; left: 30%; bottom: 20%; background: var(--accent-teal); animation-delay: -5s; animation-duration: 11s; }
+.particle-4 { width: 300px; height: 300px; right: 5%; bottom: 10%; background: var(--accent-purple); animation-delay: -1s; animation-duration: 15s; }
+.particle-5 { width: 180px; height: 180px; left: 50%; top: 40%; background: var(--accent-blue); animation-delay: -4s; animation-duration: 10s; }
+.particle-6 { width: 240px; height: 240px; right: 30%; top: 5%; background: var(--accent-teal); animation-delay: -6s; animation-duration: 12s; }
+.particle-7 { width: 200px; height: 200px; left: 10%; bottom: 40%; background: var(--accent-purple); animation-delay: -3s; animation-duration: 13.5s; }
+.particle-8 { width: 240px; height: 240px; right: 15%; bottom: 30%; background: var(--accent-blue); animation-delay: -4.5s; animation-duration: 11.5s; }
+
+/* ── Shared buttons ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--accent-blue);
+  color: white;
+  padding: 0.625rem 1rem;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:active { transform: scale(0.98); }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--text-tertiary);
+  transition: all 0.15s ease;
+}
+.icon-btn:hover {
+  color: var(--accent-blue);
+  background: var(--input-bg);
+}
+
+/* ── Mobile viewport fix for keyboard ── */
+html {
+  height: -webkit-fill-available;
+}
+body {
+  min-height: -webkit-fill-available;
+}
+
+@supports (height: 100dvh) {
+  .min-h-screen { min-height: 100dvh !important; }
+}
+
+/* ── Form controls ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  color-scheme: inherit;
+  font-size: 16px;
+  padding: 12px 16px;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  scroll-margin-bottom: 120px;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+select option {
+  background: var(--option-bg);
+  color: var(--text);
+  padding: 8px 12px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  background: var(--input-bg-focus);
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0px 1000px var(--autofill-bg) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--input-bg);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="checkbox"]:checked {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
