@@ -68,7 +68,7 @@ export default function DashboardLayout({
             <div className="p-6 pb-2">
               <Link href="/dashboard" className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                  <Image src="/logo.png" alt="Saveon" width={32} height={32} className="object-cover w-full h-full" />
+                  <Image src="/icon.svg" alt="Saveon" width={32} height={32} className="object-cover w-full h-full" unoptimized />
                 </div>
                 <span className="text-[15px] font-semibold text-[var(--text)] tracking-tight">Saveon</span>
               </Link>
