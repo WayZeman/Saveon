@@ -34,7 +34,7 @@ export default function SplashScreen() {
           }}
         >
           <div className="relative w-20 h-20 rounded-[22px] overflow-hidden shadow-glow">
-            <Image src="/icon.svg" alt="Saveon" width={80} height={80} className="object-cover" priority unoptimized />
+            <Image src="/logo.png" alt="Saveon" width={80} height={80} className="object-cover" priority />
           </div>
         </div>
         <h1

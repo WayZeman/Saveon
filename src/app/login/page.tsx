@@ -121,7 +121,7 @@ export default function AuthPage() {
         {/* Logo & heading */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-[68px] h-[68px] rounded-[22px] overflow-hidden mb-5 shadow-glow">
-            <Image src="/icon.svg" alt="Saveon" width={68} height={68} className="object-cover" unoptimized />
+            <Image src="/logo.png" alt="Saveon" width={68} height={68} className="object-cover" />
           </div>
           <h1 className="text-[28px] font-bold tracking-tight text-[var(--text)]">
             {isRegister ? t("auth_createAccount") : isRecovery ? "Відновлення пароля" : t("auth_welcomeBack")}
