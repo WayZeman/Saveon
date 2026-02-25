@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import LogoImage from "@/components/LogoImage";
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function SplashScreen() {
           }}
         >
           <div className="relative w-20 h-20 rounded-[22px] overflow-hidden shadow-glow">
-            <Image src="/logo.png" alt="Saveon" width={80} height={80} className="object-cover" priority />
+            <LogoImage width={80} height={80} className="object-cover" priority />
           </div>
         </div>
         <h1
