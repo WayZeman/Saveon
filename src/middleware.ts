@@ -7,7 +7,13 @@ const apiAuthPaths = ["/api/auth/login", "/api/auth/logout", "/api/auth/register
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/_next") || pathname.includes("favicon.ico")) {
+  // Статичні файли з public — віддавати без перевірки авторизації (логотип, іконки, manifest)
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.includes("favicon.ico") ||
+    /\.(png|ico|svg|json|webmanifest)$/i.test(pathname) ||
+    pathname === "/manifest.json"
+  ) {
     return NextResponse.next();
   }
 
