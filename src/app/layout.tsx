@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   description: "Сімейний фінансовий облік для двох",
   manifest: "/manifest.json",
   icons: {
-    apple: "/icon-192.png",
-    icon: "/icon-192.png",
+    apple: "/icon-192-v2.png",
+    icon: "/icon-192-v2.png",
   },
   appleWebApp: {
     capable: true,
