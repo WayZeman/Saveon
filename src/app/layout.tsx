@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   title: "Saveon",
   description: "Сімейний фінансовий облік для двох",
   manifest: "/manifest.json",
+  icons: {
+    apple: "/icon-192.png",
+    icon: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -34,16 +38,19 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="uk" className={`scroll-smooth theme-dark ${inter.variable}`} suppressHydrationWarning>
+    <html
+      lang="uk"
+      className={`scroll-smooth theme-dark ${inter.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        <link rel="apple-touch-icon" href="/icon-180.png" sizes="180x180" />
+        <link rel="apple-touch-icon" href="/icon-192.png" sizes="192x192" />
         <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
         <link rel="icon" type="image/png" href="/icon-512.png" sizes="512x512" />
-        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
