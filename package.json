@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "dev:safe": "ulimit -n 10240 2>/dev/null; next dev -p 3000 -H 0.0.0.0",
-    "build": "prisma generate && prisma db push && next build",
+    "build": "prisma generate && prisma db push && npm run build:icons && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
