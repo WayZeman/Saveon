@@ -48,9 +48,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <link rel="apple-touch-icon" href="/icon-192.png" sizes="192x192" />
-        <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
-        <link rel="icon" type="image/png" href="/icon-512.png" sizes="512x512" />
+        <link rel="apple-touch-icon" href="/icon-192-v2.png" sizes="192x192" />
+        <link rel="icon" type="image/png" href="/icon-192-v2.png" sizes="192x192" />
+        <link rel="icon" type="image/png" href="/icon-512-v2.png" sizes="512x512" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
