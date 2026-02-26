@@ -56,7 +56,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('family-fin-theme');var el=document.documentElement;el.classList.remove('theme-dark','theme-light');if(t==='light'){el.classList.add('theme-light');el.style.colorScheme='light'}else if(t==='system'){var light=window.matchMedia('(prefers-color-scheme:light)').matches;el.classList.add(light?'theme-light':'theme-dark');el.style.colorScheme=light?'light':'dark'}else{el.classList.add('theme-dark');el.style.colorScheme='dark'}}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('family-fin-theme');var el=document.documentElement;el.classList.remove('theme-dark','theme-light');if(t==='light'){el.classList.add('theme-light');el.style.colorScheme='light'}else if(t==='dark'){el.classList.add('theme-dark');el.style.colorScheme='dark'}else{var light=window.matchMedia('(prefers-color-scheme:light)').matches;el.classList.add(light?'theme-light':'theme-dark');el.style.colorScheme=light?'light':'dark'}}catch(e){}})()`,
           }}
         />
       </head>
