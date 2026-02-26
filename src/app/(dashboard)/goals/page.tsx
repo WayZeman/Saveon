@@ -1,53 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Target, Plus, CheckCircle, Pencil, Trash2, XCircle } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useData, type Goal } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
-
-type Goal = {
-  id: string;
-  title: string;
-  targetAmount: number;
-  isShared: boolean;
-  createdBy: string;
-  realizedAt: string | null;
-  createdByUser: { role: string };
-};
-
-type DashboardData = { myBalance: number; totalBalance: number };
 
 export default function GoalsPage() {
   const { formatMoney } = useCurrency();
   const { t } = useLanguage();
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [balances, setBalances] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { goals, dashboardData, user, initialLoadDone, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
   const [form, setForm] = useState({ title: "", targetAmount: "", isShared: true });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [user, setUser] = useState<{ id: string; partnerId: string | null } | null>(null);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const MAX_AMOUNT = 999_999_999.99;
-
-  async function loadData() {
-    const [u, g, d] = await Promise.all([
-      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/goals").then((r) => r.json()),
-      fetch("/api/dashboard").then((r) => r.json()),
-    ]);
-    setUser(u);
-    setGoals(g);
-    setBalances(d ? { myBalance: d.myBalance, totalBalance: d.totalBalance } : null);
-  }
-
-  useEffect(() => {
-    loadData().finally(() => setLoading(false));
-  }, []);
+  const balances = dashboardData ? { myBalance: dashboardData.myBalance, totalBalance: dashboardData.totalBalance } : null;
 
   function getGoalDisplay(goal: Goal) {
     if (!balances) return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0 };
@@ -55,6 +27,10 @@ export default function GoalsPage() {
     const remainingNeeded = Math.max(0, goal.targetAmount - balanceUsed);
     const progressPercent = Math.min(100, (balanceUsed / goal.targetAmount) * 100);
     return { balanceUsed, remainingNeeded, progressPercent };
+  }
+
+  async function refreshAfterGoalAction() {
+    await invalidateAfterMutation("goal");
   }
 
   async function handleAdd(e: React.FormEvent) {
@@ -72,7 +48,7 @@ export default function GoalsPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("goals_errorGeneric")); return; }
       closeModal();
-      await loadData();
+      await refreshAfterGoalAction();
     } catch { setError(t("goals_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -93,7 +69,7 @@ export default function GoalsPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("goals_errorGeneric")); return; }
       closeModal();
-      await loadData();
+      await refreshAfterGoalAction();
     } catch { setError(t("goals_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -103,7 +79,7 @@ export default function GoalsPage() {
     if (!ok) return;
     try {
       const res = await fetch(`/api/goals/${goal.id}`, { method: "DELETE" });
-      if (res.ok) await loadData();
+      if (res.ok) await refreshAfterGoalAction();
     } catch { /* ignore */ }
   }
 
@@ -113,7 +89,7 @@ export default function GoalsPage() {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ realize }),
       });
-      if (res.ok) await loadData();
+      if (res.ok) await refreshAfterGoalAction();
     } catch { /* ignore */ }
   }
 
@@ -132,7 +108,7 @@ export default function GoalsPage() {
     setForm({ title: "", targetAmount: "", isShared: hasPartner });
   }
 
-  if (loading) return <Loader />;
+  if (!initialLoadDone) return <Loader />;
 
   const showModal = modal || !!editGoal;
 
