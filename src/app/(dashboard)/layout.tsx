@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Home, Wallet, FolderTree, Target, Settings, LogOut } from "lucide-react";
@@ -8,9 +8,8 @@ import LogoImage from "@/components/LogoImage";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { DataProvider, useData } from "@/contexts/DataContext";
 import SwipeNavigation from "@/components/SwipeNavigation";
-
-type User = { id: string; name: string | null; email: string; role: string; partnerId: string | null } | null;
 
 const navItems = [
   { href: "/dashboard", labelKey: "nav_home" as const, Icon: Home },
@@ -20,29 +19,12 @@ const navItems = [
   { href: "/settings", labelKey: "nav_settings" as const, Icon: Settings },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLanguage();
-  const [user, setUser] = useState<User>(null);
+  const { user } = useData();
   const nav = navItems.map((item) => ({ ...item, label: t(item.labelKey) }));
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => {
-        if (r.status === 401) {
-          router.replace("/login");
-          return null;
-        }
-        return r.ok ? r.json() : null;
-      })
-      .then((u) => u != null && setUser(u))
-      .catch(() => setUser(null));
-  }, [router]);
 
   // На мобільній при перемиканні вкладок показувати сторінку з початку
   useEffect(() => {
@@ -53,13 +35,10 @@ export default function DashboardLayout({
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
-    router.refresh();
   }
 
   return (
-    <ThemeProvider>
-      <CurrencyProvider>
-        <div className="min-h-screen min-h-[100dvh] flex flex-col md:flex-row bg-[var(--bg)]">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col md:flex-row bg-[var(--bg)]">
           {/* Мобільна шапка: блюр без відтінку, плавний перехід знизу */}
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
@@ -151,6 +130,16 @@ export default function DashboardLayout({
             </div>
           </nav>
         </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider>
+      <CurrencyProvider>
+        <DataProvider>
+          <DashboardLayoutInner>{children}</DashboardLayoutInner>
+        </DataProvider>
       </CurrencyProvider>
     </ThemeProvider>
   );

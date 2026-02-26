@@ -10,9 +10,9 @@ import {
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useData } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, useConfirm } from "@/components/Modal";
 
-type User = { id: string; name: string | null; email: string; role: string; partnerId: string | null } | null;
 type Partner = { id: string; email: string; role: string } | null;
 
 const currencySymbols: Record<Currency, string> = { UAH: "₴", USD: "$", EUR: "€" };
@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
-  const [user, setUser] = useState<User>(null);
+  const { user, refetchUser, refetchDashboard } = useData();
   const [partner, setPartner] = useState<Partner>(null);
   const [partnerLoading, setPartnerLoading] = useState(true);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -45,14 +45,12 @@ export default function SettingsPage() {
   ];
 
   useEffect(() => {
-    fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)).then(setUser).catch(() => setUser(null));
     fetch("/api/partner").then((r) => r.json()).then((d) => setPartner(d.partner)).catch(() => setPartner(null)).finally(() => setPartnerLoading(false));
   }, []);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
-    router.refresh();
   }
 
   function toggle(section: string) {
@@ -77,7 +75,7 @@ export default function SettingsPage() {
       setPartner(data.partner);
       setAddPartnerModal(false);
       setPartnerEmail("");
-      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)).then(setUser);
+      await Promise.all([refetchUser(), refetchDashboard()]);
     } catch { setPartnerError(t("auth_errorConnection")); }
     finally { setPartnerSaving(false); }
   }
@@ -89,7 +87,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/partner", { method: "DELETE" });
       if (res.ok) {
         setPartner(null);
-        fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)).then(setUser);
+        await Promise.all([refetchUser(), refetchDashboard()]);
       }
     } catch { /* ignore */ }
   }

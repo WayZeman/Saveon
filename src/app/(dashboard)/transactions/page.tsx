@@ -1,27 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, Pencil, Trash2, ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useData, type Transaction, type Category } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, SegmentedControl, useConfirm } from "@/components/Modal";
-
-type Category = { id: string; name: string; isShared: boolean };
-type Transaction = {
-  id: string;
-  amount: number;
-  type: string;
-  categoryId: string;
-  createdAt: string;
-  category: { name: string; isShared: boolean };
-};
 
 export default function TransactionsPage() {
   const { formatMoney } = useCurrency();
   const { t } = useLanguage();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { transactions, categories, initialLoadDone, setTransactions, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [form, setForm] = useState({ amount: "", type: "income" as "income" | "expense", categoryId: "" });
@@ -30,12 +19,6 @@ export default function TransactionsPage() {
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const MAX_AMOUNT = 999_999_999.99;
-
-  useEffect(() => {
-    Promise.all([fetch("/api/transactions").then((r) => r.json()), fetch("/api/categories").then((r) => r.json())])
-      .then(([t, c]) => { setTransactions(t); setCategories(c); })
-      .finally(() => setLoading(false));
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +36,7 @@ export default function TransactionsPage() {
       if (!res.ok) { setError(data.error ?? t("transactions_errorGeneric")); return; }
       setTransactions((prev) => [data, ...prev]);
       closeModal();
+      await invalidateAfterMutation("transaction");
     } catch { setError(t("transactions_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -74,6 +58,7 @@ export default function TransactionsPage() {
       if (!res.ok) { setError(data.error ?? t("transactions_errorGeneric")); return; }
       setTransactions((prev) => prev.map((tx) => (tx.id === editTx.id ? data : tx)));
       setEditTx(null);
+      await invalidateAfterMutation("transaction");
     } catch { setError(t("transactions_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -83,7 +68,10 @@ export default function TransactionsPage() {
     if (!ok) return;
     try {
       const res = await fetch(`/api/transactions/${tr.id}`, { method: "DELETE" });
-      if (res.ok) setTransactions((prev) => prev.filter((x) => x.id !== tr.id));
+      if (res.ok) {
+        setTransactions((prev) => prev.filter((x) => x.id !== tr.id));
+        await invalidateAfterMutation("transaction");
+      }
     } catch { /* ignore */ }
   }
 
@@ -100,7 +88,7 @@ export default function TransactionsPage() {
     setForm({ amount: "", type: "income", categoryId: "" });
   }
 
-  if (loading) return <Loader />;
+  if (!initialLoadDone) return <Loader />;
 
   const showModal = modal || !!editTx;
 

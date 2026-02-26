@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -9,13 +9,8 @@ import {
 import { Wallet, Target, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useData } from "@/contexts/DataContext";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
-
-type Goal = {
-  id: string; title: string; targetAmount: number; isShared: boolean;
-  realizedAt: string | null; balanceUsed: number; remainingNeeded: number;
-  progressPercent: number; createdByUser: { role: string };
-};
 
 async function realizeGoal(goalId: string): Promise<boolean> {
   const res = await fetch(`/api/goals/${goalId}`, {
@@ -26,35 +21,15 @@ async function realizeGoal(goalId: string): Promise<boolean> {
   return res.ok;
 }
 
-type DashboardData = {
-  myBalance: number; partnerBalance: number; totalBalance: number; hasPartner: boolean;
-  goals: Goal[];
-  monthlyData: { month: string; income: number; expense: number }[];
-  pieData: { name: string; value: number }[];
-  comparison: { mySaved: number; partnerSaved: number; myExpense: number; partnerExpense: number } | null;
-};
-
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
 export default function HomePageContent() {
   const { formatMoney } = useCurrency();
   const { t } = useLanguage();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ role: string; partnerId: string | null } | null>(null);
+  const { dashboardData: data, user, initialLoadDone, refetchDashboard, refetchGoals } = useData();
   const [realizingId, setRealizingId] = useState<string | null>(null);
 
-  const loadData = () => {
-    return Promise.all([fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)), fetch("/api/dashboard").then((r) => r.json())])
-      .then(([u, d]) => { setUser(u); setData(d); })
-      .catch(() => setData(null));
-  };
-
-  useEffect(() => {
-    loadData().finally(() => setLoading(false));
-  }, []);
-
-  if (loading || !data) {
+  if (!initialLoadDone || !data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
         <div className="w-8 h-8 border-2 border-[var(--text-tertiary)]/30 border-t-[var(--accent-blue)] rounded-full animate-spin" style={{ animationDuration: "0.8s" }} />
@@ -137,7 +112,9 @@ export default function HomePageContent() {
                           setRealizingId(goal.id);
                           const ok = await realizeGoal(goal.id);
                           setRealizingId(null);
-                          if (ok) loadData();
+                          if (ok) {
+                            await Promise.all([refetchGoals(), refetchDashboard()]);
+                          }
                         }}
                         className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 disabled:opacity-60 transition"
                       >

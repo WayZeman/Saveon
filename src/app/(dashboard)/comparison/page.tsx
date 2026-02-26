@@ -1,34 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useData } from "@/contexts/DataContext";
 import { Users } from "lucide-react";
-
-type DashboardData = {
-  hasPartner: boolean;
-  comparison: { mySaved: number; partnerSaved: number; myIncome: number; partnerIncome: number } | null;
-};
 
 export default function ComparisonPage() {
   const { formatMoney } = useCurrency();
   const { t } = useLanguage();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [user, setUser] = useState<{ role: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { dashboardData: data, user, initialLoadDone } = useData();
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/dashboard").then((r) => r.json()),
-    ])
-      .then(([u, d]) => { setUser(u); setData(d); })
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading || !data) {
+  if (!initialLoadDone || !data) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
         <div className="w-6 h-6 border-2 border-[var(--text-tertiary)] border-t-[var(--text-secondary)] rounded-full animate-spin" />
@@ -56,7 +40,7 @@ export default function ComparisonPage() {
   const partnerLabel = user?.role === "husband" ? t("settings_roleWife") : user?.role === "wife" ? t("settings_roleHusband") : t("settings_partner");
 
   const chartData = [
-    { name: t("comparison_income"), you: c.myIncome, partner: c.partnerIncome },
+    { name: t("comparison_income"), you: c.myIncome ?? 0, partner: c.partnerIncome ?? 0 },
     { name: t("comparison_balanceMonth"), you: c.mySaved, partner: c.partnerSaved },
   ];
 

@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, Pencil, Trash2, FolderTree } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useData, type Category } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
-
-type Category = { id: string; name: string; isShared: boolean; userId: string | null; _count?: { transactions: number } };
 
 export default function CategoriesPage() {
   const { t } = useLanguage();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [user, setUser] = useState<{ partnerId: string | null } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { categories, user, initialLoadDone, setCategories, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
   const [editCat, setEditCat] = useState<Category | null>(null);
   const [name, setName] = useState("");
@@ -19,18 +16,6 @@ export default function CategoriesPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
-
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/categories").then((r) => r.json()),
-    ])
-      .then(([u, list]) => {
-        setUser(u);
-        setCategories(list);
-      })
-      .finally(() => setLoading(false));
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +31,7 @@ export default function CategoriesPage() {
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
       setCategories((prev) => [data, ...prev]);
       closeModal();
+      await invalidateAfterMutation("category");
     } catch { setError(t("categories_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -65,6 +51,7 @@ export default function CategoriesPage() {
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
       setCategories((prev) => prev.map((c) => (c.id === editCat.id ? data : c)));
       closeModal();
+      await invalidateAfterMutation("category");
     } catch { setError(t("categories_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -76,6 +63,7 @@ export default function CategoriesPage() {
       const res = await fetch(`/api/categories/${c.id}`, { method: "DELETE" });
       if (!res.ok) { const d = await res.json(); setError(d.error ?? t("categories_errorGeneric")); return; }
       setCategories((prev) => prev.filter((x) => x.id !== c.id));
+      await invalidateAfterMutation("category");
     } catch { setError(t("categories_errorConnection")); }
   }
 
@@ -94,7 +82,7 @@ export default function CategoriesPage() {
     setName(""); setIsShared(hasPartner);
   }
 
-  if (loading) return <Loader />;
+  if (!initialLoadDone) return <Loader />;
 
   const shared = categories.filter((c) => c.isShared);
   const personal = categories.filter((c) => !c.isShared);
