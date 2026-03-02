@@ -251,8 +251,8 @@ export default function HomePageContent() {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                tickFormatter={(v) => `${v / 1000}k`}
-                width={28}
+                tickFormatter={(v) => formatMoney(v)}
+                width={52}
               />
               <Tooltip
                 contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}

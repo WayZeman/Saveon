@@ -5,15 +5,13 @@ import { useRouter } from "next/navigation";
 import {
   Settings, Sun, Moon, Monitor, ChevronRight, Palette,
   CircleDollarSign, LifeBuoy, Heart, LogOut, ExternalLink, Check,
-  Users, UserPlus, UserMinus, Loader2,
+  Users, UserPlus, UserMinus,
 } from "lucide-react";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, useConfirm } from "@/components/Modal";
-
-type Partner = { id: string; email: string; role: string } | null;
 
 const currencySymbols: Record<Currency, string> = { UAH: "₴", USD: "$", EUR: "€" };
 
@@ -22,9 +20,7 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
-  const { user, refetchUser, refetchDashboard } = useData();
-  const [partner, setPartner] = useState<Partner>(null);
-  const [partnerLoading, setPartnerLoading] = useState(true);
+  const { user, partner, setPartner, refetchUser, refetchPartner, refetchDashboard } = useData();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [addPartnerModal, setAddPartnerModal] = useState(false);
   const [partnerEmail, setPartnerEmail] = useState("");
@@ -43,10 +39,6 @@ export default function SettingsPage() {
     { value: "USD" as Currency, labelKey: "settings_currencyUsd" as const, symbol: "$" },
     { value: "EUR" as Currency, labelKey: "settings_currencyEur" as const, symbol: "€" },
   ];
-
-  useEffect(() => {
-    fetch("/api/partner").then((r) => r.json()).then((d) => setPartner(d.partner)).catch(() => setPartner(null)).finally(() => setPartnerLoading(false));
-  }, []);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -75,7 +67,7 @@ export default function SettingsPage() {
       setPartner(data.partner);
       setAddPartnerModal(false);
       setPartnerEmail("");
-      await Promise.all([refetchUser(), refetchDashboard()]);
+      await Promise.all([refetchUser(), refetchPartner(), refetchDashboard()]);
     } catch { setPartnerError(t("auth_errorConnection")); }
     finally { setPartnerSaving(false); }
   }
@@ -122,11 +114,7 @@ export default function SettingsPage() {
 
       {/* Partner */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-2">
-        {partnerLoading ? (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="w-5 h-5 animate-spin text-[var(--text-tertiary)]" />
-          </div>
-        ) : partner ? (
+        {partner ? (
           <div className="px-5 py-4">
             <div className="flex items-center gap-3">
               <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-blue)] flex items-center justify-center">

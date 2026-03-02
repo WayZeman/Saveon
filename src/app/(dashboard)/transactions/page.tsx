@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Pencil, Trash2, ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Transaction, type Category } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, SegmentedControl, useConfirm } from "@/components/Modal";
@@ -13,7 +13,7 @@ export default function TransactionsPage() {
   const { transactions, categories, initialLoadDone, setTransactions, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
-  const [form, setForm] = useState({ amount: "", type: "income" as "income" | "expense", categoryId: "" });
+  const [form, setForm] = useState({ amount: "", type: "income" as "income" | "expense", categoryId: "", currency: "UAH" as Currency });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
@@ -30,7 +30,7 @@ export default function TransactionsPage() {
     try {
       const res = await fetch("/api/transactions", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, type: form.type, categoryId: form.categoryId }),
+        body: JSON.stringify({ amount, type: form.type, categoryId: form.categoryId, currency: form.currency }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("transactions_errorGeneric")); return; }
@@ -77,16 +77,22 @@ export default function TransactionsPage() {
 
   function openCreate() {
     setModal(true); setEditTx(null); setError("");
-    setForm({ amount: "", type: "income", categoryId: "" });
+    setForm({ amount: "", type: "income", categoryId: "", currency: "UAH" });
   }
   function openEdit(t: Transaction) {
     setEditTx(t); setError("");
-    setForm({ amount: String(t.amount), type: t.type as "income" | "expense", categoryId: t.categoryId });
+    setForm({ amount: String(t.amount), type: t.type as "income" | "expense", categoryId: t.categoryId, currency: "UAH" });
   }
   function closeModal() {
     setModal(false); setEditTx(null); setError("");
-    setForm({ amount: "", type: "income", categoryId: "" });
+    setForm({ amount: "", type: "income", categoryId: "", currency: "UAH" });
   }
+
+  const currencyOptions: { value: Currency; labelKey: string }[] = [
+    { value: "UAH", labelKey: "transactions_currencyUah" },
+    { value: "USD", labelKey: "transactions_currencyUsd" },
+    { value: "EUR", labelKey: "transactions_currencyEur" },
+  ];
 
   if (!initialLoadDone) return <Loader />;
 
@@ -163,8 +169,18 @@ export default function TransactionsPage() {
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}{c.isShared ? ` (${t("transactions_shared")})` : ""}</option>)}
                 </select>
               </div>
+              {!editTx && (
+                <div>
+                  <FieldLabel>{t("transactions_currency")}</FieldLabel>
+                  <select value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as Currency }))}>
+                    {currencyOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
-                <FieldLabel>{t("transactions_amount")}</FieldLabel>
+                <FieldLabel>{t("transactions_amount")}{!editTx && form.currency !== "UAH" ? ` (${form.currency})` : ""}</FieldLabel>
                 <input type="text" inputMode="decimal" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" required />
               </div>
               {error && <FieldError message={error} />}

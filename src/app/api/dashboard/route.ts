@@ -49,8 +49,9 @@ export async function GET(request: Request) {
     select: { id: true, name: true },
   });
   const categoryIds = new Set(categories.map((c) => c.id));
+  // Розподіл по категоріях за весь час (всі транзакції)
   const categoryTotals: Record<string, { name: string; income: number }> = {};
-  for (const t of monthTransactions) {
+  for (const t of allTransactions) {
     if (t.type !== "income" || !categoryIds.has(t.categoryId)) continue;
     const cat = categories.find((x) => x.id === t.categoryId);
     if (!cat) continue;
