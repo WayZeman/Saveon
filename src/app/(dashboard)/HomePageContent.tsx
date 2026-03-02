@@ -157,7 +157,7 @@ export default function HomePageContent() {
       )}
 
       {/* По категоріях — відсотки на діаграмі з полосками, minAngle щоб малі не налазили */}
-      <section className="card opacity-0 animate-slide-up animate-stagger-4 cursor-default" aria-disabled="true">
+      <section className="card opacity-0 animate-slide-up animate-stagger-4 cursor-default">
         <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2 pointer-events-none">
           <PieChartIcon className="w-[18px] h-[18px] text-[var(--accent-blue)]" strokeWidth={2} />
           {t("home_byCategory")}
@@ -209,7 +209,7 @@ export default function HomePageContent() {
         )}
       </section>
 
-      <section className="card opacity-0 animate-slide-up animate-stagger-5 overflow-hidden cursor-default" aria-disabled="true">
+      <section className="card opacity-0 animate-slide-up animate-stagger-5 overflow-hidden cursor-default">
         <div className="pointer-events-none mb-4">
           <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
             <TrendingUp className="w-[18px] h-[18px] text-[var(--accent-green)]" strokeWidth={2} />
