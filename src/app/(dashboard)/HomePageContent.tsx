@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
 import { Wallet, Target, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
@@ -252,7 +252,7 @@ export default function HomePageContent() {
             <>
               <div className="h-48 md:h-56 chart-minimal -mx-1">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
+                  <ComposedChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="month"
@@ -278,8 +278,8 @@ export default function HomePageContent() {
                     {/* Накопичувальний дохід — зелений (не падає до нуля) */}
                     <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive connectNulls />
                     {/* Баланс накопичувальний */}
-                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)", strokeWidth: 0 }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
-                  </AreaChart>
+                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
               <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[var(--border)] flex-wrap">
