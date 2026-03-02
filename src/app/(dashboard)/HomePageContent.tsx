@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
 import { Wallet, Target, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
@@ -23,8 +23,20 @@ async function realizeGoal(goalId: string): Promise<boolean> {
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
+const PALE_RED = "#e57373";
+
+function formatAxisShort(valueUah: number, currency: string, rates: { usd: number; eur: number } | null): string {
+  let v = valueUah;
+  if (currency === "USD" && rates) v = valueUah / rates.usd;
+  else if (currency === "EUR" && rates) v = valueUah / rates.eur;
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000) return (v / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (abs >= 1000) return (v / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  return String(Math.round(v));
+}
+
 export default function HomePageContent() {
-  const { formatMoney } = useCurrency();
+  const { formatMoney, currency, rates } = useCurrency();
   const { t } = useLanguage();
   const { dashboardData: data, user, initialLoadDone, refetchDashboard, refetchGoals } = useData();
   const [realizingId, setRealizingId] = useState<string | null>(null);
@@ -225,59 +237,74 @@ export default function HomePageContent() {
           );
         })()}
 
-        {/* Chart */}
-        <div className="h-48 md:h-56 chart-minimal -mx-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data.monthlyData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
-              <defs>
-                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--accent-green)" stopOpacity={0.18} />
-                  <stop offset="100%" stopColor="var(--accent-green)" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a1a1a6" stopOpacity={0.12} />
-                  <stop offset="100%" stopColor="#a1a1a6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
-              <XAxis
-                dataKey="month"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                tickFormatter={(v) => (typeof v === "string" ? v.slice(-2) : v)}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                tickFormatter={(v) => formatMoney(v)}
-                width={52}
-              />
-              <Tooltip
-                contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}
-                formatter={(value: number, name: string) => [formatMoney(value), name]}
-                cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
-              />
-              {/* Expense — grey, behind income */}
-              <Area type="monotone" dataKey="expense" stroke="#a1a1a6" strokeWidth={1.5} fill="url(#expenseGrad)" strokeLinecap="round" name={t("home_expense")} isAnimationActive dot={false} activeDot={{ r: 4, fill: "#a1a1a6", strokeWidth: 0 }} />
-              {/* Income — green, in front */}
-              <Area type="monotone" dataKey="income" stroke="var(--accent-green)" strokeWidth={2} fill="url(#incomeGrad)" strokeLinecap="round" name={t("home_income")} isAnimationActive dot={false} activeDot={{ r: 4, fill: "var(--accent-green)", strokeWidth: 0 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[var(--border)]">
-          <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-            <span className="w-6 h-0.5 rounded-full bg-[var(--accent-green)] inline-block" />
-            {t("home_income")}
-          </div>
-          <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-            <span className="w-6 h-0.5 rounded-full bg-[#a1a1a6] inline-block" />
-            {t("home_expense")}
-          </div>
-        </div>
+        {/* Chart: cumulative balance (фіксований протягом часу) + income/expense areas */}
+        {data.monthlyData.length > 0 && (() => {
+          let running = 0;
+          const chartData = data.monthlyData.map((d) => {
+            running += d.income - d.expense;
+            return { ...d, balance: running };
+          });
+          return (
+            <>
+              <div className="h-48 md:h-56 chart-minimal -mx-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--accent-green)" stopOpacity={0.18} />
+                        <stop offset="100%" stopColor="var(--accent-green)" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={PALE_RED} stopOpacity={0.15} />
+                        <stop offset="100%" stopColor={PALE_RED} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
+                      tickFormatter={(v) => (typeof v === "string" ? v.slice(-2) : v)}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
+                      tickFormatter={(v) => formatAxisShort(v, currency, rates)}
+                      width={36}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}
+                      formatter={(value: number, name: string) => [formatMoney(value), name]}
+                      cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
+                    />
+                    {/* Expense — блідо-червона, ззаду */}
+                    <Area type="monotone" dataKey="expense" stroke={PALE_RED} strokeWidth={1.5} fill="url(#expenseGrad)" strokeLinecap="round" name={t("home_expense")} isAnimationActive dot={false} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} />
+                    {/* Income — зелений */}
+                    <Area type="monotone" dataKey="income" stroke="var(--accent-green)" strokeWidth={2} fill="url(#incomeGrad)" strokeLinecap="round" name={t("home_income")} isAnimationActive dot={false} activeDot={{ r: 4, fill: "var(--accent-green)", strokeWidth: 0 }} />
+                    {/* Баланс накопичувальний — не падає якщо не поповнював (як Interactive Brokers) */}
+                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)", strokeWidth: 0 }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[var(--border)] flex-wrap">
+                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
+                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-blue)] inline-block" />
+                  {t("home_balanceChart")}
+                </div>
+                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
+                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-green)] inline-block" />
+                  {t("home_income")}
+                </div>
+                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
+                  <span className="w-6 h-0.5 rounded-full inline-block" style={{ backgroundColor: PALE_RED }} />
+                  {t("home_expense")}
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </section>
     </div>
   );
