@@ -183,6 +183,16 @@ input::placeholder {
   stroke: var(--text-tertiary);
 }
 
+/* Тултіп при наведенні на діаграму — білий текст у темній темі (recharts може рендерити в порталі) */
+.theme-dark .recharts-tooltip-wrapper,
+.theme-dark .recharts-default-tooltip {
+  color: #fff !important;
+}
+.theme-dark .recharts-default-tooltip .recharts-tooltip-label,
+.theme-dark .recharts-default-tooltip .recharts-tooltip-item {
+  color: #fff !important;
+}
+
 .card {
   background: var(--card-bg);
   backdrop-filter: blur(20px) saturate(150%);

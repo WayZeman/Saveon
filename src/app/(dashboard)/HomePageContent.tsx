@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
 import { Wallet, Target, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
@@ -40,6 +40,7 @@ export default function HomePageContent() {
   const { t } = useLanguage();
   const { dashboardData: data, user, initialLoadDone, refetchDashboard, refetchGoals } = useData();
   const [realizingId, setRealizingId] = useState<string | null>(null);
+  const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "90d" | "180d">("30d");
 
   if (!initialLoadDone || !data) {
     return (
@@ -185,7 +186,7 @@ export default function HomePageContent() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px" }}
+                    contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px", color: "var(--text)" }}
                     formatter={(value: number, name: string) => [formatMoney(value), name]}
                   />
                 </PieChart>
@@ -217,48 +218,69 @@ export default function HomePageContent() {
 
         {data.monthlyData.length > 0 ? (
           (() => {
+            const periodMonths: Record<"7d" | "30d" | "90d" | "180d", number> = { "7d": 1, "30d": 2, "90d": 4, "180d": 6 };
+            const n = periodMonths[chartPeriod];
             let cumulativeBalance = 0;
-            const chartData = data.monthlyData.map((d) => {
+            const fullData = data.monthlyData.map((d) => {
               cumulativeBalance += d.income - d.expense;
               return { ...d, cumulativeBalance };
             });
+            const chartData = fullData.slice(-n);
 
             const first = chartData[0]?.cumulativeBalance ?? 0;
             const last = chartData[chartData.length - 1]?.cumulativeBalance ?? 0;
 
             return (
-              <div className="relative h-44 md:h-52 -mx-2 pointer-events-auto">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 10, right: 16, left: 16, bottom: 12 }}>
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={false}
-                    />
-                    <YAxis hide domain={["auto", "auto"]} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}
-                      formatter={(value: number) => [formatMoney(value), t("home_balanceChart")]}
-                      cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="cumulativeBalance"
-                      stroke="#ff9f0a"
-                      strokeWidth={2.5}
-                      dot={false}
-                      isAnimationActive
-                      connectNulls
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-
-                <div className="pointer-events-none absolute left-4 bottom-3 text-[11px] text-[var(--text-tertiary)]">
-                  {formatMoney(first)}
+              <div className="pointer-events-auto">
+                <div className="relative h-44 md:h-56 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 28, right: 20, left: 20, bottom: 36 }}>
+                      <defs>
+                        <linearGradient id="balanceAreaFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ff9f0a" stopOpacity={0.35} />
+                          <stop offset="100%" stopColor="#ff9f0a" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={false} />
+                      <YAxis hide domain={["auto", "auto"]} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}
+                        formatter={(value: number) => [formatMoney(value), t("home_balanceChart")]}
+                        cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="cumulativeBalance"
+                        stroke="#ff9f0a"
+                        strokeWidth={2.5}
+                        fill="url(#balanceAreaFill)"
+                        isAnimationActive
+                        connectNulls
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <span className="absolute left-5 bottom-10 text-[13px] font-medium text-white">
+                    {formatMoney(first)}
+                  </span>
+                  <span className="absolute right-5 top-4 text-[13px] font-medium text-white">
+                    {formatMoney(last)}
+                  </span>
                 </div>
-                <div className="pointer-events-none absolute right-4 top-3 text-[11px] text-[var(--text-tertiary)]">
-                  {formatMoney(last)}
+                <div className="flex items-center gap-1 mt-2">
+                  {(["7d", "30d", "90d", "180d"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setChartPeriod(p)}
+                      className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
+                        chartPeriod === p
+                          ? "bg-[var(--input-bg)] text-[var(--text)]"
+                          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
               </div>
             );
