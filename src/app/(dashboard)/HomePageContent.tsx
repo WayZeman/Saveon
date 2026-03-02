@@ -25,6 +25,8 @@ const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f"
 
 const PALE_RED = "#e57373";
 
+type ChartPeriod = "7d" | "30d" | "90d" | "180d" | "all";
+
 function formatAxisShort(valueUah: number, currency: string, rates: { usd: number; eur: number } | null): string {
   let v = valueUah;
   if (currency === "USD" && rates) v = valueUah / rates.usd;
@@ -40,7 +42,7 @@ export default function HomePageContent() {
   const { t } = useLanguage();
   const { dashboardData: data, user, initialLoadDone, refetchDashboard, refetchGoals } = useData();
   const [realizingId, setRealizingId] = useState<string | null>(null);
-  const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "90d" | "180d">("30d");
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("30d");
 
   if (!initialLoadDone || !data) {
     return (
@@ -218,14 +220,14 @@ export default function HomePageContent() {
 
         {data.monthlyData.length > 0 ? (
           (() => {
-            const periodMonths: Record<"7d" | "30d" | "90d" | "180d", number> = { "7d": 1, "30d": 2, "90d": 4, "180d": 6 };
-            const n = periodMonths[chartPeriod];
+            const periodConfig: Record<ChartPeriod, number | "all"> = { "7d": 1, "30d": 2, "90d": 4, "180d": 6, all: "all" };
             let cumulativeBalance = 0;
             const fullData = data.monthlyData.map((d) => {
               cumulativeBalance += d.income - d.expense;
               return { ...d, cumulativeBalance };
             });
-            const chartData = fullData.slice(-n);
+            const n = periodConfig[chartPeriod];
+            const chartData = n === "all" ? fullData : fullData.slice(-n);
 
             const first = chartData[0]?.cumulativeBalance ?? 0;
             const last = chartData[chartData.length - 1]?.cumulativeBalance ?? 0;
@@ -267,18 +269,24 @@ export default function HomePageContent() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1 mt-2">
-                  {(["7d", "30d", "90d", "180d"] as const).map((p) => (
+                  {([
+                    { value: "7d" as ChartPeriod, label: "7д" },
+                    { value: "30d" as ChartPeriod, label: "30д" },
+                    { value: "90d" as ChartPeriod, label: "90д" },
+                    { value: "180d" as ChartPeriod, label: "180д" },
+                    { value: "all" as ChartPeriod, label: "Весь період" },
+                  ]).map((opt) => (
                     <button
-                      key={p}
+                      key={opt.value}
                       type="button"
-                      onClick={() => setChartPeriod(p)}
+                      onClick={() => setChartPeriod(opt.value)}
                       className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
-                        chartPeriod === p
+                        chartPeriod === opt.value
                           ? "bg-[var(--input-bg)] text-[var(--text)]"
                           : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                       }`}
                     >
-                      {p}
+                      {opt.label}
                     </button>
                   ))}
                 </div>
