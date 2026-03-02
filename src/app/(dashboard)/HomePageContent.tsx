@@ -237,28 +237,22 @@ export default function HomePageContent() {
           );
         })()}
 
-        {/* Chart: cumulative balance (фіксований протягом часу) + income/expense areas */}
+        {/* Chart: баланс + накопичувальні дохід/витрата (лінії не падають до нуля) */}
         {data.monthlyData.length > 0 && (() => {
-          let running = 0;
+          let balance = 0;
+          let sumIncome = 0;
+          let sumExpense = 0;
           const chartData = data.monthlyData.map((d) => {
-            running += d.income - d.expense;
-            return { ...d, balance: running };
+            sumIncome += d.income;
+            sumExpense += d.expense;
+            balance += d.income - d.expense;
+            return { ...d, balance, cumulativeIncome: sumIncome, cumulativeExpense: sumExpense };
           });
           return (
             <>
               <div className="h-48 md:h-56 chart-minimal -mx-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--accent-green)" stopOpacity={0.18} />
-                        <stop offset="100%" stopColor="var(--accent-green)" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={PALE_RED} stopOpacity={0.15} />
-                        <stop offset="100%" stopColor={PALE_RED} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
                     <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="month"
@@ -279,11 +273,11 @@ export default function HomePageContent() {
                       formatter={(value: number, name: string) => [formatMoney(value), name]}
                       cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
                     />
-                    {/* Expense — блідо-червона, ззаду */}
-                    <Area type="monotone" dataKey="expense" stroke={PALE_RED} strokeWidth={1.5} fill="url(#expenseGrad)" strokeLinecap="round" name={t("home_expense")} isAnimationActive dot={false} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} />
-                    {/* Income — зелений */}
-                    <Area type="monotone" dataKey="income" stroke="var(--accent-green)" strokeWidth={2} fill="url(#incomeGrad)" strokeLinecap="round" name={t("home_income")} isAnimationActive dot={false} activeDot={{ r: 4, fill: "var(--accent-green)", strokeWidth: 0 }} />
-                    {/* Баланс накопичувальний — не падає якщо не поповнював (як Interactive Brokers) */}
+                    {/* Накопичувальна витрата — блідо-червона (не падає до нуля) */}
+                    <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive connectNulls />
+                    {/* Накопичувальний дохід — зелений (не падає до нуля) */}
+                    <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive connectNulls />
+                    {/* Баланс накопичувальний */}
                     <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)", strokeWidth: 0 }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
                   </AreaChart>
                 </ResponsiveContainer>
