@@ -216,75 +216,53 @@ export default function HomePageContent() {
         </div>
 
         {data.monthlyData.length > 0 ? (
-          <>
-            {(() => {
-              const totalIncome = data.monthlyData.reduce((s, d) => s + d.income, 0);
-              const totalExpense = data.monthlyData.reduce((s, d) => s + d.expense, 0);
-              return (
-                <div className="flex gap-4 p-4 mb-5 rounded-xl bg-[var(--input-bg)] border border-[var(--border)]">
-                  <div className="flex-1 text-center">
-                    <p className="text-[12px] text-[var(--text-tertiary)] mb-1">{t("home_income")}</p>
-                    <p className="text-[18px] font-semibold text-[var(--accent-green)]">{formatMoney(totalIncome)}</p>
-                  </div>
-                  <div className="w-px bg-[var(--border)]" />
-                  <div className="flex-1 text-center">
-                    <p className="text-[12px] text-[var(--text-tertiary)] mb-1">{t("home_expense")}</p>
-                    <p className="text-[18px] font-semibold text-[var(--text)]">{formatMoney(totalExpense)}</p>
-                  </div>
-                </div>
-              );
-            })()}
+          (() => {
+            let cumulativeBalance = 0;
+            const chartData = data.monthlyData.map((d) => {
+              cumulativeBalance += d.income - d.expense;
+              return { ...d, cumulativeBalance };
+            });
 
-            {(() => {
-              let balance = 0;
-              let sumIncome = 0;
-              let sumExpense = 0;
-              const chartData = data.monthlyData.map((d) => {
-                sumIncome += d.income;
-                sumExpense += d.expense;
-                balance += d.income - d.expense;
-                return { ...d, balance, cumulativeIncome: sumIncome, cumulativeExpense: sumExpense };
-              });
-              return (
-                <>
-                  <div className="h-44 md:h-52 chart-minimal -mx-1 pointer-events-auto">
+            const first = chartData[0]?.cumulativeBalance ?? 0;
+            const last = chartData[chartData.length - 1]?.cumulativeBalance ?? 0;
+
+            return (
+              <div className="relative h-44 md:h-52 -mx-2 pointer-events-auto">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
+                  <ComposedChart data={chartData} margin={{ top: 10, right: 16, left: 16, bottom: 12 }}>
                     <XAxis
                       dataKey="month"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                      tickFormatter={(v) => (typeof v === "string" ? v.slice(-2) : v)}
+                      tick={false}
                     />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                      tickFormatter={(v) => formatAxisShort(v, currency, rates)}
-                      width={36}
-                    />
+                    <YAxis hide domain={["auto", "auto"]} />
                     <Tooltip
                       contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}
-                      formatter={(value: number, name: string) => [formatMoney(value), name]}
+                      formatter={(value: number) => [formatMoney(value), t("home_balanceChart")]}
                       cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
                     />
-                  <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive connectNulls />
-                  <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive connectNulls />
-                  <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--border)] flex-wrap text-[12px] text-[var(--text-secondary)]">
-              <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 rounded-full bg-[var(--accent-blue)]" />{t("home_balanceChart")}</span>
-              <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 rounded-full bg-[var(--accent-green)]" />{t("home_income")}</span>
-              <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 rounded-full" style={{ backgroundColor: PALE_RED }} />{t("home_expense")}</span>
-            </div>
-          </>
-              );
-            })()}
-          </>
+                    <Line
+                      type="monotone"
+                      dataKey="cumulativeBalance"
+                      stroke="#ff9f0a"
+                      strokeWidth={2.5}
+                      dot={false}
+                      isAnimationActive
+                      connectNulls
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+
+                <div className="pointer-events-none absolute left-4 bottom-3 text-[11px] text-[var(--text-tertiary)]">
+                  {formatMoney(first)}
+                </div>
+                <div className="pointer-events-none absolute right-4 top-3 text-[11px] text-[var(--text-tertiary)]">
+                  {formatMoney(last)}
+                </div>
+              </div>
+            );
+          })()
         ) : (
           <p className="text-[14px] text-[var(--text-tertiary)] py-8 text-center">{t("home_noDataPeriod")}</p>
         )}
