@@ -76,8 +76,11 @@ export type Goal = {
   createdByUser: { id: string; email: string; role: string };
 };
 
+export type Partner = { id: string; email: string; role: string } | null;
+
 type DataState = {
   user: User;
+  partner: Partner;
   dashboardData: DashboardData | null;
   transactions: Transaction[];
   categories: Category[];
@@ -87,11 +90,13 @@ type DataState = {
 
 type DataContextValue = DataState & {
   setUser: (u: User | ((prev: User) => User)) => void;
+  setPartner: (p: Partner | ((prev: Partner) => Partner)) => void;
   setDashboardData: (d: DashboardData | null | ((prev: DashboardData | null) => DashboardData | null)) => void;
   setTransactions: (t: Transaction[] | ((prev: Transaction[]) => Transaction[])) => void;
   setCategories: (c: Category[] | ((prev: Category[]) => Category[])) => void;
   setGoals: (g: Goal[] | ((prev: Goal[]) => Goal[])) => void;
   refetchUser: () => Promise<void>;
+  refetchPartner: () => Promise<void>;
   refetchDashboard: () => Promise<void>;
   refetchTransactions: () => Promise<void>;
   refetchCategories: () => Promise<void>;
@@ -105,6 +110,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<DataState>({
     user: null,
+    partner: null,
     dashboardData: null,
     transactions: [],
     categories: [],
@@ -124,20 +130,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       const user = meRes.ok ? await meRes.json() : null;
 
-      const [dashboardRes, transactionsRes, categoriesRes, goalsRes] = await Promise.all([
+      const [dashboardRes, transactionsRes, categoriesRes, goalsRes, partnerRes] = await Promise.all([
         fetch("/api/dashboard"),
         fetch("/api/transactions"),
         fetch("/api/categories"),
         fetch("/api/goals"),
+        fetch("/api/partner"),
       ]);
 
       const dashboardData = dashboardRes.ok ? await dashboardRes.json() : null;
       const transactions = transactionsRes.ok ? await transactionsRes.json() : [];
       const categories = categoriesRes.ok ? await categoriesRes.json() : [];
       const goals = goalsRes.ok ? await goalsRes.json() : [];
+      const partnerData = partnerRes.ok ? await partnerRes.json() : { partner: null };
+      const partner = partnerData.partner ?? null;
 
       setState({
         user,
+        partner,
         dashboardData,
         transactions,
         categories,
@@ -155,6 +165,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const setUser = useCallback((u: User | ((prev: User) => User)) => {
     setState((s) => ({ ...s, user: typeof u === "function" ? u(s.user) : u }));
+  }, []);
+  const setPartner = useCallback((p: Partner | ((prev: Partner) => Partner)) => {
+    setState((s) => ({ ...s, partner: typeof p === "function" ? p(s.partner) : p }));
   }, []);
   const setDashboardData = useCallback(
     (d: DashboardData | null | ((prev: DashboardData | null) => DashboardData | null)) => {
@@ -190,6 +203,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const user = res.ok ? await res.json() : null;
     setState((s) => ({ ...s, user }));
   }, [router]);
+
+  const refetchPartner = useCallback(async () => {
+    const res = await fetch("/api/partner");
+    const data = res.ok ? await res.json() : { partner: null };
+    setState((s) => ({ ...s, partner: data.partner ?? null }));
+  }, []);
 
   const refetchDashboard = useCallback(async () => {
     const res = await fetch("/api/dashboard");
@@ -235,11 +254,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const value: DataContextValue = {
     ...state,
     setUser,
+    setPartner,
     setDashboardData,
     setTransactions,
     setCategories,
     setGoals,
     refetchUser,
+    refetchPartner,
     refetchDashboard,
     refetchTransactions,
     refetchCategories,

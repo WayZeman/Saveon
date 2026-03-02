@@ -111,8 +111,10 @@ export default function CategoriesPage() {
         <FieldError message={error} />
       )}
 
-      <CategoryList title={t("categories_shared")} items={shared} onEdit={openEdit} onDelete={handleDelete} delay={1} emptyText={t("categories_emptyShared")} />
-      <CategoryList title={t("categories_my")} items={personal} onEdit={openEdit} onDelete={handleDelete} delay={2} emptyText={t("categories_emptyPersonal")} />
+      {hasPartner && (
+        <CategoryList title={t("categories_shared")} items={shared} onEdit={openEdit} onDelete={handleDelete} delay={1} emptyText={t("categories_emptyShared")} />
+      )}
+      <CategoryList title={t("categories_my")} items={personal} onEdit={openEdit} onDelete={handleDelete} delay={hasPartner ? 2 : 1} emptyText={t("categories_emptyPersonal")} />
 
       {confirmDialog}
       {showModal && (

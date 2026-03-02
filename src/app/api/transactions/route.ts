@@ -3,6 +3,19 @@ import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { transactionSchema } from "@/lib/validations";
 
+async function getRates(): Promise<{ usd: number; eur: number }> {
+  try {
+    const res = await fetch("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json", { next: { revalidate: 3600 } });
+    if (!res.ok) throw new Error("NBU fetch failed");
+    const data = (await res.json()) as { cc: string; rate: number }[];
+    const usd = data.find((x) => x.cc === "USD")?.rate ?? 41;
+    const eur = data.find((x) => x.cc === "EUR")?.rate ?? 45;
+    return { usd, eur };
+  } catch {
+    return { usd: 41, eur: 45 };
+  }
+}
+
 export async function GET(request: Request) {
   const session = await requireSession();
   const { searchParams } = new URL(request.url);
@@ -36,7 +49,13 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { amount, type, categoryId, goalId } = parsed.data;
+    const { amount, type, categoryId, goalId, currency } = parsed.data;
+    let amountUah = amount;
+    if (currency && currency !== "UAH") {
+      const rates = await getRates();
+      if (currency === "USD") amountUah = amount * rates.usd;
+      else if (currency === "EUR") amountUah = amount * rates.eur;
+    }
     const category = await prisma.category.findFirst({
       where: { id: categoryId },
     });
@@ -46,7 +65,7 @@ export async function POST(request: Request) {
 
     const transaction = await prisma.transaction.create({
       data: {
-        amount,
+        amount: amountUah,
         type,
         categoryId,
         userId: session.id,
