@@ -82,6 +82,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_incomeExpenseHint: "Динаміка за останні місяці",
     home_income: "Доходи",
     home_expense: "Витрати",
+    home_balanceChart: "Баланс",
     home_loading: "Завантаження...",
 
     // Transactions
