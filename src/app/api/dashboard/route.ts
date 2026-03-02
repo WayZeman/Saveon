@@ -115,35 +115,35 @@ export async function GET(request: Request) {
 }
 
 async function getMonthlyData(myId: string, partnerId: string | null) {
-  const start = new Date();
-  start.setMonth(start.getMonth() - 11);
-  start.setDate(1);
-  start.setHours(0, 0, 0, 0);
-
   const userIds = partnerId ? [myId, partnerId] : [myId];
   const transactions = await prisma.transaction.findMany({
-    where: { userId: { in: userIds }, createdAt: { gte: start } },
-    select: { userId: true, type: true, amount: true, createdAt: true },
+    where: { userId: { in: userIds } },
+    select: { type: true, amount: true, createdAt: true },
   });
 
   const byMonth: Record<string, { income: number; expense: number }> = {};
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(start);
-    d.setMonth(d.getMonth() + i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    byMonth[key] = { income: 0, expense: 0 };
-  }
-
   for (const t of transactions) {
     const d = new Date(t.createdAt);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const row = byMonth[key];
-    if (!row) continue;
-    if (t.type === "income") row.income += t.amount;
-    else row.expense += t.amount;
+    if (!byMonth[key]) byMonth[key] = { income: 0, expense: 0 };
+    if (t.type === "income") byMonth[key].income += t.amount;
+    else byMonth[key].expense += t.amount;
   }
 
-  return Object.entries(byMonth)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, data]) => ({ month, ...data }));
+  const keys = Object.keys(byMonth).sort();
+  if (keys.length === 0) {
+    const now = new Date();
+    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return [{ month: key, income: 0, expense: 0 }];
+  }
+  const [firstY, firstM] = keys[0].split("-").map(Number);
+  const [lastY, lastM] = keys[keys.length - 1].split("-").map(Number);
+  const start = new Date(firstY, firstM - 1, 1);
+  const end = new Date(lastY, lastM - 1, 1);
+  const result: { month: string; income: number; expense: number }[] = [];
+  for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    result.push({ month: key, ...(byMonth[key] ?? { income: 0, expense: 0 }) });
+  }
+  return result;
 }
