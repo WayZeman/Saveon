@@ -154,8 +154,8 @@ export default function HomePageContent() {
       )}
 
       {/* По категоріях — відсотки на діаграмі з полосками, minAngle щоб малі не налазили */}
-      <section className="card opacity-0 animate-slide-up animate-stagger-4">
-        <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
+      <section className="card opacity-0 animate-slide-up animate-stagger-4 cursor-default" aria-disabled="true">
+        <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2 pointer-events-none">
           <PieChartIcon className="w-[18px] h-[18px] text-[var(--accent-blue)]" strokeWidth={2} />
           {t("home_byCategory")}
         </h2>
@@ -206,51 +206,48 @@ export default function HomePageContent() {
         )}
       </section>
 
-      <section className="card opacity-0 animate-slide-up animate-stagger-5 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-              <TrendingUp className="w-[18px] h-[18px] text-[var(--accent-green)]" strokeWidth={2} />
-              {t("home_incomeExpense")}
-            </h2>
-            <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{t("home_incomeExpenseHint")}</p>
-          </div>
+      <section className="card opacity-0 animate-slide-up animate-stagger-5 overflow-hidden cursor-default" aria-disabled="true">
+        <div className="pointer-events-none mb-4">
+          <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
+            <TrendingUp className="w-[18px] h-[18px] text-[var(--accent-green)]" strokeWidth={2} />
+            {t("home_incomeExpense")}
+          </h2>
+          <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{t("home_incomeExpenseHint")}</p>
         </div>
 
-        {/* Summary row */}
-        {data.monthlyData.length > 0 && (() => {
-          const totalIncome = data.monthlyData.reduce((s, d) => s + d.income, 0);
-          const totalExpense = data.monthlyData.reduce((s, d) => s + d.expense, 0);
-          return (
-            <div className="flex gap-4 mb-5 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)]">
-              <div className="flex-1">
-                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-0.5">{t("home_income")}</p>
-                <p className="text-[15px] font-semibold text-[var(--accent-green)]">{formatMoney(totalIncome)}</p>
-              </div>
-              <div className="w-px bg-[var(--border)]" />
-              <div className="flex-1">
-                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-0.5">{t("home_expense")}</p>
-                <p className="text-[15px] font-semibold text-[var(--text-secondary)]">{formatMoney(totalExpense)}</p>
-              </div>
-            </div>
-          );
-        })()}
+        {data.monthlyData.length > 0 ? (
+          <>
+            {(() => {
+              const totalIncome = data.monthlyData.reduce((s, d) => s + d.income, 0);
+              const totalExpense = data.monthlyData.reduce((s, d) => s + d.expense, 0);
+              return (
+                <div className="flex gap-4 p-4 mb-5 rounded-xl bg-[var(--input-bg)] border border-[var(--border)]">
+                  <div className="flex-1 text-center">
+                    <p className="text-[12px] text-[var(--text-tertiary)] mb-1">{t("home_income")}</p>
+                    <p className="text-[18px] font-semibold text-[var(--accent-green)]">{formatMoney(totalIncome)}</p>
+                  </div>
+                  <div className="w-px bg-[var(--border)]" />
+                  <div className="flex-1 text-center">
+                    <p className="text-[12px] text-[var(--text-tertiary)] mb-1">{t("home_expense")}</p>
+                    <p className="text-[18px] font-semibold text-[var(--text)]">{formatMoney(totalExpense)}</p>
+                  </div>
+                </div>
+              );
+            })()}
 
-        {/* Chart: баланс + накопичувальні дохід/витрата (лінії не падають до нуля) */}
-        {data.monthlyData.length > 0 && (() => {
-          let balance = 0;
-          let sumIncome = 0;
-          let sumExpense = 0;
-          const chartData = data.monthlyData.map((d) => {
-            sumIncome += d.income;
-            sumExpense += d.expense;
-            balance += d.income - d.expense;
-            return { ...d, balance, cumulativeIncome: sumIncome, cumulativeExpense: sumExpense };
-          });
-          return (
-            <>
-              <div className="h-48 md:h-56 chart-minimal -mx-1">
+            {(() => {
+              let balance = 0;
+              let sumIncome = 0;
+              let sumExpense = 0;
+              const chartData = data.monthlyData.map((d) => {
+                sumIncome += d.income;
+                sumExpense += d.expense;
+                balance += d.income - d.expense;
+                return { ...d, balance, cumulativeIncome: sumIncome, cumulativeExpense: sumExpense };
+              });
+              return (
+                <>
+                  <div className="h-44 md:h-52 chart-minimal -mx-1 pointer-events-auto">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
@@ -273,32 +270,24 @@ export default function HomePageContent() {
                       formatter={(value: number, name: string) => [formatMoney(value), name]}
                       cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
                     />
-                    {/* Накопичувальна витрата — блідо-червона (не падає до нуля) */}
-                    <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive connectNulls />
-                    {/* Накопичувальний дохід — зелений (не падає до нуля) */}
-                    <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive connectNulls />
-                    {/* Баланс накопичувальний */}
-                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[var(--border)] flex-wrap">
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-blue)] inline-block" />
-                  {t("home_balanceChart")}
-                </div>
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-green)] inline-block" />
-                  {t("home_income")}
-                </div>
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full inline-block" style={{ backgroundColor: PALE_RED }} />
-                  {t("home_expense")}
-                </div>
-              </div>
-            </>
-          );
-        })()}
+                  <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive connectNulls />
+                  <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive connectNulls />
+                  <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--border)] flex-wrap text-[12px] text-[var(--text-secondary)]">
+              <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 rounded-full bg-[var(--accent-blue)]" />{t("home_balanceChart")}</span>
+              <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 rounded-full bg-[var(--accent-green)]" />{t("home_income")}</span>
+              <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 rounded-full" style={{ backgroundColor: PALE_RED }} />{t("home_expense")}</span>
+            </div>
+          </>
+              );
+            })()}
+          </>
+        ) : (
+          <p className="text-[14px] text-[var(--text-tertiary)] py-8 text-center">{t("home_noDataPeriod")}</p>
+        )}
       </section>
     </div>
   );
