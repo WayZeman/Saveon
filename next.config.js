@@ -3,21 +3,23 @@ const nextConfig = {
   // Для деплою на VPS: next start використовує .next/standalone (менший розмір)
   output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
   async headers() {
-    const securityHeaders = [
-      {
-        key: "Content-Security-Policy",
-        value:
-          "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; img-src 'self' data: https: blob:; font-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss:; upgrade-insecure-requests",
-      },
+    const common = [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "X-Frame-Options", value: "SAMEORIGIN" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+    ];
+    const cspProd =
+      "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; img-src 'self' data: https: blob:; font-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; connect-src 'self' https: wss:; upgrade-insecure-requests";
+    if (process.env.NODE_ENV === "development") {
+      return [{ source: "/:path*", headers: common }];
+    }
+    return [
       {
-        key: "Permissions-Policy",
-        value: "camera=(), microphone=(), geolocation=()",
+        source: "/:path*",
+        headers: [{ key: "Content-Security-Policy", value: cspProd }, ...common],
       },
     ];
-    return [{ source: "/:path*", headers: securityHeaders }];
   },
   webpack: (config, { dev }) => {
     if (dev) {
