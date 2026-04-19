@@ -24,7 +24,7 @@ model User {
   partnerInvitesReceived PartnerInvite[]  @relation("PartnerInviteTo")
 }
 
-/** Запрошення пов’язати спільний рахунок (очікує підтвердження одержувача) */
+// Запрошення до спільного рахунку (підтвердження одержувачем)
 model PartnerInvite {
   id             String    @id @default(cuid())
   fromUserId     String
@@ -45,9 +45,9 @@ model Category {
   id       String   @id @default(cuid())
   name     String
   userId   String?
-  /** Хто створив спільну категорію (userId може бути null для спільної між партнерами) */
+  // createdBy: хто створив спільну категорію; userId може бути null
   createdBy String?
-  /** Службові категорії (назва не шифрується — потрібно для пошуку за фіксованою назвою) */
+  // isSystem: службова категорія, назва не шифрується (пошук за фіксованою назвою)
   isSystem Boolean  @default(false)
   isShared Boolean  @default(false)
   createdAt DateTime @default(now())
