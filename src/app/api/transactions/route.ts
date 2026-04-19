@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { categoriesVisibleWhere } from "@/lib/data-scope";
 import { transactionSchema } from "@/lib/validations";
 
 async function getRates(): Promise<{ usd: number; eur: number }> {
@@ -17,7 +18,9 @@ async function getRates(): Promise<{ usd: number; eur: number }> {
 }
 
 export async function GET(request: Request) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { searchParams } = new URL(request.url);
   const categoryId = searchParams.get("categoryId");
   const month = searchParams.get("month"); // YYYY-MM
@@ -42,7 +45,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   try {
     const body = await request.json();
     const parsed = transactionSchema.safeParse(body);
@@ -57,10 +62,16 @@ export async function POST(request: Request) {
       else if (currency === "EUR") amountUah = amount * rates.eur;
     }
     const category = await prisma.category.findFirst({
-      where: { id: categoryId },
+      where: { id: categoryId, OR: categoriesVisibleWhere(session).OR },
     });
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
-    const canUse = category.userId === null || category.userId === session.id;
+    const partnerId = session.partnerId;
+    const isLegacyGlobal = category.isShared && category.userId === null && category.createdBy === null;
+    const canUse =
+      category.userId === session.id ||
+      category.createdBy === session.id ||
+      (!!partnerId && category.isShared && category.createdBy === partnerId) ||
+      isLegacyGlobal;
     if (!canUse) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const transaction = await prisma.transaction.create({

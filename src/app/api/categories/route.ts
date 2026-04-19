@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { categoriesVisibleWhere } from "@/lib/data-scope";
 import { categorySchema } from "@/lib/validations";
 
 export async function GET() {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const categories = await prisma.category.findMany({
-    where: {
-      OR: [{ userId: session.id }, { isShared: true }],
-    },
+    where: categoriesVisibleWhere(session),
     orderBy: [{ isShared: "desc" }, { name: "asc" }],
     include: { _count: { select: { transactions: true } } },
   });
@@ -16,7 +17,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   try {
     const body = await request.json();
     const parsed = categorySchema.safeParse(body);
@@ -30,6 +33,7 @@ export async function POST(request: Request) {
       data: {
         name,
         userId: effectiveShared ? null : session.id,
+        createdBy: session.id,
         isShared: effectiveShared,
       },
     });

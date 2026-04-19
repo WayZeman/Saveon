@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
+import { createSession, hashPassword } from "@/lib/auth";
 import { registerSchema } from "@/lib/validations";
-
-const SESSION_COOKIE = "family_fin_session";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 export async function POST(request: Request) {
   try {
@@ -41,8 +38,9 @@ export async function POST(request: Request) {
       },
     });
 
-    // 🔥 Створюємо response
-    const response = NextResponse.json(
+    await createSession(user.id);
+
+    return NextResponse.json(
       {
         user: {
           id: user.id,
@@ -53,17 +51,6 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-
-    // 🔥 Ставимо cookie прямо в response
-    response.cookies.set(SESSION_COOKIE, user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SESSION_MAX_AGE,
-      path: "/",
-    });
-
-    return response;
 
   } catch (e) {
     const err = e as Error & { code?: string };

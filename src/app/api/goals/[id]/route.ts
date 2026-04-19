@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { goalSchema, goalPatchSchema } from "@/lib/validations";
+import { goalsVisibleWhere } from "@/lib/data-scope";
+import { goalPatchSchema } from "@/lib/validations";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id } = await params;
   const goal = await prisma.goal.findFirst({
     where: {
       id,
-      OR: [{ createdBy: session.id }, { isShared: true }],
+      ...goalsVisibleWhere(session),
     },
     include: {
       createdByUser: { select: { id: true, email: true, role: true } },
@@ -26,16 +29,21 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id: goalId } = await params;
   const goal = await prisma.goal.findFirst({
     where: {
       id: goalId,
-      OR: [{ createdBy: session.id }, { isShared: true }],
+      ...goalsVisibleWhere(session),
     },
   });
   if (!goal) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const canEdit = goal.createdBy === session.id || goal.isShared;
+  const partnerId = session.partnerId;
+  const canEdit =
+    goal.createdBy === session.id ||
+    (!!partnerId && goal.isShared && goal.createdBy === partnerId);
   if (!canEdit) {
     return NextResponse.json({ error: "Can only edit your own or shared goals" }, { status: 403 });
   }
@@ -48,11 +56,22 @@ export async function PATCH(
     if (parsed.data.realize !== undefined) {
       if (parsed.data.realize) {
         let category = await prisma.category.findFirst({
-          where: { name: "Цілі", isShared: true },
+          where: {
+            OR: [
+              { name: "Цілі", isShared: true, isSystem: true },
+              { name: "Цілі", isShared: true, userId: null, createdBy: null },
+            ],
+          },
         });
         if (!category) {
           category = await prisma.category.create({
-            data: { name: "Цілі", userId: null, isShared: true },
+            data: {
+              name: "Цілі",
+              userId: null,
+              isShared: true,
+              isSystem: true,
+              createdBy: session.id,
+            },
           });
         }
         await prisma.transaction.create({
@@ -111,16 +130,22 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id } = await params;
   const goal = await prisma.goal.findFirst({
     where: {
       id,
-      OR: [{ createdBy: session.id }, { isShared: true }],
+      ...goalsVisibleWhere(session),
     },
   });
   if (!goal) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (goal.createdBy !== session.id && !goal.isShared) {
+  const partnerId = session.partnerId;
+  const canDelete =
+    goal.createdBy === session.id ||
+    (!!partnerId && goal.isShared && goal.createdBy === partnerId);
+  if (!canDelete) {
     return NextResponse.json({ error: "Can only delete your own goals" }, { status: 403 });
   }
   try {

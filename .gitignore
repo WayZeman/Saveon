@@ -9,12 +9,9 @@ out/
 build/
 dist/
 
-# Env (секрети не комітити)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Env: реальні ключі лише локально (.env.local) або в Vercel — не комітити
+.env*
+!.env.example
 
 # Database (SQLite — локальні файли)
 *.db

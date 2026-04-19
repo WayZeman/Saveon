@@ -185,6 +185,16 @@ export const translations: Record<Lang, Record<string, string>> = {
     settings_errorInvalidEmail: "Невірний формат email",
     settings_removePartner: "Видалити партнера",
     settings_confirmRemovePartner: "Видалити партнера? Зв'язок буде розірвано для обох акаунтів.",
+    settings_partnerInviteSent: "Запрошення надіслано",
+    settings_partnerInvitePending: "Очікуємо підтвердження від {0}",
+    settings_cancelInvite: "Скасувати запрошення",
+    settings_confirmCancelInvite: "Скасувати запрошення? Інший учасник не зможе його прийняти.",
+    settings_inviteSentHint: "Другий учасник побачить запит після входу і зможе прийняти або відхилити його.",
+    partnerInvite_title: "Запрошення до спільного рахунку",
+    partnerInvite_body: "запрошує вас до спільного обліку фінансів.",
+    partnerInvite_roleHint: "Ваша роль після прийняття",
+    partnerInvite_accept: "Прийняти",
+    partnerInvite_reject: "Відхилити",
 
     // Comparison
     comparison_title: "Порівняння",

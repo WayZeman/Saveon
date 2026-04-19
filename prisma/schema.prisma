@@ -17,15 +17,38 @@ model User {
   partnerId    String?
   createdAt    DateTime @default(now())
 
-  categories    Category[]    @relation("UserCategories")
-  transactions  Transaction[]
-  goalsCreated  Goal[]        @relation("GoalCreatedBy")
+  categories             Category[]       @relation("UserCategories")
+  transactions           Transaction[]
+  goalsCreated           Goal[]           @relation("GoalCreatedBy")
+  partnerInvitesSent     PartnerInvite[]  @relation("PartnerInviteFrom")
+  partnerInvitesReceived PartnerInvite[]  @relation("PartnerInviteTo")
+}
+
+/** Запрошення пов’язати спільний рахунок (очікує підтвердження одержувача) */
+model PartnerInvite {
+  id             String    @id @default(cuid())
+  fromUserId     String
+  toUserId       String
+  recipientRole  String
+  status         String    @default("pending")
+  createdAt      DateTime  @default(now())
+  respondedAt    DateTime?
+
+  fromUser User @relation("PartnerInviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("PartnerInviteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([toUserId, status])
+  @@index([fromUserId, status])
 }
 
 model Category {
   id       String   @id @default(cuid())
   name     String
   userId   String?
+  /** Хто створив спільну категорію (userId може бути null для спільної між партнерами) */
+  createdBy String?
+  /** Службові категорії (назва не шифрується — потрібно для пошуку за фіксованою назвою) */
+  isSystem Boolean  @default(false)
   isShared Boolean  @default(false)
   createdAt DateTime @default(now())
 

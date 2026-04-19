@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { goalsVisibleWhere } from "@/lib/data-scope";
 import { goalSchema } from "@/lib/validations";
 
 export async function GET() {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const goals = await prisma.goal.findMany({
-    where: {
-      OR: [{ createdBy: session.id }, { isShared: true }],
-    },
+    where: goalsVisibleWhere(session),
     orderBy: { createdAt: "desc" },
     include: {
       createdByUser: { select: { id: true, email: true, role: true } },
@@ -18,7 +19,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   try {
     const body = await request.json();
     const parsed = goalSchema.safeParse(body);

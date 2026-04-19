@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { categoriesVisibleWhere } from "@/lib/data-scope";
 import { transactionSchema } from "@/lib/validations";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id } = await params;
   try {
     const body = await request.json();
@@ -21,10 +24,16 @@ export async function PATCH(
     });
     if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
     const category = await prisma.category.findFirst({
-      where: { id: categoryId },
+      where: { id: categoryId, OR: categoriesVisibleWhere(session).OR },
     });
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
-    const canUse = category.userId === null || category.userId === session.id;
+    const partnerId = session.partnerId;
+    const isLegacyGlobal = category.isShared && category.userId === null && category.createdBy === null;
+    const canUse =
+      category.userId === session.id ||
+      category.createdBy === session.id ||
+      (!!partnerId && category.isShared && category.createdBy === partnerId) ||
+      isLegacyGlobal;
     if (!canUse) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     const transaction = await prisma.transaction.update({
       where: { id },
@@ -42,7 +51,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id } = await params;
   const existing = await prisma.transaction.findFirst({
     where: { id, userId: session.id },

@@ -78,9 +78,25 @@ export type Goal = {
 
 export type Partner = { id: string; email: string; role: string } | null;
 
+export type PartnerInviteIncoming = {
+  id: string;
+  recipientRole: string;
+  createdAt: string;
+  fromUser: { id: string; name: string; email: string };
+} | null;
+
+export type PartnerInviteOutgoing = {
+  id: string;
+  toEmail: string;
+  recipientRole: string;
+  createdAt: string;
+} | null;
+
 type DataState = {
   user: User;
   partner: Partner;
+  incomingPartnerInvite: PartnerInviteIncoming;
+  outgoingPartnerInvite: PartnerInviteOutgoing;
   dashboardData: DashboardData | null;
   transactions: Transaction[];
   categories: Category[];
@@ -111,6 +127,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DataState>({
     user: null,
     partner: null,
+    incomingPartnerInvite: null,
+    outgoingPartnerInvite: null,
     dashboardData: null,
     transactions: [],
     categories: [],
@@ -142,12 +160,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const transactions = transactionsRes.ok ? await transactionsRes.json() : [];
       const categories = categoriesRes.ok ? await categoriesRes.json() : [];
       const goals = goalsRes.ok ? await goalsRes.json() : [];
-      const partnerData = partnerRes.ok ? await partnerRes.json() : { partner: null };
+      const partnerData = partnerRes.ok
+        ? await partnerRes.json()
+        : { partner: null, incomingInvite: null, outgoingInvite: null };
       const partner = partnerData.partner ?? null;
+      const incomingPartnerInvite = partnerData.incomingInvite ?? null;
+      const outgoingPartnerInvite = partnerData.outgoingInvite ?? null;
 
       setState({
         user,
         partner,
+        incomingPartnerInvite,
+        outgoingPartnerInvite,
         dashboardData,
         transactions,
         categories,
@@ -206,8 +230,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const refetchPartner = useCallback(async () => {
     const res = await fetch("/api/partner");
-    const data = res.ok ? await res.json() : { partner: null };
-    setState((s) => ({ ...s, partner: data.partner ?? null }));
+    const data = res.ok
+      ? await res.json()
+      : { partner: null, incomingInvite: null, outgoingInvite: null };
+    setState((s) => ({
+      ...s,
+      partner: data.partner ?? null,
+      incomingPartnerInvite: data.incomingInvite ?? null,
+      outgoingPartnerInvite: data.outgoingInvite ?? null,
+    }));
   }, []);
 
   const refetchDashboard = useCallback(async () => {

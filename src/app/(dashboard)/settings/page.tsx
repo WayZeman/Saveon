@@ -20,7 +20,15 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
-  const { user, partner, setPartner, refetchUser, refetchPartner, refetchDashboard } = useData();
+  const {
+    user,
+    partner,
+    outgoingPartnerInvite,
+    setPartner,
+    refetchUser,
+    refetchPartner,
+    refetchDashboard,
+  } = useData();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [addPartnerModal, setAddPartnerModal] = useState(false);
   const [partnerEmail, setPartnerEmail] = useState("");
@@ -64,7 +72,13 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) { setPartnerError(data.error ?? t("auth_errorGeneric")); return; }
-      setPartner(data.partner);
+      if (data.pending && data.invite) {
+        setAddPartnerModal(false);
+        setPartnerEmail("");
+        await Promise.all([refetchUser(), refetchPartner(), refetchDashboard()]);
+        return;
+      }
+      if (data.partner) setPartner(data.partner);
       setAddPartnerModal(false);
       setPartnerEmail("");
       await Promise.all([refetchUser(), refetchPartner(), refetchDashboard()]);
@@ -114,6 +128,35 @@ export default function SettingsPage() {
 
       {/* Partner */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-2">
+        {!partner && outgoingPartnerInvite ? (
+          <div className="px-5 py-4 border-b border-[var(--border)]">
+            <div className="flex items-start gap-3">
+              <span className="w-8 h-8 rounded-lg bg-[var(--accent-blue)]/15 flex items-center justify-center shrink-0">
+                <UserPlus className="w-4 h-4 text-[var(--accent-blue)]" strokeWidth={2} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-medium">{t("settings_partnerInviteSent")}</p>
+                <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">
+                  {t("settings_partnerInvitePending", outgoingPartnerInvite.toEmail)}
+                </p>
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-2">{t("settings_inviteSentHint")}</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await confirm(t("settings_confirmCancelInvite"));
+                  if (!ok) return;
+                  await fetch(`/api/partner/invite/${outgoingPartnerInvite.id}`, { method: "DELETE" });
+                  await refetchPartner();
+                }}
+                className="text-[12px] font-medium text-[var(--accent-red)] hover:underline shrink-0"
+              >
+                {t("settings_cancelInvite")}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {partner ? (
           <div className="px-5 py-4">
             <div className="flex items-center gap-3">
@@ -129,7 +172,7 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
-        ) : (
+        ) : !outgoingPartnerInvite ? (
           <button
             type="button"
             onClick={() => { setAddPartnerModal(true); setPartnerError(""); setPartnerEmail(""); }}
@@ -144,7 +187,7 @@ export default function SettingsPage() {
             </div>
             <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)]" />
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Appearance */}

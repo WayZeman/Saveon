@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
 type Agg = { userId: string; income: number; expense: number };
 
 export async function GET(request: Request) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
 
@@ -45,7 +48,7 @@ export async function GET(request: Request) {
   }
 
   const categories = await prisma.category.findMany({
-    where: { OR: [{ userId: session.id }, { isShared: true }] },
+    where: categoriesVisibleWhere(session),
     select: { id: true, name: true },
   });
   const categoryIds = new Set(categories.map((c) => c.id));
@@ -76,7 +79,7 @@ export async function GET(request: Request) {
   }
 
   const goalsRaw = await prisma.goal.findMany({
-    where: { OR: [{ createdBy: session.id }, { isShared: true }] },
+    where: goalsVisibleWhere(session),
     orderBy: { createdAt: "desc" },
     include: { createdByUser: { select: { id: true, email: true, role: true } } },
   });

@@ -1,26 +1,76 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { addPartnerSchema } from "@/lib/validations";
 
 export async function GET() {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
+
   const user = await prisma.user.findUnique({
     where: { id: session.id },
     select: { partnerId: true },
   });
-  if (!user?.partnerId) {
-    return NextResponse.json({ partner: null });
+
+  let partner: { id: string; email: string; role: string } | null = null;
+  if (user?.partnerId) {
+    const p = await prisma.user.findUnique({
+      where: { id: user.partnerId },
+      select: { id: true, email: true, role: true },
+    });
+    partner = p ?? null;
   }
-  const partner = await prisma.user.findUnique({
-    where: { id: user.partnerId },
-    select: { id: true, email: true, role: true },
+
+  if (user?.partnerId) {
+    return NextResponse.json({
+      partner,
+      incomingInvite: null,
+      outgoingInvite: null,
+    });
+  }
+
+  const incomingInviteRaw = await prisma.partnerInvite.findFirst({
+    where: { toUserId: session.id, status: "pending" },
+    include: {
+      fromUser: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ partner });
+
+  const outgoingInviteRaw = await prisma.partnerInvite.findFirst({
+    where: { fromUserId: session.id, status: "pending" },
+    include: {
+      toUser: { select: { email: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const incomingInvite = incomingInviteRaw
+    ? {
+        id: incomingInviteRaw.id,
+        recipientRole: incomingInviteRaw.recipientRole,
+        createdAt: incomingInviteRaw.createdAt.toISOString(),
+        fromUser: incomingInviteRaw.fromUser,
+      }
+    : null;
+
+  const outgoingInvite = outgoingInviteRaw
+    ? {
+        id: outgoingInviteRaw.id,
+        toEmail: outgoingInviteRaw.toUser.email,
+        recipientRole: outgoingInviteRaw.recipientRole,
+        createdAt: outgoingInviteRaw.createdAt.toISOString(),
+      }
+    : null;
+
+  return NextResponse.json({ partner, incomingInvite, outgoingInvite });
 }
 
 export async function POST(request: Request) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   try {
     const body = await request.json();
     const parsed = addPartnerSchema.safeParse(body);
@@ -41,23 +91,68 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "У вас вже є партнер. Спочатку видаліть поточного" }, { status: 409 });
     }
 
+    const pendingOutgoing = await prisma.partnerInvite.findFirst({
+      where: { fromUserId: session.id, status: "pending" },
+    });
+    if (pendingOutgoing) {
+      return NextResponse.json(
+        { error: "У вас вже є активний запрошення. Скасуйте його або дочекайтеся відповіді." },
+        { status: 409 }
+      );
+    }
+
+    const pendingIncoming = await prisma.partnerInvite.findFirst({
+      where: { toUserId: session.id, status: "pending" },
+    });
+    if (pendingIncoming) {
+      return NextResponse.json(
+        { error: "Спочатку відповідьте на вхідне запрошення до спільного рахунку." },
+        { status: 409 }
+      );
+    }
+
     const partner = await prisma.user.findUnique({ where: { email } });
-    if (!partner) {
-      return NextResponse.json({ error: "Користувача з таким email не знайдено" }, { status: 404 });
-    }
-    if (partner.partnerId && partner.partnerId !== session.id) {
-      return NextResponse.json({ error: "Цей користувач вже має іншого партнера" }, { status: 409 });
+    if (!partner || (partner.partnerId && partner.partnerId !== session.id)) {
+      return NextResponse.json(
+        { error: "Не вдалося додати партнера. Перевірте email або стан акаунту." },
+        { status: 400 }
+      );
     }
 
-    const myRole = role === "friend" ? "friend" : role === "husband" ? "wife" : "husband";
+    const pendingBetween = await prisma.partnerInvite.findFirst({
+      where: {
+        status: "pending",
+        OR: [
+          { fromUserId: session.id, toUserId: partner.id },
+          { fromUserId: partner.id, toUserId: session.id },
+        ],
+      },
+    });
+    if (pendingBetween) {
+      return NextResponse.json(
+        { error: "Між вами вже є запрошення. Дочекайтеся відповіді або скасуйте його." },
+        { status: 409 }
+      );
+    }
 
-    await prisma.$transaction([
-      prisma.user.update({ where: { id: session.id }, data: { partnerId: partner.id, role: myRole } }),
-      prisma.user.update({ where: { id: partner.id }, data: { partnerId: session.id, role } }),
-    ]);
+    const invite = await prisma.partnerInvite.create({
+      data: {
+        fromUserId: session.id,
+        toUserId: partner.id,
+        recipientRole: role,
+        status: "pending",
+      },
+    });
 
     return NextResponse.json({
-      partner: { id: partner.id, email: partner.email, role },
+      pending: true,
+      invite: {
+        id: invite.id,
+        toEmail: partner.email,
+        recipientRole: role,
+        createdAt: invite.createdAt.toISOString(),
+      },
+      message: "Запрошення надіслано. Другий учасник має прийняти його в додатку.",
     });
   } catch (e) {
     console.error("Add partner error:", e);
@@ -66,7 +161,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   try {
     const me = await prisma.user.findUnique({ where: { id: session.id } });
     if (!me?.partnerId) {

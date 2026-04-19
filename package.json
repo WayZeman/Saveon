@@ -13,6 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
+    "migrate:security": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/migrate-security-data.ts",
     "run": "prisma generate && prisma migrate deploy && prisma db seed && (ulimit -n 10240 2>/dev/null; next dev -p 3000 -H 0.0.0.0)",
     "build:icons": "node scripts/build-icons.js"
   },

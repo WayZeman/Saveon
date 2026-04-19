@@ -1,19 +1,32 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { categoriesVisibleWhere } from "@/lib/data-scope";
 import { categorySchema } from "@/lib/validations";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id } = await params;
   const category = await prisma.category.findFirst({
-    where: { id },
+    where: { id, OR: categoriesVisibleWhere(session).OR },
   });
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const canEdit = category.isShared || category.userId === session.id;
+  const isProtectedTemplate =
+    category.isSystem ||
+    (category.isShared && category.userId === null && category.createdBy === null);
+  if (isProtectedTemplate) {
+    return NextResponse.json({ error: "Цю категорію неможливо змінити" }, { status: 403 });
+  }
+  const partnerId = session.partnerId;
+  const canEdit =
+    category.userId === session.id ||
+    category.createdBy === session.id ||
+    (!!partnerId && category.isShared && category.createdBy === partnerId);
   if (!canEdit) {
     return NextResponse.json({ error: "Can only edit your own or shared categories" }, { status: 403 });
   }
@@ -44,13 +57,25 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireSession();
+  const sessionOr = await getRequiredSession();
+  if (isApiUnauthorized(sessionOr)) return sessionOr;
+  const session = sessionOr;
   const { id } = await params;
   const category = await prisma.category.findFirst({
-    where: { id },
+    where: { id, OR: categoriesVisibleWhere(session).OR },
   });
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const canDelete = category.isShared || category.userId === session.id;
+  const isProtectedTemplate =
+    category.isSystem ||
+    (category.isShared && category.userId === null && category.createdBy === null);
+  if (isProtectedTemplate) {
+    return NextResponse.json({ error: "Цю категорію неможливо видалити" }, { status: 403 });
+  }
+  const partnerId = session.partnerId;
+  const canDelete =
+    category.userId === session.id ||
+    category.createdBy === session.id ||
+    (!!partnerId && category.isShared && category.createdBy === partnerId);
   if (!canDelete) {
     return NextResponse.json({ error: "Can only delete your own or shared categories" }, { status: 403 });
   }

@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DataProvider, useData } from "@/contexts/DataContext";
 import SwipeNavigation from "@/components/SwipeNavigation";
+import { PartnerInviteModal } from "@/components/PartnerInviteModal";
 
 const navItems = [
   { href: "/dashboard", labelKey: "nav_home" as const, Icon: Home },
@@ -18,6 +19,21 @@ const navItems = [
   { href: "/goals", labelKey: "nav_goals" as const, Icon: Target },
   { href: "/settings", labelKey: "nav_settings" as const, Icon: Settings },
 ];
+
+function IncomingPartnerInviteGate() {
+  const { incomingPartnerInvite, partner, refetchPartner, refetchUser, refetchDashboard } = useData();
+
+  if (partner || !incomingPartnerInvite) return null;
+
+  return (
+    <PartnerInviteModal
+      invite={incomingPartnerInvite}
+      onResolved={async () => {
+        await Promise.all([refetchPartner(), refetchUser(), refetchDashboard()]);
+      }}
+    />
+  );
+}
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -98,6 +114,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
 
             <SwipeNavigation>
+              <IncomingPartnerInviteGate />
               <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] md:py-6 lg:pl-[max(2rem,env(safe-area-inset-left))] lg:pr-[max(2rem,env(safe-area-inset-right))] lg:py-8">
                 {children}
               </div>

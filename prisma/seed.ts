@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
+import { prisma } from "../src/lib/prisma";
 
 async function main() {
   const password = await bcrypt.hash("demo123", 10);
@@ -21,7 +19,7 @@ async function main() {
   });
   if (!cashCategory) {
     cashCategory = await prisma.category.create({
-      data: { name: "Готівка", userId: null, isShared: true },
+      data: { name: "Готівка", userId: null, isShared: true, isSystem: true },
     });
   }
 
