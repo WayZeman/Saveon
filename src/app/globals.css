@@ -40,9 +40,6 @@
   --space-card: 1.25rem;
   --radius-card: 1rem;
   --radius-btn: 0.75rem;
-  --radius-panel: 1.25rem;
-  --gradient-soft: radial-gradient(1200px 600px at 10% -10%, rgba(10, 132, 255, 0.2), transparent 52%),
-    radial-gradient(900px 500px at 100% 0%, rgba(191, 90, 242, 0.14), transparent 48%);
 }
 
 /* ── Light theme ── */
@@ -77,8 +74,6 @@
   --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.06);
   --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.15);
   --focus-ring: rgba(0, 122, 255, 0.12);
-  --gradient-soft: radial-gradient(1200px 600px at 10% -10%, rgba(0, 122, 255, 0.16), transparent 52%),
-    radial-gradient(900px 500px at 100% 0%, rgba(175, 82, 222, 0.1), transparent 48%);
 }
 
 @media (min-width: 768px) {
@@ -124,7 +119,6 @@ html {
 
 body {
   background: var(--bg);
-  background-image: var(--gradient-soft);
   color: var(--text);
   min-height: 100vh;
   min-height: 100dvh;
@@ -198,23 +192,6 @@ input::placeholder {
   padding: var(--space-card);
   box-shadow: var(--shadow-card);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-}
-
-.surface-panel {
-  background: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-panel);
-  backdrop-filter: blur(24px) saturate(145%);
-  -webkit-backdrop-filter: blur(24px) saturate(145%);
-  box-shadow: var(--shadow-card);
-}
-
-.text-muted {
-  color: var(--text-secondary);
-}
-
-.subtle-divider {
-  border-top: 1px solid var(--border);
 }
 
 .glass-modal {

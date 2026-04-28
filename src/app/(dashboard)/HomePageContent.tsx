@@ -56,7 +56,7 @@ export default function HomePageContent() {
   return (
     <div className="section-spacing max-w-6xl mx-auto">
       {/* Hero balance */}
-      <section className="rounded-3xl bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-14 relative overflow-hidden shadow-glow border border-white/15 opacity-0 animate-in">
+      <section className="rounded-3xl bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-14 relative overflow-hidden shadow-glow opacity-0 animate-in">
         <div className="absolute inset-0 opacity-[0.08]">
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white -translate-y-1/3 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white translate-y-1/3 -translate-x-1/3" />
@@ -78,7 +78,7 @@ export default function HomePageContent() {
 
       {/* Balance cards — only show when partner exists */}
       {hasPartner && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-5">
+        <section className="grid grid-cols-2 gap-3 md:gap-5">
           <BalanceCard title={t("home_myBalance")} amount={data.myBalance} formatMoney={formatMoney} className="opacity-0 animate-slide-up animate-stagger-1" />
           <BalanceCard title={partnerLabel} amount={data.partnerBalance} formatMoney={formatMoney} className="opacity-0 animate-slide-up animate-stagger-2" />
         </section>
@@ -110,7 +110,7 @@ export default function HomePageContent() {
                 const hasEnough = goal.remainingNeeded <= 0;
                 const isRealizing = realizingId === goal.id;
                 return (
-                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)]/80 px-4 py-3.5 border border-[var(--border)]">
+                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
                     <Link href="/goals" className="flex-1 min-w-0">
                       <span className="text-[14px] font-medium">{goal.title}</span>
                     </Link>
