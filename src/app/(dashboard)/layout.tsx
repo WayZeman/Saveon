@@ -59,8 +59,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
           {/* Desktop sidebar */}
-          <aside className="glass-panel hidden md:flex md:w-[240px] md:sticky md:top-0 md:self-start md:h-screen flex-col border-r border-[var(--border)] shrink-0">
-            <div className="p-6 pb-2">
+          <aside className="surface-panel hidden md:flex md:w-[252px] md:sticky md:top-4 md:self-start md:h-[calc(100vh-2rem)] flex-col shrink-0 m-4 mr-0">
+            <div className="p-6 pb-3">
               <Link href="/dashboard" className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
                   <LogoImage width={32} height={32} className="object-cover w-full h-full" />
@@ -69,7 +69,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
 
-            <nav className="flex flex-col gap-0.5 px-3 mt-4 flex-1">
+            <nav className="flex flex-col gap-1 px-3 mt-4 flex-1">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
                 return (
@@ -77,7 +77,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     key={href}
                     href={href}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 ${active
-                      ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]"
+                      ? "bg-[var(--accent-blue)]/12 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
                       : "text-[var(--text-secondary)] hover:bg-[var(--input-bg)] hover:text-[var(--text)]"
                       }`}
                   >
@@ -88,7 +88,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            <div className="p-4 mt-auto border-t border-[var(--border)]">
+            <div className="p-4 mt-auto subtle-divider">
               <button
                 type="button"
                 onClick={logout}
@@ -115,15 +115,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
-              <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] md:py-6 lg:pl-[max(2rem,env(safe-area-inset-left))] lg:pr-[max(2rem,env(safe-area-inset-right))] lg:py-8">
-                {children}
+              <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-6 md:pr-6 md:py-6 lg:pl-8 lg:pr-8 lg:py-8">
+                <div className="surface-panel p-4 md:p-5 lg:p-6 min-h-full">
+                  {children}
+                </div>
               </div>
             </SwipeNavigation>
           </main>
 
           {/* Mobile bottom nav */}
           <nav
-            className="glass-panel md:hidden fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20"
+            className="surface-panel md:hidden fixed bottom-2 left-2 right-2 z-20"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >

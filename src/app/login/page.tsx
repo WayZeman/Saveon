@@ -116,23 +116,55 @@ export default function AuthPage() {
   const isLogin = mode === "login";
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex items-center sm:justify-center p-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] bg-[var(--bg)] relative overflow-auto">
-      <div className="relative w-full max-w-[420px] animate-in">
-        {/* Logo & heading */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-[68px] h-[68px] rounded-[22px] overflow-hidden mb-5 shadow-glow">
-            <LogoImage width={68} height={68} className="object-cover" />
+    <div className="min-h-screen min-h-[100dvh] relative overflow-auto px-4 py-6 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(2.5rem,env(safe-area-inset-bottom))] md:px-8 md:py-10">
+      <div className="mx-auto w-full max-w-6xl grid lg:grid-cols-[1fr,430px] gap-6 lg:gap-8 items-stretch animate-in">
+        <section className="surface-panel hidden lg:flex flex-col justify-between p-10 xl:p-12 relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-[var(--accent-blue)]/15 blur-3xl" />
+          <div className="absolute -bottom-20 -left-16 h-72 w-72 rounded-full bg-[var(--accent-purple)]/15 blur-3xl" />
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-3 rounded-2xl bg-[var(--input-bg)] px-3.5 py-2 border border-[var(--border)]">
+              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                <LogoImage width={32} height={32} className="object-cover w-full h-full" />
+              </div>
+              <span className="text-sm font-semibold">Saveon</span>
+            </div>
+            <h2 className="mt-8 text-4xl xl:text-5xl font-bold tracking-tight leading-tight">
+              Контролюйте сімейні фінанси без зайвого хаосу
+            </h2>
+            <p className="mt-4 text-base text-muted max-w-xl">
+              Спільний доступ, зрозуміла аналітика та фінансові цілі в одному сучасному просторі.
+            </p>
           </div>
-          <h1 className="text-[28px] font-bold tracking-tight text-[var(--text)]">
-            {isRegister ? t("auth_createAccount") : isRecovery ? "Відновлення пароля" : t("auth_welcomeBack")}
-          </h1>
-          <p className="mt-2 text-[15px] text-[var(--text-secondary)]">
-            {isRegister ? t("auth_startControlling") : isRecovery ? "Введіть email та код відновлення" : t("auth_signInToContinue")}
-          </p>
-        </div>
+          <div className="relative z-10 grid grid-cols-3 gap-3">
+            <div className="rounded-2xl bg-[var(--input-bg)] border border-[var(--border)] px-4 py-3">
+              <p className="text-xl font-bold">2x</p>
+              <p className="text-xs text-muted mt-1">швидше планування</p>
+            </div>
+            <div className="rounded-2xl bg-[var(--input-bg)] border border-[var(--border)] px-4 py-3">
+              <p className="text-xl font-bold">24/7</p>
+              <p className="text-xs text-muted mt-1">доступ до даних</p>
+            </div>
+            <div className="rounded-2xl bg-[var(--input-bg)] border border-[var(--border)] px-4 py-3">
+              <p className="text-xl font-bold">100%</p>
+              <p className="text-xs text-muted mt-1">контроль бюджету</p>
+            </div>
+          </div>
+        </section>
 
-        {/* Form card */}
-        <div className="rounded-2xl bg-[var(--bg-elevated)]/80 backdrop-blur-xl border border-[var(--border)] p-6 sm:p-7 shadow-modal">
+        <div className="surface-panel w-full max-w-[430px] mx-auto p-6 sm:p-7 lg:p-8">
+          {/* Logo & heading */}
+          <div className="text-center mb-7">
+            <div className="inline-flex items-center justify-center w-[64px] h-[64px] rounded-[20px] overflow-hidden mb-4 shadow-glow">
+              <LogoImage width={64} height={64} className="object-cover" />
+            </div>
+            <h1 className="text-[28px] font-bold tracking-tight text-[var(--text)]">
+              {isRegister ? t("auth_createAccount") : isRecovery ? "Відновлення пароля" : t("auth_welcomeBack")}
+            </h1>
+            <p className="mt-2 text-[15px] text-muted">
+              {isRegister ? t("auth_startControlling") : isRecovery ? "Введіть email та код відновлення" : t("auth_signInToContinue")}
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
 
             {/* Name (register only) */}
