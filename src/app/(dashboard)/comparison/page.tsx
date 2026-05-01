@@ -49,8 +49,8 @@ export default function ComparisonPage() {
   return (
     <div className="section-spacing max-w-5xl mx-auto">
       <div className="opacity-0 animate-slide-up">
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{t("comparison_title")}</h1>
-        <p className="text-[13px] text-[var(--text-secondary)] mt-1.5">{t("comparison_subtitle", partnerLabel)}</p>
+        <h1 className="page-title">{t("comparison_title")}</h1>
+        <p className="text-[14px] text-[var(--text-secondary)] mt-1.5">{t("comparison_subtitle", partnerLabel)}</p>
       </div>
 
       <section className="card opacity-0 animate-slide-up animate-stagger-1">

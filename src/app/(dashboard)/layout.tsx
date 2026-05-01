@@ -55,29 +55,28 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex flex-col md:flex-row bg-[var(--bg)]">
-          {/* Мобільна шапка: блюр без відтінку, плавний перехід знизу */}
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
           {/* Desktop sidebar */}
-          <aside className="glass-panel hidden md:flex md:w-[240px] md:sticky md:top-0 md:self-start md:h-screen flex-col border-r border-[var(--border)] shrink-0">
-            <div className="p-6 pb-2">
+          <aside className="glass-panel hidden md:flex md:w-[252px] md:sticky md:top-0 md:self-start md:h-screen flex-col border-r border-[var(--border)] shrink-0">
+            <div className="p-6 pb-3">
               <Link href="/dashboard" className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
                   <LogoImage width={32} height={32} className="object-cover w-full h-full" />
                 </div>
-                <span className="text-[15px] font-semibold text-[var(--text)] tracking-tight">Saveon</span>
+                <span className="text-[16px] font-semibold text-[var(--text)] tracking-tight">Saveon</span>
               </Link>
             </div>
 
-            <nav className="flex flex-col gap-0.5 px-3 mt-4 flex-1">
+            <nav className="flex flex-col gap-1 px-3 mt-4 flex-1">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
                 return (
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 ${active
-                      ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]"
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[0.9rem] text-[14px] font-medium transition-all duration-200 ${active
+                      ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
                       : "text-[var(--text-secondary)] hover:bg-[var(--input-bg)] hover:text-[var(--text)]"
                       }`}
                   >
@@ -93,7 +92,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={logout}
                 title="Вийти"
-                className="w-9 h-9 flex items-center justify-center rounded-full text-[var(--text-secondary)] hover:bg-[var(--accent-red)]/10 hover:text-[var(--accent-red)] transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full text-[var(--text-secondary)] hover:bg-[var(--accent-red)]/10 hover:text-[var(--accent-red)] transition-colors"
               >
                 <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
@@ -102,20 +101,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Main content */}
           <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 md:pb-0 relative">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-              <div className="particle particle-1" />
-              <div className="particle particle-2" />
-              <div className="particle particle-3" />
-              <div className="particle particle-4" />
-              <div className="particle particle-5" />
-              <div className="particle particle-6" />
-              <div className="particle particle-7" />
-              <div className="particle particle-8" />
-            </div>
-
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
-              <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] md:py-6 lg:pl-[max(2rem,env(safe-area-inset-left))] lg:pr-[max(2rem,env(safe-area-inset-right))] lg:py-8">
+              <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] md:py-7 lg:pl-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))] lg:py-8">
                 {children}
               </div>
             </SwipeNavigation>
@@ -127,7 +115,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
-            <div className="flex justify-around items-center h-14">
+            <div className="flex justify-around items-center h-[58px]">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
                 return (

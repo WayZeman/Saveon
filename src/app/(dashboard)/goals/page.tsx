@@ -114,13 +114,13 @@ export default function GoalsPage() {
 
   return (
     <div className="section-spacing max-w-5xl mx-auto">
-      <div className="flex justify-between items-center gap-4 opacity-0 animate-slide-up">
+      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Target className="w-7 h-7 text-[var(--accent-purple)]" strokeWidth={1.5} />
             {t("goals_title")}
           </h1>
-          <p className="text-[13px] text-[var(--text-secondary)] mt-1">
+          <p className="text-[14px] text-[var(--text-secondary)] mt-1">
           {t("goals_subtitle")}
           {!hasPartner && t("goals_addPartnerHint")}
         </p>

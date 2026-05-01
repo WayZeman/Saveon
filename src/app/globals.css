@@ -5,73 +5,78 @@
 /* ── Dark theme (default) ── */
 :root,
 .theme-dark {
-  --bg: #000000;
-  --bg-secondary: #050509;
-  --bg-elevated: #151518;
-  --surface: #1c1c1e;
-  --surface-secondary: #2c2c2e;
-  --surface-tertiary: #3a3a3c;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.2);
-  --text: #f5f5f7;
-  --text-secondary: #a1a1a6;
-  --text-tertiary: #6e6e73;
+  --bg: #0a0b0f;
+  --bg-secondary: #0f1116;
+  --bg-elevated: #141821;
+  --surface: #1a1f2a;
+  --surface-secondary: #222938;
+  --surface-tertiary: #2c3445;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f3f5f8;
+  --text-secondary: #b1b8c4;
+  --text-tertiary: #7f8a9c;
   --accent-blue: #0a84ff;
-  --accent-green: #30d158;
-  --accent-red: #ff453a;
+  --accent-green: #34c759;
+  --accent-red: #ff5c5c;
   --accent-orange: #ff9f0a;
-  --accent-purple: #bf5af2;
-  --accent-teal: #64d2ff;
+  --accent-purple: #8f7cff;
+  --accent-teal: #5ec8ff;
   --gradient-start: #0a84ff;
-  --gradient-end: #5e5ce6;
-  --input-bg: rgba(255, 255, 255, 0.06);
+  --gradient-end: #5f7dff;
+  --input-bg: rgba(255, 255, 255, 0.05);
   --input-bg-focus: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(8, 8, 10, 0.82);
-  --card-bg: rgba(28, 28, 30, 0.82);
-  --modal-bg: rgba(28, 28, 30, 0.92);
-  --overlay-bg: rgba(0, 0, 0, 0.6);
-  --option-bg: #1c1c1e;
-  --autofill-bg: #1c1c1e;
-  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.3);
-  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.6);
-  --focus-ring: rgba(10, 132, 255, 0.15);
+  --glass-bg: rgba(14, 17, 24, 0.72);
+  --card-bg: rgba(20, 24, 33, 0.78);
+  --modal-bg: rgba(17, 21, 31, 0.95);
+  --overlay-bg: rgba(6, 8, 12, 0.65);
+  --option-bg: #171c27;
+  --autofill-bg: #171c27;
+  --shadow-card: 0 12px 36px rgba(0, 0, 0, 0.28);
+  --shadow-modal: 0 32px 90px rgba(0, 0, 0, 0.55);
+  --focus-ring: rgba(10, 132, 255, 0.25);
   --space-page: 1.25rem;
-  --space-section: 1.75rem;
-  --space-card: 1.25rem;
-  --radius-card: 1rem;
-  --radius-btn: 0.75rem;
+  --space-section: 1.5rem;
+  --space-card: 1.125rem;
+  --radius-card: 1.25rem;
+  --radius-btn: 0.875rem;
+  --radius-input: 0.875rem;
+  --font-display: clamp(1.75rem, 2.8vw, 2.4rem);
+  --font-title: clamp(1.25rem, 2vw, 1.65rem);
+  --font-body: 0.95rem;
+  --font-caption: 0.78rem;
 }
 
 /* ── Light theme ── */
 .theme-light {
   --bg: #ffffff;
-  --bg-secondary: #f5f5f7;
+  --bg-secondary: #f3f5f8;
   --bg-elevated: #ffffff;
-  --surface: #f5f5f7;
-  --surface-secondary: #e8e8ed;
-  --surface-tertiary: #d1d1d6;
+  --surface: #f3f6fb;
+  --surface-secondary: #e9edf5;
+  --surface-tertiary: #dde3ee;
   --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.15);
-  --text: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --text-tertiary: #a1a1a6;
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --text: #161a23;
+  --text-secondary: #5f6a7d;
+  --text-tertiary: #8a95a8;
   --accent-blue: #007aff;
-  --accent-green: #28cd41;
-  --accent-red: #ff3b30;
+  --accent-green: #27b554;
+  --accent-red: #f24747;
   --accent-orange: #ff9500;
-  --accent-purple: #af52de;
+  --accent-purple: #7e67ff;
   --accent-teal: #55bef0;
   --gradient-start: #007aff;
-  --gradient-end: #5856d6;
+  --gradient-end: #5870ff;
   --input-bg: rgba(0, 0, 0, 0.04);
   --input-bg-focus: rgba(0, 0, 0, 0.06);
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --card-bg: rgba(255, 255, 255, 0.65);
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --card-bg: rgba(255, 255, 255, 0.85);
   --modal-bg: rgba(255, 255, 255, 0.95);
   --overlay-bg: rgba(0, 0, 0, 0.3);
   --option-bg: #ffffff;
   --autofill-bg: #ffffff;
-  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 12px 34px rgba(17, 21, 31, 0.08);
   --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.15);
   --focus-ring: rgba(0, 122, 255, 0.12);
 }
@@ -120,6 +125,8 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
+  font-feature-settings: "ss01" on, "cv02" on;
+  letter-spacing: -0.01em;
   min-height: 100vh;
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -185,8 +192,8 @@ input::placeholder {
 
 .card {
   background: var(--card-bg);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   padding: var(--space-card);
@@ -312,13 +319,14 @@ input::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-btn);
   background: var(--accent-blue);
   color: white;
   padding: 0.625rem 1rem;
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.15s ease;
+  box-shadow: 0 8px 20px rgba(10, 132, 255, 0.25);
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
 }
 .btn-primary:hover { filter: brightness(1.1); }
@@ -359,7 +367,7 @@ select,
 textarea {
   background: var(--input-bg);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-input);
   color: var(--text);
   color-scheme: inherit;
   font-size: 16px;
@@ -440,4 +448,38 @@ input[type="checkbox"]:checked::after {
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+
+.page-title {
+  font-size: var(--font-display);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.section-title {
+  font-size: var(--font-title);
+  line-height: 1.2;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+}
+
+.muted-caption {
+  font-size: var(--font-caption);
+  color: var(--text-tertiary);
+}
+
+.list-row {
+  border-radius: 0.9rem;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card-bg) 86%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

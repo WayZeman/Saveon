@@ -100,13 +100,13 @@ export default function TransactionsPage() {
 
   return (
     <div className="section-spacing max-w-5xl mx-auto">
-      <div className="flex justify-between items-center gap-4 opacity-0 animate-slide-up">
+      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Wallet className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
             {t("transactions_title")}
           </h1>
-          <p className="text-[13px] text-[var(--text-secondary)] mt-1">{t("transactions_subtitle")}</p>
+          <p className="text-[14px] text-[var(--text-secondary)] mt-1">{t("transactions_subtitle")}</p>
         </div>
         <button type="button" onClick={openCreate} className="btn-primary">
           <Plus className="w-4 h-4" strokeWidth={2.5} />
@@ -119,7 +119,7 @@ export default function TransactionsPage() {
           {transactions.length === 0 ? (
             <li className="p-10 text-center text-[var(--text-secondary)] text-[14px]">{t("transactions_none")}</li>
           ) : transactions.map((tx, i) => (
-            <li key={tx.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-5 py-3.5 hover:bg-[var(--input-bg)] group transition-colors opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
+            <li key={tx.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-5 py-4 hover:bg-[var(--input-bg)] group transition-colors opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
               <div className="min-w-0 flex items-center gap-3">
                 <span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${tx.type === "income" ? "bg-[var(--accent-green)]/10 text-[var(--accent-green)]" : "bg-[var(--accent-red)]/10 text-[var(--accent-red)]"}`}>
                   {tx.type === "income" ? <ArrowUpRight className="w-4 h-4" strokeWidth={2} /> : <ArrowDownLeft className="w-4 h-4" strokeWidth={2} />}

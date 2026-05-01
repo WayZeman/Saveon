@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const APPLE_EASE = (t: number) => 1 - Math.pow(1 - t, 3); // easeOutCubic
+const APPLE_EASE = (t: number) => 1 - Math.pow(1 - t, 4);
 
 type Props = {
   value: number;

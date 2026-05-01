@@ -56,12 +56,12 @@ export default function HomePageContent() {
   return (
     <div className="section-spacing max-w-6xl mx-auto">
       {/* Hero balance */}
-      <section className="rounded-3xl bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-14 relative overflow-hidden shadow-glow opacity-0 animate-in">
-        <div className="absolute inset-0 opacity-[0.08]">
+      <section className="rounded-[1.8rem] bg-gradient-to-br from-[#0c7ff5] to-[#4e6cff] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-12 relative overflow-hidden shadow-glow opacity-0 animate-in">
+        <div className="absolute inset-0 opacity-[0.07]">
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white -translate-y-1/3 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white translate-y-1/3 -translate-x-1/3" />
         </div>
-        <div className="flex items-center gap-2 text-white/70 text-[13px] md:text-[14px] font-medium relative tracking-wide uppercase">
+        <div className="flex items-center gap-2 text-white/75 text-[12px] md:text-[13px] font-medium relative tracking-[0.08em] uppercase">
           <Wallet className="w-4 h-4 shrink-0" strokeWidth={2} />
           {hasPartner ? t("home_totalBalance") : t("home_myBalance")}
         </div>
@@ -78,7 +78,7 @@ export default function HomePageContent() {
 
       {/* Balance cards — only show when partner exists */}
       {hasPartner && (
-        <section className="grid grid-cols-2 gap-3 md:gap-5">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-5">
           <BalanceCard title={t("home_myBalance")} amount={data.myBalance} formatMoney={formatMoney} className="opacity-0 animate-slide-up animate-stagger-1" />
           <BalanceCard title={partnerLabel} amount={data.partnerBalance} formatMoney={formatMoney} className="opacity-0 animate-slide-up animate-stagger-2" />
         </section>
@@ -89,7 +89,7 @@ export default function HomePageContent() {
         const totalTarget = data.goals.reduce((s, g) => s + g.targetAmount, 0);
         const totalCollected = data.totalBalance;
         const totalRemaining = Math.max(0, totalTarget - totalCollected);
-        const fillPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : 0;
+        const fillPercent = totalTarget > 0 ? Math.max(0, Math.min(100, (totalCollected / totalTarget) * 100)) : 0;
         return (
           <section className="card opacity-0 animate-slide-up animate-stagger-3">
             <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
@@ -162,15 +162,15 @@ export default function HomePageContent() {
         <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_byCategoryHint")}</p>
         {data.pieData.length > 0 ? (
           <>
-            <div className="h-48 md:h-56 categories-chart">
+            <div className="h-56 md:h-64 categories-chart">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 12, right: 12, bottom: 12, left: 12 }}>
                   <Pie
                     data={data.pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={40}
-                    outerRadius={62}
+                    innerRadius={44}
+                    outerRadius={74}
                     paddingAngle={2}
                     minAngle={5}
                     dataKey="value"
@@ -191,7 +191,7 @@ export default function HomePageContent() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <ul className="mt-4 space-y-2.5 border-t border-[var(--border)] pt-4">
+            <ul className="mt-5 space-y-2.5 border-t border-[var(--border)] pt-4">
               {data.pieData.map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-[13px]">
                   <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} aria-hidden />
@@ -250,7 +250,7 @@ export default function HomePageContent() {
           });
           return (
             <>
-              <div className="h-48 md:h-56 chart-minimal -mx-1">
+              <div className="h-52 md:h-64 chart-minimal -mx-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />

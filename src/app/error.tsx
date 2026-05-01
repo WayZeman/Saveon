@@ -17,6 +17,7 @@ export default function Error({
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--bg)] text-[var(--text)]">
+      <div className="card max-w-md w-full text-center">
       <h1 className="text-2xl font-semibold mb-2">{t("error_title")}</h1>
       <p className="text-[var(--text-secondary)] mb-6 text-center">
         {t("error_message")}
@@ -28,6 +29,7 @@ export default function Error({
       >
         {t("error_retry")}
       </button>
+      </div>
     </div>
   );
 }

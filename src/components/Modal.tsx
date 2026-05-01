@@ -33,11 +33,11 @@ export function ModalOverlay({ children, onClose }: { children: ReactNode; onClo
 export function ModalPanel({ children, title, onClose }: { children: ReactNode; title: string; onClose: () => void }) {
   return (
     <div
-      className="glass-modal rounded-2xl w-full max-w-[440px] max-h-[82dvh] sm:max-h-[90dvh] shadow-modal animate-in flex flex-col"
+      className="glass-modal rounded-[1.35rem] w-full max-w-[460px] max-h-[82dvh] sm:max-h-[90dvh] shadow-modal animate-in flex flex-col"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between px-5 pt-5 pb-0 sm:px-7 sm:pt-7 sticky top-0 z-10 shrink-0">
-        <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-[19px] font-semibold tracking-tight">{title}</h2>
         <button
           type="button"
           onClick={onClose}
@@ -85,14 +85,14 @@ export function ModalActions({
         type="button"
         onClick={onCancel}
         disabled={submitDisabled}
-        className="flex-1 rounded-xl border border-[var(--border)] py-3 text-[14px] font-medium text-[var(--text-secondary)] hover:bg-[var(--input-bg)] active:scale-[0.98] transition-all disabled:opacity-50"
+        className="flex-1 rounded-[0.85rem] border border-[var(--border)] py-3 text-[14px] font-medium text-[var(--text-secondary)] hover:bg-[var(--input-bg)] active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {t("modal_cancel")}
       </button>
       <button
         type="submit"
         disabled={submitDisabled}
-        className="flex-1 rounded-xl bg-[var(--accent-blue)] text-white py-3 text-[14px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+        className="flex-1 rounded-[0.85rem] bg-[var(--accent-blue)] text-white py-3 text-[14px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {submitLabel}
       </button>
@@ -110,13 +110,13 @@ export function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex rounded-xl bg-[var(--input-bg)] p-1 gap-1">
+    <div className="flex rounded-[0.9rem] bg-[var(--input-bg)] p-1 gap-1">
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`flex-1 py-2.5 rounded-[10px] text-[14px] font-medium transition-all duration-200 ${
+          className={`flex-1 py-2.5 rounded-[0.72rem] text-[14px] font-medium transition-all duration-200 ${
             value === opt.value
               ? "bg-[var(--surface-secondary)] text-[var(--text)] shadow-sm"
               : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"

@@ -123,16 +123,16 @@ export default function AuthPage() {
           <div className="inline-flex items-center justify-center w-[68px] h-[68px] rounded-[22px] overflow-hidden mb-5 shadow-glow">
             <LogoImage width={68} height={68} className="object-cover" />
           </div>
-          <h1 className="text-[28px] font-bold tracking-tight text-[var(--text)]">
+          <h1 className="text-[31px] font-bold tracking-tight text-[var(--text)]">
             {isRegister ? t("auth_createAccount") : isRecovery ? "Відновлення пароля" : t("auth_welcomeBack")}
           </h1>
-          <p className="mt-2 text-[15px] text-[var(--text-secondary)]">
+          <p className="mt-2 text-[15px] text-[var(--text-secondary)] leading-relaxed">
             {isRegister ? t("auth_startControlling") : isRecovery ? "Введіть email та код відновлення" : t("auth_signInToContinue")}
           </p>
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl bg-[var(--bg-elevated)]/80 backdrop-blur-xl border border-[var(--border)] p-6 sm:p-7 shadow-modal">
+        <div className="rounded-[1.4rem] bg-[var(--bg-elevated)]/86 backdrop-blur-xl border border-[var(--border)] p-6 sm:p-7 shadow-modal">
           <form onSubmit={handleSubmit} className="space-y-4">
 
             {/* Name (register only) */}
