@@ -104,10 +104,6 @@ export default function SwipeNavigation({ children }: { children: React.ReactNod
     };
   }, [pathname, router, refetchDashboard, refetchTransactions, refetchCategories, refetchGoals]);
 
-  return (
-    <div id="swipe-container" className="flex-1 flex flex-col overflow-x-hidden">
-      {children}
-    </div>
-  );
+  return <div id="swipe-container" className="overflow-x-hidden">{children}</div>;
 }
 
