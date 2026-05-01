@@ -46,24 +46,31 @@ export default function AuthPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const formEl = e.currentTarget as HTMLFormElement;
+    const formData = new FormData(formEl);
+    const nameValue = (formData.get("name")?.toString() ?? name).trim();
+    const emailValue = (formData.get("email")?.toString() ?? email).trim();
+    const passwordValue = formData.get("password")?.toString() ?? password;
+    const confirmPasswordValue = formData.get("confirmPassword")?.toString() ?? confirmPassword;
+    const recoveryCodeValue = (formData.get("recoveryCode")?.toString() ?? recoveryCode).replace(/\D/g, "");
+    const confirmRecoveryCodeValue = (formData.get("confirmRecoveryCode")?.toString() ?? confirmRecoveryCode).replace(/\D/g, "");
 
     if (mode === "register") {
-      if (!name.trim()) { setError(t("auth_errorName")); return; }
-      if (password.length < PASSWORD_MIN) { setError(t("auth_errorPasswordMin", String(PASSWORD_MIN))); return; }
-      if (password !== confirmPassword) { setError(t("auth_errorPasswordsMatch")); return; }
-      if (!/^\d{4}$/.test(recoveryCode)) { setError(t("auth_errorRecoveryCodeLength")); return; }
-      if (recoveryCode !== confirmRecoveryCode) { setError(t("auth_errorRecoveryCodeMatch")); return; }
+      if (!nameValue) { setError(t("auth_errorName")); return; }
+      if (passwordValue.length < PASSWORD_MIN) { setError(t("auth_errorPasswordMin", String(PASSWORD_MIN))); return; }
+      if (passwordValue !== confirmPasswordValue) { setError(t("auth_errorPasswordsMatch")); return; }
+      if (!/^\d{4}$/.test(recoveryCodeValue)) { setError(t("auth_errorRecoveryCodeLength")); return; }
+      if (recoveryCodeValue !== confirmRecoveryCodeValue) { setError(t("auth_errorRecoveryCodeMatch")); return; }
       if (!agreed) { setError(t("auth_errorAgree")); return; }
     }
 
     if (mode === "recovery") {
-      if (!recoveryCodeValid) { setError(t("auth_errorRecoveryCodeLength")); return; }
-      if (password.length < PASSWORD_MIN) { setError(t("auth_errorPasswordMin", String(PASSWORD_MIN))); return; }
+      if (!/^\d{4}$/.test(recoveryCodeValue)) { setError(t("auth_errorRecoveryCodeLength")); return; }
+      if (passwordValue.length < PASSWORD_MIN) { setError(t("auth_errorPasswordMin", String(PASSWORD_MIN))); return; }
     }
 
-    if (!email.trim() || !password.trim()) { setError(t("auth_errorFillFields")); return; }
-    const emailTrimmed = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) { setError(t("auth_errorInvalidEmail")); return; }
+    if (!emailValue || !passwordValue.trim()) { setError(t("auth_errorFillFields")); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) { setError(t("auth_errorInvalidEmail")); return; }
 
     setLoading(true);
     try {
@@ -72,10 +79,10 @@ export default function AuthPage() {
       if (mode === "recovery") endpoint = "/api/auth/reset-password";
 
       const body = mode === "login"
-        ? { email: emailTrimmed, password }
+        ? { email: emailValue, password: passwordValue }
         : mode === "register"
-          ? { name: name.trim(), email: emailTrimmed, password, recoveryCode }
-          : { email: emailTrimmed, recoveryCode, newPassword: password };
+          ? { name: nameValue, email: emailValue, password: passwordValue, recoveryCode: recoveryCodeValue }
+          : { email: emailValue, recoveryCode: recoveryCodeValue, newPassword: passwordValue };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -145,6 +152,7 @@ export default function AuthPage() {
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-[var(--text-tertiary)]" strokeWidth={1.5} />
                   <input
                     id="name" type="text" value={name}
+                    name="name"
                     onChange={(e) => setName(e.target.value)}
                     className="w-full !pl-11"
                     placeholder={t("auth_namePlaceholder")}
@@ -164,6 +172,7 @@ export default function AuthPage() {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-[var(--text-tertiary)]" strokeWidth={1.5} />
                 <input
                   id="email" type="email" value={email}
+                  name="email"
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full !pl-11"
                   placeholder={t("auth_emailPlaceholder")}
@@ -184,6 +193,7 @@ export default function AuthPage() {
                   <input
                     id="recoveryCode"
                     type="text"
+                    name="recoveryCode"
                     inputMode="numeric"
                     maxLength={4}
                     value={recoveryCode}
@@ -207,6 +217,7 @@ export default function AuthPage() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full !pl-11 !pr-12"
@@ -256,6 +267,7 @@ export default function AuthPage() {
                   <input
                     id="confirmPassword"
                     type={showPassword ? "text" : "password"}
+                    name="confirmPassword"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className={`w-full !pl-11 ${!passwordsMatch ? "!border-[var(--accent-red)] focus:!border-[var(--accent-red)]" : ""}`}
@@ -285,6 +297,7 @@ export default function AuthPage() {
                     <input
                       id="recoveryCode"
                       type="text"
+                      name="recoveryCode"
                       inputMode="numeric"
                       maxLength={4}
                       value={recoveryCode}
@@ -305,6 +318,7 @@ export default function AuthPage() {
                     <input
                       id="confirmRecoveryCode"
                       type="text"
+                      name="confirmRecoveryCode"
                       inputMode="numeric"
                       maxLength={4}
                       value={confirmRecoveryCode}

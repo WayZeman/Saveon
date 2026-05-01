@@ -111,8 +111,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 
     // Goals
     goals_title: "Цілі",
-    goals_subtitle: "Прогрес накопичення на кожну ціль",
-    goals_addPartnerHint: " · Додайте партнера в налаштуваннях, щоб створювати спільні цілі",
+    goals_subtitle: "Прогрес накопичення на кожну ціль.",
+    goals_addPartnerHint: " Додайте партнера в налаштуваннях, для створення спільних цілей",
     goals_add: "Додати",
     goals_newGoal: "Нова ціль",
     goals_editGoal: "Редагувати ціль",

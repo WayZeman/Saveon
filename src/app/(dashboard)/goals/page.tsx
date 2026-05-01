@@ -120,10 +120,10 @@ export default function GoalsPage() {
             <Target className="w-7 h-7 text-[var(--accent-purple)]" strokeWidth={1.5} />
             {t("goals_title")}
           </h1>
-          <p className="text-[14px] text-[var(--text-secondary)] mt-1">
-          {t("goals_subtitle")}
-          {!hasPartner && t("goals_addPartnerHint")}
-        </p>
+          <div className="text-[14px] text-[var(--text-secondary)] mt-1">
+            <p>{t("goals_subtitle")}</p>
+            {!hasPartner && <p className="mt-0.5">{t("goals_addPartnerHint").trim()}</p>}
+          </div>
         </div>
         <button type="button" onClick={openCreate} className="btn-primary">
           <Plus className="w-4 h-4" strokeWidth={2.5} />
