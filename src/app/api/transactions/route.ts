@@ -77,9 +77,6 @@ export async function POST(request: Request) {
     const transaction = await prisma.transaction.create({
       data: {
         amount: amountUah,
-        originalAmount: amount,
-        originalCurrency: currency ?? "UAH",
-        exchangeRateToUah: currency === "USD" ? (amountUah / amount) : currency === "EUR" ? (amountUah / amount) : 1,
         type,
         categoryId,
         userId: session.id,

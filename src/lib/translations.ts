@@ -76,7 +76,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_noGoalsHint: "Додайте першу ціль для накопичення",
     home_addGoal: "Додати ціль",
     home_byCategory: "По категоріях",
-    home_byCategoryHint: "Баланс по категоріях за весь час (дохід − витрати)",
+    home_byCategoryHint: "Розподіл вкладень за весь час",
     home_noDataPeriod: "Немає вкладень за період",
     home_incomeExpense: "Доходи та витрати",
     home_incomeExpenseHint: "Динаміка за останні місяці",

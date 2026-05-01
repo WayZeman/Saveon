@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   const allTransactions = await prisma.transaction.findMany({
     where: { userId: { in: userIds } },
-    select: { userId: true, type: true, amount: true, categoryId: true, createdAt: true },
+    select: { userId: true, type: true, amount: true, categoryId: true },
   });
   const monthTransactions = await prisma.transaction.findMany({
     where: { userId: { in: userIds }, createdAt: { gte: start, lte: end } },
@@ -52,28 +52,19 @@ export async function GET(request: Request) {
     select: { id: true, name: true },
   });
   const categoryIds = new Set(categories.map((c) => c.id));
-  // Розподіл по категоріях за весь час (нетто: дохід - витрата),
-  // щоб сума всіх категорій збігалась із загальним балансом.
-  const categoryTotals: Record<string, { name: string; net: number }> = {};
+  // Розподіл по категоріях за весь час (всі транзакції)
+  const categoryTotals: Record<string, { name: string; income: number }> = {};
   for (const t of allTransactions) {
-    if (!categoryIds.has(t.categoryId)) continue;
+    if (t.type !== "income" || !categoryIds.has(t.categoryId)) continue;
     const cat = categories.find((x) => x.id === t.categoryId);
     if (!cat) continue;
-    if (!categoryTotals[cat.id]) categoryTotals[cat.id] = { name: cat.name, net: 0 };
-    categoryTotals[cat.id].net += t.type === "income" ? t.amount : -t.amount;
+    if (!categoryTotals[cat.id]) categoryTotals[cat.id] = { name: cat.name, income: 0 };
+    categoryTotals[cat.id].income += t.amount;
   }
 
   const myBalance = (byUser[session.id]?.income ?? 0) - (byUser[session.id]?.expense ?? 0);
   const partnerBalance = partnerId ? (byUser[partnerId]?.income ?? 0) - (byUser[partnerId]?.expense ?? 0) : 0;
   const totalBalance = myBalance + partnerBalance;
-  const startToday = new Date();
-  startToday.setHours(0, 0, 0, 0);
-  const todayDelta = allTransactions.reduce((sum, t) => {
-    if (t.createdAt < startToday) return sum;
-    return sum + (t.type === "income" ? t.amount : -t.amount);
-  }, 0);
-  const startDayBalance = totalBalance - todayDelta;
-  const todayDeltaPercent = startDayBalance === 0 ? 0 : (todayDelta / Math.abs(startDayBalance)) * 100;
 
   const byUserMonth: Record<string, Agg> = {};
   for (const uid of userIds) {
@@ -96,15 +87,13 @@ export async function GET(request: Request) {
   const goalsMapped = goalsRaw.map((g) => {
     const balanceUsed = g.isShared ? totalBalance : myBalance;
     const remainingNeeded = Math.max(0, g.targetAmount - balanceUsed);
-    const progressPercent = Math.max(0, Math.min(100, (balanceUsed / g.targetAmount) * 100));
+    const progressPercent = Math.min(100, (balanceUsed / g.targetAmount) * 100);
     return { ...g, balanceUsed, remainingNeeded, progressPercent };
   });
   const goals = goalsMapped.filter((g) => !g.realizedAt);
 
   const monthlyData = await getMonthlyData(session.id, partnerId);
-  const pieData = Object.values(categoryTotals)
-    .filter((v) => v.net !== 0)
-    .map((v) => ({ name: v.name, value: v.net, chartValue: Math.abs(v.net) }));
+  const pieData = Object.values(categoryTotals).map((v) => ({ name: v.name, value: v.income }));
 
   const comparison = hasPartner ? {
     mySaved: (byUserMonth[session.id]?.income ?? 0) - (byUserMonth[session.id]?.expense ?? 0),
@@ -119,8 +108,6 @@ export async function GET(request: Request) {
     myBalance,
     partnerBalance,
     totalBalance,
-    todayDelta,
-    todayDeltaPercent,
     hasPartner,
     goals,
     monthlyData,
