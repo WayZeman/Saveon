@@ -54,11 +54,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col md:flex-row bg-[var(--bg)]">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[var(--bg)] md:pl-[252px]">
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
           {/* Desktop sidebar */}
-          <aside className="glass-panel hidden md:flex md:w-[252px] md:sticky md:top-0 md:self-start md:h-screen flex-col border-r border-[var(--border)] shrink-0">
+          <aside className="glass-panel hidden md:flex md:w-[252px] md:fixed md:left-0 md:top-0 md:bottom-0 md:h-[100dvh] flex-col border-r border-[var(--border)] shrink-0 z-30">
             <div className="p-6 pb-3">
               <Link href="/dashboard" className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
