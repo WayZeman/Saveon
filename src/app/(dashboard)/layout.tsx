@@ -54,7 +54,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[var(--bg)] md:pl-[252px]">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[var(--bg)] md:pl-[252px] md:h-[100dvh] md:overflow-hidden">
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
           {/* Desktop sidebar */}
@@ -100,7 +100,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </aside>
 
           {/* Main content */}
-          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 md:pb-0 relative overflow-x-hidden">
+          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 md:pb-0 relative overflow-x-hidden md:h-[100dvh] md:overflow-y-auto">
             <div className="pointer-events-none absolute inset-0 -z-[1] hidden md:block">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
