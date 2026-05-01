@@ -52,14 +52,15 @@ export async function GET(request: Request) {
     select: { id: true, name: true },
   });
   const categoryIds = new Set(categories.map((c) => c.id));
-  // Розподіл по категоріях за весь час (всі транзакції)
-  const categoryTotals: Record<string, { name: string; income: number }> = {};
+  // Розподіл по категоріях за весь час (нетто: дохід - витрата),
+  // щоб сума категорій збігалась із загальним балансом.
+  const categoryTotals: Record<string, { name: string; net: number }> = {};
   for (const t of allTransactions) {
-    if (t.type !== "income" || !categoryIds.has(t.categoryId)) continue;
+    if (!categoryIds.has(t.categoryId)) continue;
     const cat = categories.find((x) => x.id === t.categoryId);
     if (!cat) continue;
-    if (!categoryTotals[cat.id]) categoryTotals[cat.id] = { name: cat.name, income: 0 };
-    categoryTotals[cat.id].income += t.amount;
+    if (!categoryTotals[cat.id]) categoryTotals[cat.id] = { name: cat.name, net: 0 };
+    categoryTotals[cat.id].net += t.type === "income" ? t.amount : -t.amount;
   }
 
   const myBalance = (byUser[session.id]?.income ?? 0) - (byUser[session.id]?.expense ?? 0);
@@ -93,7 +94,9 @@ export async function GET(request: Request) {
   const goals = goalsMapped.filter((g) => !g.realizedAt);
 
   const monthlyData = await getMonthlyData(session.id, partnerId);
-  const pieData = Object.values(categoryTotals).map((v) => ({ name: v.name, value: v.income }));
+  const pieData = Object.values(categoryTotals)
+    .filter((v) => v.net !== 0)
+    .map((v) => ({ name: v.name, value: v.net, chartValue: Math.abs(v.net) }));
 
   const comparison = hasPartner ? {
     mySaved: (byUserMonth[session.id]?.income ?? 0) - (byUserMonth[session.id]?.expense ?? 0),

@@ -56,11 +56,12 @@ export default function HomePageContent() {
   return (
     <div className="section-spacing max-w-6xl mx-auto">
       {/* Hero balance */}
-      <section className="rounded-[1.8rem] bg-gradient-to-br from-[#0c7ff5] to-[#4e6cff] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-12 relative overflow-hidden shadow-glow opacity-0 animate-in">
+      <section className="rounded-[1.8rem] bg-gradient-to-br from-[#0c7ff5] to-[#4e6cff] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-12 relative overflow-hidden shadow-glow opacity-0 animate-in border border-white/15">
         <div className="absolute inset-0 opacity-[0.07]">
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white -translate-y-1/3 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white translate-y-1/3 -translate-x-1/3" />
         </div>
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(70%_60%_at_50%_0%,rgba(255,255,255,0.18),transparent_68%)]" />
         <div className="flex items-center gap-2 text-white/75 text-[12px] md:text-[13px] font-medium relative tracking-[0.08em] uppercase">
           <Wallet className="w-4 h-4 shrink-0" strokeWidth={2} />
           {hasPartner ? t("home_totalBalance") : t("home_myBalance")}
@@ -173,7 +174,7 @@ export default function HomePageContent() {
                     outerRadius={74}
                     paddingAngle={2}
                     minAngle={5}
-                    dataKey="value"
+                    dataKey="chartValue"
                     nameKey="name"
                     stroke="var(--bg)"
                     strokeWidth={1}
@@ -186,7 +187,7 @@ export default function HomePageContent() {
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px" }}
-                    formatter={(value: number, name: string) => [formatMoney(value), name]}
+                    formatter={(_chartValue: number, _name: string, item: { payload?: { value?: number; name?: string } }) => [formatMoney(item?.payload?.value ?? 0), item?.payload?.name ?? ""]}
                   />
                 </PieChart>
               </ResponsiveContainer>

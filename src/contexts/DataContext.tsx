@@ -37,7 +37,7 @@ export type DashboardData = {
     createdByUser: { id: string; email: string; role: string };
   }>;
   monthlyData: { month: string; income: number; expense: number }[];
-  pieData: { name: string; value: number }[];
+  pieData: { name: string; value: number; chartValue: number }[];
   comparison: {
     mySaved: number;
     partnerSaved: number;
