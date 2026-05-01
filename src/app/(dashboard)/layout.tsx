@@ -101,10 +101,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Main content */}
           <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 md:pb-0 relative">
-            <div className="pointer-events-none absolute inset-0 -z-[1]">
-              <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
-              <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
-              <div className="absolute -bottom-24 left-1/3 w-[22rem] h-[22rem] rounded-full blur-3xl opacity-15 bg-[var(--accent-teal)]" />
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+              <div className="particle particle-1" />
+              <div className="particle particle-2" />
+              <div className="particle particle-3" />
+              <div className="particle particle-4" />
+              <div className="particle particle-5" />
+              <div className="particle particle-6" />
+              <div className="particle particle-7" />
+              <div className="particle particle-8" />
             </div>
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
@@ -127,13 +132,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <Link
                     key={href}
                     href={href}
-                    className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors ${active
+                    aria-label={label}
+                    title={label}
+                    className={`flex-1 flex items-center justify-center py-1.5 transition-colors ${active
                       ? "text-[var(--accent-blue)]"
                       : "text-[var(--text-tertiary)] active:text-[var(--text-secondary)]"
                       }`}
                   >
                     <Icon className="w-[20px] h-[20px]" strokeWidth={active ? 2 : 1.5} />
-                    {label}
                   </Link>
                 );
               })}
