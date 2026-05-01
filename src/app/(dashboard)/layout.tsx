@@ -127,13 +127,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <Link
                     key={href}
                     href={href}
-                    className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-medium transition-colors ${active
+                    aria-label={label}
+                    title={label}
+                    className={`flex-1 flex items-center justify-center py-1.5 transition-colors ${active
                       ? "text-[var(--accent-blue)]"
                       : "text-[var(--text-tertiary)] active:text-[var(--text-secondary)]"
                       }`}
                   >
                     <Icon className="w-[20px] h-[20px]" strokeWidth={active ? 2 : 1.5} />
-                    {label}
                   </Link>
                 );
               })}
