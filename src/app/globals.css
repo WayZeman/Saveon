@@ -265,25 +265,17 @@ input::placeholder {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Мобільний нижній nav: м'який перехід у контент, щоб не було різкого "обрізання" */
+/* Мобільний нижній nav */
 .mobile-bottom-nav {
   position: fixed;
-  overflow: visible;
+  overflow: hidden;
 }
 
-.mobile-bottom-nav::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -24px;
-  height: 24px;
-  pointer-events: none;
-  background: linear-gradient(to top, color-mix(in srgb, var(--glass-bg) 78%, transparent), transparent 80%);
-}
-
-.theme-light .mobile-bottom-nav::before {
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0));
+.theme-light .mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-top-color: rgba(15, 23, 42, 0.1);
 }
 
 @layer utilities {

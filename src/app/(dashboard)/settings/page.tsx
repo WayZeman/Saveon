@@ -103,8 +103,8 @@ export default function SettingsPage() {
 
   return (
     <div className="section-spacing max-w-2xl mx-auto">
-      <div className="opacity-0 animate-slide-up text-center">
-        <h1 className="page-title flex items-center justify-center gap-2">
+      <div className="opacity-0 animate-slide-up">
+        <h1 className="page-title flex items-center gap-2">
           <Settings className="w-7 h-7 text-[var(--text-secondary)]" strokeWidth={1.5} />
           {t("settings_title")}
         </h1>
