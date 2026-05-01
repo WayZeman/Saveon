@@ -44,6 +44,7 @@ model PartnerInvite {
 model Category {
   id       String   @id @default(cuid())
   name     String
+  marketSymbol String?
   userId   String?
   // createdBy: хто створив спільну категорію; userId може бути null
   createdBy String?
@@ -62,6 +63,9 @@ model Transaction {
   originalAmount Float @default(0)
   originalCurrency String @default("UAH")
   exchangeRateToUah Float @default(1)
+  assetSymbol String?
+  assetPrice Float?
+  assetCurrency String?
   type       String
   categoryId String
   userId     String

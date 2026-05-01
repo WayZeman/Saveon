@@ -134,6 +134,11 @@ export default function TransactionsPage() {
                   <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">
                     {new Date(tx.createdAt).toLocaleDateString("uk-UA")} · {tx.type === "income" ? t("transactions_income") : t("transactions_expense")}
                   </p>
+                  {tx.assetSymbol && tx.assetPrice ? (
+                    <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">
+                      {tx.assetSymbol}: {tx.assetPrice.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 4 })} {tx.assetCurrency ?? ""}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div className="flex items-center justify-between sm:justify-end gap-2 min-w-0">

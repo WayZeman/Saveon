@@ -3,6 +3,12 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { categoriesVisibleWhere } from "@/lib/data-scope";
 import { transactionSchema } from "@/lib/validations";
+import { getMarketQuote } from "@/lib/market-quote";
+
+function isSchemaMismatchError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("P2022") || message.includes("does not exist");
+}
 
 async function getRates(): Promise<{ usd: number; eur: number }> {
   try {
@@ -36,12 +42,40 @@ export async function GET(request: Request) {
     where.createdAt = { gte: start, lte: end };
   }
 
-  const transactions = await prisma.transaction.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: { category: { select: { id: true, name: true, isShared: true } } },
-  });
-  return NextResponse.json(transactions);
+  try {
+    const transactions = await prisma.transaction.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: { category: { select: { id: true, name: true, isShared: true, marketSymbol: true } } },
+    });
+    return NextResponse.json(transactions);
+  } catch (e) {
+    if (!isSchemaMismatchError(e)) throw e;
+    const transactions = await prisma.transaction.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amount: true,
+        type: true,
+        categoryId: true,
+        createdAt: true,
+        category: { select: { id: true, name: true, isShared: true } },
+      },
+    });
+    return NextResponse.json(
+      transactions.map((t) => ({
+        ...t,
+        originalAmount: t.amount,
+        originalCurrency: "UAH",
+        exchangeRateToUah: 1,
+        assetSymbol: null,
+        assetPrice: null,
+        assetCurrency: null,
+        category: { ...t.category, marketSymbol: null },
+      }))
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -55,14 +89,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
     const { amount, type, categoryId, goalId, currency } = parsed.data;
+    const rates = await getRates();
     let amountUah = amount;
     if (currency && currency !== "UAH") {
-      const rates = await getRates();
       if (currency === "USD") amountUah = amount * rates.usd;
       else if (currency === "EUR") amountUah = amount * rates.eur;
     }
     const category = await prisma.category.findFirst({
       where: { id: categoryId, OR: categoriesVisibleWhere(session).OR },
+      select: { id: true, userId: true, createdBy: true, isShared: true, marketSymbol: true },
     });
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
     const partnerId = session.partnerId;
@@ -74,20 +109,59 @@ export async function POST(request: Request) {
       isLegacyGlobal;
     if (!canUse) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const transaction = await prisma.transaction.create({
-      data: {
-        amount: amountUah,
-        originalAmount: amount,
-        originalCurrency: currency ?? "UAH",
-        exchangeRateToUah: currency === "USD" ? (amountUah / amount) : currency === "EUR" ? (amountUah / amount) : 1,
-        type,
-        categoryId,
-        userId: session.id,
-        goalId: goalId ?? null,
-      },
-      include: { category: { select: { id: true, name: true, isShared: true } } },
-    });
-    return NextResponse.json(transaction);
+    let assetSymbol: string | null = null;
+    let assetPrice: number | null = null;
+    let assetCurrency: string | null = null;
+    if (category.marketSymbol) {
+      const quote = await getMarketQuote(category.marketSymbol);
+      if (quote) {
+        assetSymbol = quote.symbol;
+        assetPrice = quote.price;
+        assetCurrency = quote.currency;
+      }
+    }
+
+    try {
+      const transaction = await prisma.transaction.create({
+        data: {
+          amount: amountUah,
+          originalAmount: amount,
+          originalCurrency: currency ?? "UAH",
+          exchangeRateToUah: currency === "USD" ? (amountUah / amount) : currency === "EUR" ? (amountUah / amount) : 1,
+          assetSymbol,
+          assetPrice,
+          assetCurrency,
+          type,
+          categoryId,
+          userId: session.id,
+          goalId: goalId ?? null,
+        },
+        include: { category: { select: { id: true, name: true, isShared: true, marketSymbol: true } } },
+      });
+      return NextResponse.json(transaction);
+    } catch (e) {
+      if (!isSchemaMismatchError(e)) throw e;
+      const transaction = await prisma.transaction.create({
+        data: {
+          amount: amountUah,
+          type,
+          categoryId,
+          userId: session.id,
+          goalId: goalId ?? null,
+        },
+        include: { category: { select: { id: true, name: true, isShared: true } } },
+      });
+      return NextResponse.json({
+        ...transaction,
+        originalAmount: transaction.amount,
+        originalCurrency: "UAH",
+        exchangeRateToUah: 1,
+        assetSymbol: null,
+        assetPrice: null,
+        assetCurrency: null,
+        category: { ...transaction.category, marketSymbol: null },
+      });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
