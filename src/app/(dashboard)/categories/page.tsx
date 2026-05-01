@@ -128,7 +128,7 @@ export default function CategoriesPage() {
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Їжа, Готівка" required />
               </div>
               <div>
-                <FieldLabel>Символ ринку (необов'язково)</FieldLabel>
+                <FieldLabel>Символ ринку (необов&apos;язково)</FieldLabel>
                 <input
                   type="text"
                   value={marketSymbol}
