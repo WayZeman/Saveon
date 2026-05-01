@@ -5,17 +5,17 @@
 /* ── Dark theme (default) ── */
 :root,
 .theme-dark {
-  --bg: #0a0b0f;
-  --bg-secondary: #0f1116;
-  --bg-elevated: #141821;
-  --surface: #1a1f2a;
-  --surface-secondary: #222938;
-  --surface-tertiary: #2c3445;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --text: #f3f5f8;
-  --text-secondary: #b1b8c4;
-  --text-tertiary: #7f8a9c;
+  --bg: #050507;
+  --bg-secondary: #0a0b0f;
+  --bg-elevated: #0e1015;
+  --surface: #12151d;
+  --surface-secondary: #181d27;
+  --surface-tertiary: #222a38;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #f5f7fb;
+  --text-secondary: #b5becc;
+  --text-tertiary: #818da1;
   --accent-blue: #0a84ff;
   --accent-green: #34c759;
   --accent-red: #ff5c5c;
@@ -23,18 +23,18 @@
   --accent-purple: #8f7cff;
   --accent-teal: #5ec8ff;
   --gradient-start: #0a84ff;
-  --gradient-end: #5f7dff;
-  --input-bg: rgba(255, 255, 255, 0.05);
-  --input-bg-focus: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(14, 17, 24, 0.72);
-  --card-bg: rgba(20, 24, 33, 0.78);
-  --modal-bg: rgba(17, 21, 31, 0.95);
-  --overlay-bg: rgba(6, 8, 12, 0.65);
-  --option-bg: #171c27;
-  --autofill-bg: #171c27;
-  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.26), 0 22px 70px rgba(4, 8, 16, 0.35);
-  --shadow-modal: 0 36px 100px rgba(0, 0, 0, 0.58), 0 10px 28px rgba(0, 0, 0, 0.32);
-  --focus-ring: rgba(10, 132, 255, 0.25);
+  --gradient-end: #5472ff;
+  --input-bg: rgba(255, 255, 255, 0.045);
+  --input-bg-focus: rgba(255, 255, 255, 0.075);
+  --glass-bg: rgba(9, 11, 16, 0.76);
+  --card-bg: rgba(13, 16, 23, 0.82);
+  --modal-bg: rgba(11, 14, 21, 0.96);
+  --overlay-bg: rgba(3, 4, 8, 0.72);
+  --option-bg: #121720;
+  --autofill-bg: #121720;
+  --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.36), 0 34px 90px rgba(2, 5, 12, 0.46);
+  --shadow-modal: 0 36px 110px rgba(0, 0, 0, 0.62), 0 14px 38px rgba(0, 0, 0, 0.42);
+  --focus-ring: rgba(10, 132, 255, 0.22);
   --space-page: 1.25rem;
   --space-section: 1.5rem;
   --space-card: 1.125rem;
@@ -143,10 +143,10 @@ body::before {
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(720px 420px at 12% -8%, color-mix(in srgb, var(--accent-blue) 20%, transparent) 0%, transparent 62%),
-    radial-gradient(640px 360px at 88% -6%, color-mix(in srgb, var(--accent-purple) 18%, transparent) 0%, transparent 58%),
-    radial-gradient(520px 320px at 50% 115%, color-mix(in srgb, var(--accent-teal) 14%, transparent) 0%, transparent 64%);
-  opacity: 0.55;
+    radial-gradient(720px 420px at 12% -8%, color-mix(in srgb, var(--accent-blue) 15%, transparent) 0%, transparent 62%),
+    radial-gradient(640px 360px at 88% -6%, color-mix(in srgb, var(--accent-purple) 13%, transparent) 0%, transparent 58%),
+    radial-gradient(520px 320px at 50% 115%, color-mix(in srgb, var(--accent-teal) 10%, transparent) 0%, transparent 64%);
+  opacity: 0.45;
 }
 
 .theme-light body::before {
@@ -192,11 +192,11 @@ input::placeholder {
 }
 
 .glass-panel {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--glass-bg) 92%, white 8%), var(--glass-bg));
-  backdrop-filter: blur(42px) saturate(170%);
-  -webkit-backdrop-filter: blur(42px) saturate(170%);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--glass-bg) 95%, white 5%), var(--glass-bg));
+  backdrop-filter: blur(40px) saturate(158%);
+  -webkit-backdrop-filter: blur(40px) saturate(158%);
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, white 20%, transparent), 0 10px 34px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 12%, transparent), 0 14px 42px rgba(0, 0, 0, 0.3);
 }
 
 /* Підписи відсотків на діаграмі категорій — дрібний шрифт, щоб не налазили */
@@ -211,8 +211,8 @@ input::placeholder {
 
 .card {
   background: var(--card-bg);
-  backdrop-filter: blur(24px) saturate(135%);
-  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  backdrop-filter: blur(26px) saturate(130%);
+  -webkit-backdrop-filter: blur(26px) saturate(130%);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   padding: var(--space-card);
@@ -227,14 +227,14 @@ input::placeholder {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, color-mix(in srgb, white 10%, transparent) 0%, transparent 28%);
-  opacity: 0.6;
+  background: linear-gradient(180deg, color-mix(in srgb, white 8%, transparent) 0%, transparent 32%);
+  opacity: 0.52;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent-blue) 24%, var(--border));
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22), 0 28px 80px rgba(4, 8, 16, 0.3);
+  border-color: color-mix(in srgb, var(--accent-blue) 20%, var(--border));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32), 0 34px 90px rgba(2, 5, 12, 0.4);
 }
 
 .glass-modal {
