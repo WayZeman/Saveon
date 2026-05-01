@@ -59,6 +59,9 @@ model Category {
 model Transaction {
   id         String   @id @default(cuid())
   amount     Float
+  originalAmount Float @default(0)
+  originalCurrency String @default("UAH")
+  exchangeRateToUah Float @default(1)
   type       String
   categoryId String
   userId     String

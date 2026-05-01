@@ -24,6 +24,8 @@ export type DashboardData = {
   myBalance: number;
   partnerBalance: number;
   totalBalance: number;
+  todayDelta: number;
+  todayDeltaPercent: number;
   hasPartner: boolean;
   goals: Array<{
     id: string;
@@ -37,7 +39,7 @@ export type DashboardData = {
     createdByUser: { id: string; email: string; role: string };
   }>;
   monthlyData: { month: string; income: number; expense: number }[];
-  pieData: { name: string; value: number }[];
+  pieData: { name: string; value: number; chartValue: number }[];
   comparison: {
     mySaved: number;
     partnerSaved: number;
@@ -52,6 +54,9 @@ export type DashboardData = {
 export type Transaction = {
   id: string;
   amount: number;
+  originalAmount: number;
+  originalCurrency: "UAH" | "USD" | "EUR";
+  exchangeRateToUah: number;
   type: string;
   categoryId: string;
   createdAt: string;

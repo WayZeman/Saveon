@@ -25,7 +25,7 @@ export default function GoalsPage() {
     if (!balances) return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0 };
     const balanceUsed = goal.isShared ? balances.totalBalance : balances.myBalance;
     const remainingNeeded = Math.max(0, goal.targetAmount - balanceUsed);
-    const progressPercent = Math.min(100, (balanceUsed / goal.targetAmount) * 100);
+    const progressPercent = Math.max(0, Math.min(100, (balanceUsed / goal.targetAmount) * 100));
     return { balanceUsed, remainingNeeded, progressPercent };
   }
 

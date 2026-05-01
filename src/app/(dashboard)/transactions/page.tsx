@@ -52,7 +52,7 @@ export default function TransactionsPage() {
     try {
       const res = await fetch(`/api/transactions/${editTx.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, type: form.type, categoryId: form.categoryId }),
+        body: JSON.stringify({ amount, type: form.type, categoryId: form.categoryId, currency: form.currency }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("transactions_errorGeneric")); return; }
@@ -81,7 +81,12 @@ export default function TransactionsPage() {
   }
   function openEdit(t: Transaction) {
     setEditTx(t); setError("");
-    setForm({ amount: String(t.amount), type: t.type as "income" | "expense", categoryId: t.categoryId, currency: "UAH" });
+    setForm({
+      amount: String(t.originalAmount ?? t.amount),
+      type: t.type as "income" | "expense",
+      categoryId: t.categoryId,
+      currency: (t.originalCurrency ?? "UAH") as Currency,
+    });
   }
   function closeModal() {
     setModal(false); setEditTx(null); setError("");
@@ -169,18 +174,16 @@ export default function TransactionsPage() {
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}{c.isShared ? ` (${t("transactions_shared")})` : ""}</option>)}
                 </select>
               </div>
-              {!editTx && (
-                <div>
-                  <FieldLabel>{t("transactions_currency")}</FieldLabel>
-                  <select value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as Currency }))}>
-                    {currencyOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               <div>
-                <FieldLabel>{t("transactions_amount")}{!editTx && form.currency !== "UAH" ? ` (${form.currency})` : ""}</FieldLabel>
+                <FieldLabel>{t("transactions_currency")}</FieldLabel>
+                <select value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as Currency }))}>
+                  {currencyOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <FieldLabel>{t("transactions_amount")}{form.currency !== "UAH" ? ` (${form.currency})` : ""}</FieldLabel>
                 <input type="text" inputMode="decimal" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" required />
               </div>
               {error && <FieldError message={error} />}

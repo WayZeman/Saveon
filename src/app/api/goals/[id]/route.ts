@@ -77,6 +77,9 @@ export async function PATCH(
         await prisma.transaction.create({
           data: {
             amount: goal.targetAmount,
+            originalAmount: goal.targetAmount,
+            originalCurrency: "UAH",
+            exchangeRateToUah: 1,
             type: "expense",
             categoryId: category.id,
             userId: session.id,

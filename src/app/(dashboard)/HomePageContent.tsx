@@ -35,6 +35,19 @@ function formatAxisShort(valueUah: number, currency: string, rates: { usd: numbe
   return String(Math.round(v));
 }
 
+function convertFromUah(amountUah: number, currency: string, rates: { usd: number; eur: number } | null): number {
+  if (currency === "USD" && rates) return amountUah / rates.usd;
+  if (currency === "EUR" && rates) return amountUah / rates.eur;
+  return amountUah;
+}
+
+function formatSignedDelta(amountUah: number, currency: string, rates: { usd: number; eur: number } | null): string {
+  const amount = convertFromUah(amountUah, currency, rates);
+  const sign = amount > 0 ? "+" : amount < 0 ? "-" : "";
+  const abs = Math.abs(amount);
+  return `${sign}${abs.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currency}`;
+}
+
 export default function HomePageContent() {
   const { formatMoney, currency, rates } = useCurrency();
   const { t } = useLanguage();
@@ -52,6 +65,9 @@ export default function HomePageContent() {
 
   const hasPartner = data.hasPartner;
   const partnerLabel = user?.role === "husband" ? t("home_partnerBalanceWife") : user?.role === "wife" ? t("home_partnerBalanceHusband") : t("home_partnerBalance");
+  const todayDeltaText = formatSignedDelta(data.todayDelta, currency, rates);
+  const deltaPercent = Number.isFinite(data.todayDeltaPercent) ? data.todayDeltaPercent : 0;
+  const deltaPercentSign = deltaPercent > 0 ? "+" : deltaPercent < 0 ? "-" : "";
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
@@ -74,6 +90,9 @@ export default function HomePageContent() {
             prefix={data.totalBalance >= 0 ? "" : "−"}
           />
         </p>
+        <p className={`mt-3 text-base md:text-lg font-medium relative ${data.todayDelta >= 0 ? "text-emerald-200" : "text-red-200"}`}>
+          {todayDeltaText} ({deltaPercentSign}{Math.abs(deltaPercent).toFixed(2)}%)
+        </p>
       </section>
 
       {/* Balance cards — only show when partner exists */}
@@ -89,7 +108,7 @@ export default function HomePageContent() {
         const totalTarget = data.goals.reduce((s, g) => s + g.targetAmount, 0);
         const totalCollected = data.totalBalance;
         const totalRemaining = Math.max(0, totalTarget - totalCollected);
-        const fillPercent = totalTarget > 0 ? Math.min(100, (totalCollected / totalTarget) * 100) : 0;
+        const fillPercent = totalTarget > 0 ? Math.max(0, Math.min(100, (totalCollected / totalTarget) * 100)) : 0;
         return (
           <section className="card opacity-0 animate-slide-up animate-stagger-3">
             <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
@@ -173,7 +192,7 @@ export default function HomePageContent() {
                     outerRadius={62}
                     paddingAngle={2}
                     minAngle={5}
-                    dataKey="value"
+                    dataKey="chartValue"
                     nameKey="name"
                     stroke="var(--bg)"
                     strokeWidth={1}
@@ -186,7 +205,7 @@ export default function HomePageContent() {
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px" }}
-                    formatter={(value: number, name: string) => [formatMoney(value), name]}
+                    formatter={(_chartValue: number, _name: string, item: { payload?: { value?: number; name?: string } }) => [formatMoney(item?.payload?.value ?? 0), item?.payload?.name ?? ""]}
                   />
                 </PieChart>
               </ResponsiveContainer>

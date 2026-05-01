@@ -36,6 +36,13 @@ export const transactionSchema = z.object({
   currency: z.enum(["UAH", "USD", "EUR"]).optional().default("UAH"),
 });
 
+export const transactionPatchSchema = z.object({
+  amount: z.number().positive(),
+  type: z.enum(["income", "expense"]),
+  categoryId: z.string().min(1),
+  currency: z.enum(["UAH", "USD", "EUR"]).optional(),
+});
+
 export const goalSchema = z.object({
   title: z.string().min(1).max(200),
   targetAmount: z.number().positive(),
