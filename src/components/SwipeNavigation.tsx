@@ -25,6 +25,7 @@ export default function SwipeNavigation({ children }: { children: React.ReactNod
   const pullingDown = useRef(false);
 
   useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth >= 768) return;
     const el = document.getElementById("swipe-container");
     if (!el) return;
 

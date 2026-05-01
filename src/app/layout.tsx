@@ -45,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="uk"
-      className={`scroll-smooth theme-dark ${inter.variable}`}
+      className={`theme-dark ${inter.variable}`}
       suppressHydrationWarning
     >
       <head>
