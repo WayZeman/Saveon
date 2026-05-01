@@ -4,11 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { categoriesVisibleWhere } from "@/lib/data-scope";
 import { categorySchema } from "@/lib/validations";
 
-function isSchemaMismatchError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("P2022") || message.includes("does not exist");
-}
-
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -19,7 +14,6 @@ export async function PATCH(
   const { id } = await params;
   const category = await prisma.category.findFirst({
     where: { id, OR: categoriesVisibleWhere(session).OR },
-    select: { id: true, name: true, userId: true, createdBy: true, isShared: true, isSystem: true },
   });
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const isProtectedTemplate =
@@ -44,28 +38,14 @@ export async function PATCH(
     }
     const hasPartner = !!session.partnerId;
     const effectiveShared = hasPartner ? parsed.data.isShared : category.isShared;
-    const normalizedMarketSymbol = parsed.data.marketSymbol ? parsed.data.marketSymbol.trim().toUpperCase() : null;
     const updateData = category.isShared
-      ? { name: parsed.data.name.trim(), marketSymbol: normalizedMarketSymbol }
-      : { name: parsed.data.name.trim(), isShared: effectiveShared, marketSymbol: normalizedMarketSymbol };
-    let updated;
-    try {
-      updated = await prisma.category.update({
-        where: { id },
-        data: updateData,
-        include: { _count: { select: { transactions: true } } },
-      });
-    } catch (e) {
-      if (!isSchemaMismatchError(e)) throw e;
-      updated = await prisma.category.update({
-        where: { id },
-        data: category.isShared
-          ? { name: parsed.data.name.trim() }
-          : { name: parsed.data.name.trim(), isShared: effectiveShared },
-        include: { _count: { select: { transactions: true } } },
-      });
-      return NextResponse.json({ ...updated, marketSymbol: null });
-    }
+      ? { name: parsed.data.name.trim() }
+      : { name: parsed.data.name.trim(), isShared: effectiveShared };
+    const updated = await prisma.category.update({
+      where: { id },
+      data: updateData,
+      include: { _count: { select: { transactions: true } } },
+    });
     return NextResponse.json(updated);
   } catch (e) {
     console.error(e);
@@ -83,7 +63,6 @@ export async function DELETE(
   const { id } = await params;
   const category = await prisma.category.findFirst({
     where: { id, OR: categoriesVisibleWhere(session).OR },
-    select: { id: true, userId: true, createdBy: true, isShared: true, isSystem: true },
   });
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const isProtectedTemplate =

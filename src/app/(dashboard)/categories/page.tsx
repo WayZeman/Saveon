@@ -12,7 +12,6 @@ export default function CategoriesPage() {
   const [modal, setModal] = useState(false);
   const [editCat, setEditCat] = useState<Category | null>(null);
   const [name, setName] = useState("");
-  const [marketSymbol, setMarketSymbol] = useState("");
   const [isShared, setIsShared] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -26,7 +25,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch("/api/categories", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isShared, marketSymbol: marketSymbol.trim().toUpperCase() }),
+        body: JSON.stringify({ name: name.trim(), isShared }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
@@ -46,7 +45,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch(`/api/categories/${editCat.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isShared: editCat.isShared, marketSymbol: marketSymbol.trim().toUpperCase() }),
+        body: JSON.stringify({ name: name.trim(), isShared: editCat.isShared }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
@@ -72,16 +71,15 @@ export default function CategoriesPage() {
 
   function openCreate() {
     setModal(true); setEditCat(null); setError("");
-    setName(""); setMarketSymbol(""); setIsShared(hasPartner);
+    setName(""); setIsShared(hasPartner);
   }
   function openEdit(c: Category) {
     setEditCat(c); setError("");
     setName(c.name);
-    setMarketSymbol(c.marketSymbol ?? "");
   }
   function closeModal() {
     setModal(false); setEditCat(null); setError("");
-    setName(""); setMarketSymbol(""); setIsShared(hasPartner);
+    setName(""); setIsShared(hasPartner);
   }
 
   if (!initialLoadDone) return <Loader />;
@@ -127,15 +125,6 @@ export default function CategoriesPage() {
                 <FieldLabel>{t("categories_name")}</FieldLabel>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Їжа, Готівка" required />
               </div>
-              <div>
-                <FieldLabel>Символ ринку (необов'язково)</FieldLabel>
-                <input
-                  type="text"
-                  value={marketSymbol}
-                  onChange={(e) => setMarketSymbol(e.target.value.toUpperCase())}
-                  placeholder="Наприклад: CSPX.L або BTC-USD"
-                />
-              </div>
               {!editCat && hasPartner && (
                 <CheckboxField checked={isShared} onChange={setIsShared} label={t("categories_sharedLabel")} />
               )}
@@ -165,7 +154,6 @@ function CategoryList({ title, items, onEdit, onDelete, delay, emptyText }: {
           <li key={c.id} className="flex items-center justify-between gap-3 py-3.5 group">
             <span className="text-[14px] font-medium">{c.name}</span>
             <div className="flex items-center gap-2">
-              {c.marketSymbol && <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text-secondary)]">{c.marketSymbol}</span>}
               <span className="text-[12px] text-[var(--text-tertiary)]">{c._count?.transactions ?? 0} тр.</span>
               <button type="button" onClick={() => onEdit(c)} className="icon-btn sm:opacity-0 sm:group-hover:opacity-100">
                 <Pencil className="w-3.5 h-3.5" strokeWidth={2} />

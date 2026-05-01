@@ -57,19 +57,15 @@ export type Transaction = {
   originalAmount: number;
   originalCurrency: "UAH" | "USD" | "EUR";
   exchangeRateToUah: number;
-  assetSymbol?: string | null;
-  assetPrice?: number | null;
-  assetCurrency?: string | null;
   type: string;
   categoryId: string;
   createdAt: string;
-  category: { id: string; name: string; isShared: boolean; marketSymbol?: string | null };
+  category: { id: string; name: string; isShared: boolean };
 };
 
 export type Category = {
   id: string;
   name: string;
-  marketSymbol?: string | null;
   isShared: boolean;
   userId: string | null;
   _count?: { transactions: number };

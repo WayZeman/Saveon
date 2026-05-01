@@ -26,13 +26,6 @@ export const addPartnerSchema = z.object({
 export const categorySchema = z.object({
   name: z.string().min(1).max(100),
   isShared: z.boolean().optional().default(false),
-  marketSymbol: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z0-9.\-]{1,20}$/, "Invalid market symbol")
-    .optional()
-    .or(z.literal("")),
 });
 
 export const transactionSchema = z.object({
