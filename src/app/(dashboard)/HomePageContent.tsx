@@ -75,6 +75,10 @@ export default function HomePageContent() {
             prefix={data.totalBalance >= 0 ? "" : "−"}
           />
         </p>
+        <div className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[12px] font-semibold text-white/95">
+          <span>{data.todayDelta >= 0 ? "+" : "−"}{formatMoney(Math.abs(data.todayDelta))}</span>
+          <span className="text-white/65">({data.todayDeltaPercent >= 0 ? "+" : ""}{data.todayDeltaPercent.toFixed(2)}%)</span>
+        </div>
       </section>
 
       {/* Balance cards — only show when partner exists */}

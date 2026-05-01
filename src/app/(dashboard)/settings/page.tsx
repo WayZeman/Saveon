@@ -103,12 +103,12 @@ export default function SettingsPage() {
 
   return (
     <div className="section-spacing max-w-2xl mx-auto">
-      <div className="opacity-0 animate-slide-up">
+      <div className="opacity-0 animate-slide-up page-header-copy">
         <h1 className="page-title flex items-center gap-2">
           <Settings className="w-7 h-7 text-[var(--text-secondary)]" strokeWidth={1.5} />
           {t("settings_title")}
         </h1>
-        <p className="text-[14px] text-[var(--text-secondary)] mt-1">{t("settings_subtitle")}</p>
+        <p className="page-subtitle">{t("settings_subtitle")}</p>
       </div>
 
       {/* Profile */}

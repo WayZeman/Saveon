@@ -58,8 +58,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
           {/* Desktop sidebar */}
-          <aside className="glass-panel hidden md:flex md:w-[252px] md:sticky md:top-0 md:self-start md:h-screen flex-col border-r border-[var(--border)] shrink-0">
-            <div className="p-6 pb-3">
+          <aside className="glass-panel hidden md:flex md:w-[266px] md:sticky md:top-0 md:self-start md:h-screen flex-col border-r border-[var(--border)] shrink-0">
+            <div className="p-6 pb-4">
               <Link href="/dashboard" className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
                   <LogoImage width={32} height={32} className="object-cover w-full h-full" />
@@ -68,15 +68,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
 
-            <nav className="flex flex-col gap-1 px-3 mt-4 flex-1">
+            <nav className="flex flex-col gap-1.5 px-3 mt-4 flex-1">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
                 return (
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[0.9rem] text-[14px] font-medium transition-all duration-200 ${active
-                      ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[1rem] text-[14px] font-medium transition-all duration-200 ${active
+                      ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20 shadow-[0_8px_18px_rgba(10,132,255,0.16)]"
                       : "text-[var(--text-secondary)] hover:bg-[var(--input-bg)] hover:text-[var(--text)]"
                       }`}
                   >
@@ -108,7 +108,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
-              <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] md:py-7 lg:pl-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))] lg:py-8">
+              <div className="relative z-10 flex-1 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(2rem,env(safe-area-inset-left))] md:pr-[max(2rem,env(safe-area-inset-right))] md:py-8 lg:pl-[max(2.5rem,env(safe-area-inset-left))] lg:pr-[max(2.5rem,env(safe-area-inset-right))] lg:py-9">
                 {children}
               </div>
             </SwipeNavigation>
