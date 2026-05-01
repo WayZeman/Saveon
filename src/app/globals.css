@@ -36,9 +36,9 @@
   --shadow-modal: 0 36px 100px rgba(0, 0, 0, 0.58), 0 10px 28px rgba(0, 0, 0, 0.32);
   --focus-ring: rgba(10, 132, 255, 0.25);
   --space-page: 1.25rem;
-  --space-section: 1.75rem;
+  --space-section: 1.5rem;
   --space-card: 1.125rem;
-  --radius-card: 1.4rem;
+  --radius-card: 1.25rem;
   --radius-btn: 0.875rem;
   --radius-input: 0.875rem;
   --font-display: clamp(1.75rem, 2.8vw, 2.4rem);
@@ -76,7 +76,7 @@
   --overlay-bg: rgba(0, 0, 0, 0.3);
   --option-bg: #ffffff;
   --autofill-bg: #ffffff;
-  --shadow-card: 0 12px 28px rgba(17, 21, 31, 0.06), 0 24px 62px rgba(17, 21, 31, 0.09);
+  --shadow-card: 0 10px 24px rgba(17, 21, 31, 0.07), 0 22px 54px rgba(17, 21, 31, 0.1);
   --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.15), 0 8px 22px rgba(17, 21, 31, 0.1);
   --focus-ring: rgba(0, 122, 255, 0.12);
 }
@@ -211,15 +211,15 @@ input::placeholder {
 
 .card {
   background: var(--card-bg);
-  backdrop-filter: blur(28px) saturate(132%);
-  -webkit-backdrop-filter: blur(28px) saturate(132%);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   padding: var(--space-card);
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
-  transition: transform 0.28s ease, box-shadow 0.28s ease, background 0.3s ease, border-color 0.28s ease;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.3s ease, border-color 0.24s ease;
 }
 
 .card::before {
@@ -232,9 +232,9 @@ input::placeholder {
 }
 
 .card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--accent-blue) 24%, var(--border));
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.22), 0 30px 86px rgba(4, 8, 16, 0.31);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22), 0 28px 80px rgba(4, 8, 16, 0.3);
 }
 
 .glass-modal {
@@ -355,38 +355,19 @@ input::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent-blue), color-mix(in srgb, var(--accent-blue) 68%, var(--accent-purple)));
+  border-radius: var(--radius-btn);
+  background: var(--accent-blue);
   color: white;
-  padding: 0.66rem 1.05rem;
+  padding: 0.625rem 1rem;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 10px 26px rgba(10, 132, 255, 0.3), 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+  box-shadow: 0 8px 20px rgba(10, 132, 255, 0.25), 0 2px 0 rgba(255, 255, 255, 0.2) inset;
   transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
   flex-shrink: 0;
 }
 .btn-primary:hover { filter: brightness(1.1); }
 .btn-primary:hover { transform: translateY(-1px); }
 .btn-primary:active { transform: scale(0.98) translateY(0); }
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card-bg) 75%, transparent);
-  color: var(--text-secondary);
-  padding: 0.6rem 0.95rem;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.22s ease;
-}
-.btn-secondary:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
-  background: color-mix(in srgb, var(--input-bg-focus) 72%, transparent);
-}
 
 .icon-btn {
   display: inline-flex;
@@ -511,24 +492,6 @@ input[type="checkbox"]:checked::after {
   line-height: 1.08;
   font-weight: 700;
   letter-spacing: -0.03em;
-}
-
-.page-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.9rem;
-}
-
-.page-header-copy {
-  max-width: 42rem;
-}
-
-.page-subtitle {
-  margin-top: 0.4rem;
-  font-size: 14px;
-  color: var(--text-secondary);
 }
 
 .section-title {

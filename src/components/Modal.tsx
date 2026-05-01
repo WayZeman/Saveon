@@ -33,15 +33,15 @@ export function ModalOverlay({ children, onClose }: { children: ReactNode; onClo
 export function ModalPanel({ children, title, onClose }: { children: ReactNode; title: string; onClose: () => void }) {
   return (
     <div
-      className="glass-modal rounded-[1.6rem] w-full max-w-[500px] max-h-[82dvh] sm:max-h-[90dvh] shadow-modal animate-in flex flex-col"
+      className="glass-modal rounded-[1.35rem] w-full max-w-[460px] max-h-[82dvh] sm:max-h-[90dvh] shadow-modal animate-in flex flex-col"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between px-5 pt-5 pb-0 sm:px-7 sm:pt-7 sticky top-0 z-10 shrink-0">
-        <h2 className="text-[21px] font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-[19px] font-semibold tracking-tight">{title}</h2>
         <button
           type="button"
           onClick={onClose}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--input-bg)] hover:bg-[var(--input-bg-focus)] text-[var(--text-secondary)] transition-colors -mr-1"
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--input-bg)] hover:bg-[var(--input-bg-focus)] text-[var(--text-secondary)] transition-colors -mr-1"
         >
           <X className="w-4 h-4" strokeWidth={2} />
         </button>
@@ -85,14 +85,14 @@ export function ModalActions({
         type="button"
         onClick={onCancel}
         disabled={submitDisabled}
-        className="flex-1 rounded-full border border-[var(--border)] py-3 text-[14px] font-medium text-[var(--text-secondary)] hover:bg-[var(--input-bg)] active:scale-[0.98] transition-all disabled:opacity-50"
+        className="flex-1 rounded-[0.85rem] border border-[var(--border)] py-3 text-[14px] font-medium text-[var(--text-secondary)] hover:bg-[var(--input-bg)] active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {t("modal_cancel")}
       </button>
       <button
         type="submit"
         disabled={submitDisabled}
-        className="flex-1 rounded-full bg-[var(--accent-blue)] text-white py-3 text-[14px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+        className="flex-1 rounded-[0.85rem] bg-[var(--accent-blue)] text-white py-3 text-[14px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {submitLabel}
       </button>

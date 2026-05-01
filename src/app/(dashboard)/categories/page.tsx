@@ -12,7 +12,6 @@ export default function CategoriesPage() {
   const [modal, setModal] = useState(false);
   const [editCat, setEditCat] = useState<Category | null>(null);
   const [name, setName] = useState("");
-  const [marketSymbol, setMarketSymbol] = useState("");
   const [isShared, setIsShared] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -26,7 +25,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch("/api/categories", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isShared, marketSymbol: marketSymbol.trim().toUpperCase() }),
+        body: JSON.stringify({ name: name.trim(), isShared }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
@@ -46,7 +45,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch(`/api/categories/${editCat.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isShared: editCat.isShared, marketSymbol: marketSymbol.trim().toUpperCase() }),
+        body: JSON.stringify({ name: name.trim(), isShared: editCat.isShared }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
@@ -72,16 +71,15 @@ export default function CategoriesPage() {
 
   function openCreate() {
     setModal(true); setEditCat(null); setError("");
-    setName(""); setMarketSymbol(""); setIsShared(hasPartner);
+    setName(""); setIsShared(hasPartner);
   }
   function openEdit(c: Category) {
     setEditCat(c); setError("");
     setName(c.name);
-    setMarketSymbol(c.marketSymbol ?? "");
   }
   function closeModal() {
     setModal(false); setEditCat(null); setError("");
-    setName(""); setMarketSymbol(""); setIsShared(hasPartner);
+    setName(""); setIsShared(hasPartner);
   }
 
   if (!initialLoadDone) return <Loader />;
@@ -92,13 +90,13 @@ export default function CategoriesPage() {
 
   return (
     <div className="section-spacing max-w-5xl mx-auto">
-      <div className="page-header opacity-0 animate-slide-up">
-        <div className="page-header-copy">
+      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
+        <div>
           <h1 className="page-title flex items-center gap-2">
             <FolderTree className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
             {t("categories_title")}
           </h1>
-          <p className="page-subtitle">
+          <p className="text-[14px] text-[var(--text-secondary)] mt-1">
           {t("categories_subtitle")}
           {!hasPartner && t("categories_addPartnerHint")}
         </p>
@@ -127,15 +125,6 @@ export default function CategoriesPage() {
                 <FieldLabel>{t("categories_name")}</FieldLabel>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Їжа, Готівка" required />
               </div>
-              <div>
-                <FieldLabel>Символ ринку (необов&apos;язково)</FieldLabel>
-                <input
-                  type="text"
-                  value={marketSymbol}
-                  onChange={(e) => setMarketSymbol(e.target.value.toUpperCase())}
-                  placeholder="Наприклад: CSPX.L або BTC-USD"
-                />
-              </div>
               {!editCat && hasPartner && (
                 <CheckboxField checked={isShared} onChange={setIsShared} label={t("categories_sharedLabel")} />
               )}
@@ -163,10 +152,7 @@ function CategoryList({ title, items, onEdit, onDelete, delay, emptyText }: {
       <ul className="divide-y divide-[var(--border)]">
         {items.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-3 py-3.5 group">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-[14px] font-medium truncate">{c.name}</span>
-              {c.marketSymbol && <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text-secondary)]">{c.marketSymbol}</span>}
-            </div>
+            <span className="text-[14px] font-medium">{c.name}</span>
             <div className="flex items-center gap-2">
               <span className="text-[12px] text-[var(--text-tertiary)]">{c._count?.transactions ?? 0} тр.</span>
               <button type="button" onClick={() => onEdit(c)} className="icon-btn sm:opacity-0 sm:group-hover:opacity-100">
