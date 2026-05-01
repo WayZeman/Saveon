@@ -24,6 +24,8 @@ export type DashboardData = {
   myBalance: number;
   partnerBalance: number;
   totalBalance: number;
+  todayDelta: number;
+  todayDeltaPercent: number;
   hasPartner: boolean;
   goals: Array<{
     id: string;
@@ -52,15 +54,22 @@ export type DashboardData = {
 export type Transaction = {
   id: string;
   amount: number;
+  originalAmount: number;
+  originalCurrency: "UAH" | "USD" | "EUR";
+  exchangeRateToUah: number;
+  assetSymbol?: string | null;
+  assetPrice?: number | null;
+  assetCurrency?: string | null;
   type: string;
   categoryId: string;
   createdAt: string;
-  category: { id: string; name: string; isShared: boolean };
+  category: { id: string; name: string; isShared: boolean; marketSymbol?: string | null };
 };
 
 export type Category = {
   id: string;
   name: string;
+  marketSymbol?: string | null;
   isShared: boolean;
   userId: string | null;
   _count?: { transactions: number };
