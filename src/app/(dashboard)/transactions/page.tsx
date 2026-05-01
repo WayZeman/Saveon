@@ -100,18 +100,20 @@ export default function TransactionsPage() {
 
   return (
     <div className="section-spacing max-w-5xl mx-auto">
-      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
+      <div className="opacity-0 animate-slide-up">
+        <div className="text-center">
+          <h1 className="page-title flex items-center justify-center gap-2">
             <Wallet className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
             {t("transactions_title")}
           </h1>
           <p className="text-[14px] text-[var(--text-secondary)] mt-1">{t("transactions_subtitle")}</p>
+          <div className="mt-4 flex justify-center">
+            <button type="button" onClick={openCreate} className="btn-primary">
+              <Plus className="w-4 h-4" strokeWidth={2.5} />
+              {t("transactions_add")}
+            </button>
+          </div>
         </div>
-        <button type="button" onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" strokeWidth={2.5} />
-          {t("transactions_add")}
-        </button>
       </div>
 
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-1">

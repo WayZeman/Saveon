@@ -116,7 +116,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Mobile bottom nav */}
           <nav
-            className="glass-panel md:hidden fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20"
+            className="mobile-bottom-nav glass-panel md:hidden fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
