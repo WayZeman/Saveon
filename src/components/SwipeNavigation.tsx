@@ -42,6 +42,11 @@ export default function SwipeNavigation({ children }: { children: React.ReactNod
       const dx = touch.clientX - touchStartX.current;
       const dy = touch.clientY - touchStartY.current;
 
+      // Блокуємо горизонтальний rubber-band/зсув контейнера на iOS під час swipe між вкладками.
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+        e.preventDefault();
+      }
+
       // Якщо користувач тягне вниз від самого верху сторінки — готуємо pull-to-refresh
       if (window.scrollY === 0 && dy > 0 && Math.abs(dy) > Math.abs(dx) && dy > PULL_THRESHOLD) {
         pullingDown.current = true;
@@ -88,7 +93,7 @@ export default function SwipeNavigation({ children }: { children: React.ReactNod
     };
 
     el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
     el.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
@@ -99,7 +104,7 @@ export default function SwipeNavigation({ children }: { children: React.ReactNod
   }, [pathname, router, refetchDashboard, refetchTransactions, refetchCategories, refetchGoals]);
 
   return (
-    <div id="swipe-container" className="flex-1 flex flex-col">
+    <div id="swipe-container" className="flex-1 flex flex-col overflow-x-hidden">
       {children}
     </div>
   );

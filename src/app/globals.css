@@ -117,6 +117,7 @@
 
 html {
   color-scheme: dark;
+  overflow-x: hidden;
 }
 .theme-light {
   color-scheme: light;
@@ -134,6 +135,7 @@ body {
   padding-right: env(safe-area-inset-right, 0);
   transition: background 0.3s ease, color 0.3s ease;
   position: relative;
+  overflow-x: hidden;
 }
 
 body::before {
