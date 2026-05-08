@@ -67,11 +67,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Bottom nav for all screen sizes */}
           <nav
-            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 md:left-[max(1.75rem,env(safe-area-inset-left))] md:right-[max(1.75rem,env(safe-area-inset-right))] lg:left-[max(2.25rem,env(safe-area-inset-left))] lg:right-[max(2.25rem,env(safe-area-inset-right))] border-t border-[var(--border)] md:rounded-t-2xl md:border z-20"
+            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-[min(calc(100%-3.5rem),64rem)] lg:w-[min(calc(100%-4.5rem),64rem)] border-t border-[var(--border)] md:rounded-t-2xl md:border z-20"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
-            <div className="mx-auto w-full px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] md:px-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] lg:px-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))]">
+            <div className="mx-auto w-full px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] md:px-0 md:pr-0">
               <div className="flex justify-around items-center h-[58px]">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
