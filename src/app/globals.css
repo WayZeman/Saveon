@@ -453,8 +453,10 @@ input[type="submit"] {
   }
 }
 
-@supports (height: 100dvh) {
-  .min-h-screen { min-height: 100dvh !important; }
+@media (max-width: 767px) {
+  @supports (height: 100dvh) {
+    .min-h-screen { min-height: 100dvh !important; }
+  }
 }
 
 @media (pointer: coarse) {

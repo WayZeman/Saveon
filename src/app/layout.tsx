@@ -61,7 +61,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} antialiased min-h-screen min-h-[100dvh] bg-[var(--bg)] text-[var(--text)]`}>
+      <body className={`${inter.className} antialiased min-h-screen bg-[var(--bg)] text-[var(--text)]`}>
         <Providers>{children}</Providers>
       </body>
     </html>
