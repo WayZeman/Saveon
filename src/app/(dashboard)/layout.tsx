@@ -71,7 +71,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
-            <div className="mx-auto w-full max-w-[72rem] px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+            <div className="mx-auto w-full max-w-[72rem] md:max-w-none px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
               <div className="flex justify-around items-center h-[58px]">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;

@@ -118,6 +118,7 @@
 
 html {
   color-scheme: dark;
+  background: var(--bg);
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -143,6 +144,13 @@ body {
   width: 100%;
   max-width: 100vw;
   overscroll-behavior-x: none;
+}
+
+@media (min-width: 768px) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
 }
 
 body::before {
