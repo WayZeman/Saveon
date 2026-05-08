@@ -47,11 +47,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[var(--bg)]">
+    <div className="min-h-screen bg-[var(--bg)]">
           <div className="mobile-top-bar" aria-hidden="true" />
 
           {/* Main content */}
-          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-[calc(6rem+env(safe-area-inset-bottom))] relative">
+          <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))]">
             <div className="pointer-events-none absolute inset-0 -z-[1] hidden md:block">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
@@ -67,11 +67,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Bottom nav for all screen sizes */}
           <nav
-            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20"
+            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 md:left-[max(1.75rem,env(safe-area-inset-left))] md:right-[max(1.75rem,env(safe-area-inset-right))] lg:left-[max(2.25rem,env(safe-area-inset-left))] lg:right-[max(2.25rem,env(safe-area-inset-right))] border-t border-[var(--border)] md:rounded-t-2xl md:border z-20"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
-            <div className="mx-auto w-full max-w-6xl px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+            <div className="mx-auto w-full px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] md:px-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] lg:px-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))]">
               <div className="flex justify-around items-center h-[58px]">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
