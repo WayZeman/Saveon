@@ -39,12 +39,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const nav = navItems.map((item) => ({ ...item, label: t(item.labelKey) }));
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] md:pl-24">
+    <div className="min-h-screen bg-[var(--bg)] md:pl-[4.5rem]">
           <div className="mobile-top-bar md:hidden" aria-hidden="true" />
 
           {/* Desktop sidebar */}
-          <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-24 glass-panel border-r border-[var(--border)] z-30">
-            <nav className="w-full flex flex-col items-center justify-center gap-3 py-8" aria-label={t("nav_aria")}>
+          <aside className="hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 w-[4.25rem] glass-panel border border-l-0 border-[var(--border)] rounded-r-2xl z-30">
+            <nav className="w-full flex flex-col items-center gap-2 py-[1cm]" aria-label={t("nav_aria")}>
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
                 return (
@@ -53,13 +53,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     href={href}
                     aria-label={label}
                     title={label}
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
                       active
                         ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
                         : "text-[var(--text-tertiary)] hover:text-[var(--text)] hover:bg-[var(--input-bg)]"
                     }`}
                   >
-                    <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 2 : 1.5} />
+                    <Icon className="w-[20px] h-[20px]" strokeWidth={active ? 2 : 1.5} />
                   </Link>
                 );
               })}
@@ -68,7 +68,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Main content */}
           <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-7">
-            <div className="pointer-events-none absolute inset-0 -z-[1] hidden md:block">
+            <div className="pointer-events-none absolute inset-0 -z-[1] hidden">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
               <div className="absolute -bottom-24 left-1/3 w-[22rem] h-[22rem] rounded-full blur-3xl opacity-15 bg-[var(--accent-teal)]" />

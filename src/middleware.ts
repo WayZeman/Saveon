@@ -7,6 +7,9 @@ const apiAuthPaths = ["/api/auth/login", "/api/auth/logout", "/api/auth/register
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isDevPreview =
+    process.env.NODE_ENV !== "production" &&
+    request.nextUrl.searchParams.get("preview") === "1";
 
   if (
     pathname.startsWith("/_next") ||
@@ -37,6 +40,10 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === "/") {
+    return NextResponse.next();
+  }
+
+  if (isDevPreview && !pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 

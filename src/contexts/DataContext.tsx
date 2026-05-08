@@ -122,6 +122,105 @@ type DataContextValue = DataState & {
 
 const DataContext = createContext<DataContextValue | null>(null);
 
+const DEV_PREVIEW_STATE: DataState = {
+  user: {
+    id: "preview-user",
+    name: "Preview User",
+    email: "preview@local.dev",
+    role: "husband",
+    partnerId: "preview-partner",
+  },
+  partner: { id: "preview-partner", email: "partner@local.dev", role: "wife" },
+  incomingPartnerInvite: null,
+  outgoingPartnerInvite: null,
+  dashboardData: {
+    myBalance: 1870.54,
+    partnerBalance: 842.3,
+    totalBalance: 2712.84,
+    hasPartner: true,
+    goals: [
+      {
+        id: "goal-1",
+        title: "Прибудова",
+        targetAmount: 19000,
+        isShared: true,
+        realizedAt: null,
+        balanceUsed: 2712.84,
+        remainingNeeded: 16287.16,
+        progressPercent: 14.28,
+        createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
+      },
+      {
+        id: "goal-2",
+        title: "Авто",
+        targetAmount: 12000,
+        isShared: true,
+        realizedAt: null,
+        balanceUsed: 2712.84,
+        remainingNeeded: 9287.16,
+        progressPercent: 22.61,
+        createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
+      },
+    ],
+    monthlyData: [
+      { month: "01", income: 23000, expense: 16500 },
+      { month: "02", income: 18000, expense: 14900 },
+      { month: "03", income: 21500, expense: 17100 },
+      { month: "04", income: 20800, expense: 18350 },
+      { month: "05", income: 24000, expense: 19600 },
+    ],
+    pieData: [
+      { name: "Готівка", value: 1870.54, chartValue: 69 },
+      { name: "Акції", value: 552.03, chartValue: 20 },
+      { name: "Крипта", value: 290.27, chartValue: 11 },
+    ],
+    comparison: {
+      mySaved: 1870.54,
+      partnerSaved: 842.3,
+      myExpense: 9870,
+      partnerExpense: 7640,
+      myIncome: 23000,
+      partnerIncome: 15000,
+    },
+  },
+  transactions: [
+    {
+      id: "tx-1",
+      amount: 1200,
+      type: "income",
+      categoryId: "cat-1",
+      createdAt: new Date().toISOString(),
+      category: { id: "cat-1", name: "Готівка", isShared: true },
+    },
+  ],
+  categories: [
+    { id: "cat-1", name: "Готівка", isShared: true, userId: null, _count: { transactions: 4 } },
+    { id: "cat-2", name: "Акції", isShared: true, userId: null, _count: { transactions: 2 } },
+    { id: "cat-3", name: "Крипта", isShared: false, userId: "preview-user", _count: { transactions: 1 } },
+  ],
+  goals: [
+    {
+      id: "goal-1",
+      title: "Прибудова",
+      targetAmount: 19000,
+      isShared: true,
+      createdBy: "preview-user",
+      realizedAt: null,
+      createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
+    },
+    {
+      id: "goal-2",
+      title: "Авто",
+      targetAmount: 12000,
+      isShared: true,
+      createdBy: "preview-user",
+      realizedAt: null,
+      createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
+    },
+  ],
+  initialLoadDone: true,
+};
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<DataState>({
@@ -141,6 +240,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (loadingRef.current) return;
     loadingRef.current = true;
     try {
+      const isDevPreview =
+        typeof window !== "undefined" &&
+        process.env.NODE_ENV !== "production" &&
+        new URLSearchParams(window.location.search).get("preview") === "1";
+
+      if (isDevPreview) {
+        setState(DEV_PREVIEW_STATE);
+        return;
+      }
+
       const meRes = await fetch("/api/auth/me");
       if (meRes.status === 401) {
         router.replace("/login");

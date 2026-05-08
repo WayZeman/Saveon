@@ -43,9 +43,25 @@ export default function HomePageContent() {
 
   if (!initialLoadDone || !data) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <p className="text-[13px] text-[var(--text-tertiary)] animate-pulse">{t("home_loading")}</p>
-        <div className="w-8 h-8 border-2 border-[var(--text-tertiary)]/30 border-t-[var(--accent-blue)] rounded-full animate-spin" style={{ animationDuration: "0.8s" }} />
+      <div className="section-spacing max-w-6xl mx-auto min-h-[110vh]">
+        <div className="h-44 rounded-[1.8rem] bg-[var(--input-bg)]/60 animate-pulse border border-[var(--border)]" />
+        <div className="card !p-5 animate-pulse">
+          <div className="h-5 w-40 rounded bg-[var(--input-bg)] mb-3" />
+          <div className="h-3 w-56 rounded bg-[var(--input-bg)]/80 mb-4" />
+          <div className="h-2.5 w-full rounded bg-[var(--input-bg)]" />
+          <div className="mt-4 space-y-2">
+            <div className="h-10 rounded-xl bg-[var(--input-bg)]/80" />
+            <div className="h-10 rounded-xl bg-[var(--input-bg)]/80" />
+          </div>
+        </div>
+        <div className="card !p-5 animate-pulse">
+          <div className="h-5 w-44 rounded bg-[var(--input-bg)] mb-3" />
+          <div className="h-52 rounded-xl bg-[var(--input-bg)]/80" />
+        </div>
+        <div className="flex flex-col items-center gap-3 pb-6">
+          <p className="text-[13px] text-[var(--text-tertiary)] animate-pulse">{t("home_loading")}</p>
+          <div className="w-7 h-7 border-2 border-[var(--text-tertiary)]/30 border-t-[var(--accent-blue)] rounded-full animate-spin" style={{ animationDuration: "0.8s" }} />
+        </div>
       </div>
     );
   }
@@ -180,6 +196,7 @@ export default function HomePageContent() {
                     strokeWidth={1}
                     labelLine={{ stroke: "var(--text-tertiary)", strokeWidth: 1 }}
                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    isAnimationActive={false}
                   >
                     {data.pieData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -275,11 +292,11 @@ export default function HomePageContent() {
                       cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
                     />
                     {/* Накопичувальна витрата — блідо-червона (не падає до нуля) */}
-                    <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive connectNulls />
+                    <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive={false} connectNulls />
                     {/* Накопичувальний дохід — зелений (не падає до нуля) */}
-                    <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive connectNulls />
+                    <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive={false} connectNulls />
                     {/* Баланс накопичувальний */}
-                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive connectNulls />
+                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive={false} connectNulls />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
