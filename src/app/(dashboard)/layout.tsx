@@ -67,7 +67,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Bottom nav for all screen sizes */}
           <nav
-            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-[min(calc(100%-3.5rem),64rem)] lg:w-[min(calc(100%-4.5rem),64rem)] border-t border-[var(--border)] md:rounded-t-2xl md:border z-20"
+            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-[min(calc(100%-3.5rem),72rem)] lg:w-[min(calc(100%-4.5rem),72rem)] border-t border-[var(--border)] md:rounded-t-2xl md:border z-20"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >

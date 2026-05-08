@@ -99,7 +99,7 @@ export default function TransactionsPage() {
   const showModal = modal || !!editTx;
 
   return (
-    <div className="section-spacing max-w-5xl mx-auto">
+    <div className="section-spacing max-w-6xl mx-auto">
       <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
         <div>
           <h1 className="page-title flex items-center gap-2">
