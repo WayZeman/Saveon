@@ -2,9 +2,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Home, Wallet, FolderTree, Target, Settings, LogOut } from "lucide-react";
-import LogoImage from "@/components/LogoImage";
+import { usePathname } from "next/navigation";
+import { Home, Wallet, FolderTree, Target, Settings } from "lucide-react";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -37,7 +36,6 @@ function IncomingPartnerInviteGate() {
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { t } = useLanguage();
   const { user } = useData();
   const nav = navItems.map((item) => ({ ...item, label: t(item.labelKey) }));
@@ -48,59 +46,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-  }
-
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[var(--bg)] md:pl-[252px] md:h-[100dvh] md:overflow-hidden">
-          <div className="mobile-top-bar md:hidden" aria-hidden="true" />
-
-          {/* Desktop sidebar */}
-          <aside className="glass-panel hidden md:flex md:w-[252px] md:fixed md:left-0 md:top-0 md:bottom-0 md:h-[100dvh] flex-col border-r border-[var(--border)] shrink-0 z-30">
-            <div className="p-6 pb-3">
-              <Link href="/dashboard" className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-                  <LogoImage width={32} height={32} className="object-cover w-full h-full" />
-                </div>
-                <span className="text-[16px] font-semibold text-[var(--text)] tracking-tight">Saveon</span>
-              </Link>
-            </div>
-
-            <nav className="flex flex-col gap-1 px-3 mt-4 flex-1">
-              {nav.map(({ href, label, Icon }) => {
-                const active = pathname === href;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[0.9rem] text-[14px] font-medium transition-all duration-200 ${active
-                      ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--input-bg)] hover:text-[var(--text)]"
-                      }`}
-                  >
-                    <Icon className="shrink-0 w-[18px] h-[18px]" strokeWidth={active ? 2 : 1.5} />
-                    {label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="p-4 mt-auto border-t border-[var(--border)]">
-              <button
-                type="button"
-                onClick={logout}
-                title="Вийти"
-                className="w-10 h-10 flex items-center justify-center rounded-full text-[var(--text-secondary)] hover:bg-[var(--accent-red)]/10 hover:text-[var(--accent-red)] transition-colors"
-              >
-                <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
-              </button>
-            </div>
-          </aside>
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[var(--bg)]">
+          <div className="mobile-top-bar" aria-hidden="true" />
 
           {/* Main content */}
-          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 md:pb-0 relative overflow-x-hidden md:h-[100dvh] md:overflow-y-auto">
+          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 relative overflow-x-hidden">
             <div className="pointer-events-none absolute inset-0 -z-[1] hidden md:block">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
@@ -108,15 +59,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
-              <div className="relative z-10 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] md:py-7 lg:pl-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))] lg:py-8">
+              <div className="relative z-10 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] md:py-7 lg:pl-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))] lg:pt-8 lg:pb-7">
                 {children}
               </div>
             </SwipeNavigation>
           </main>
 
-          {/* Mobile bottom nav */}
+          {/* Bottom nav for all screen sizes */}
           <nav
-            className="mobile-bottom-nav glass-panel md:hidden fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20"
+            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
