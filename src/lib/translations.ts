@@ -83,7 +83,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_income: "Доходи",
     home_expense: "Витрати",
     home_balanceChart: "Баланс",
-    home_loading: "Завантаження...",
+    home_loading: "Завантажуємо дані",
 
     // Transactions
     transactions_title: "Транзакції",

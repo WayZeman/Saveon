@@ -44,8 +44,8 @@ export default function HomePageContent() {
   if (!initialLoadDone || !data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="w-8 h-8 border-2 border-[var(--text-tertiary)]/30 border-t-[var(--accent-blue)] rounded-full animate-spin" style={{ animationDuration: "0.8s" }} />
         <p className="text-[13px] text-[var(--text-tertiary)] animate-pulse">{t("home_loading")}</p>
+        <div className="w-8 h-8 border-2 border-[var(--text-tertiary)]/30 border-t-[var(--accent-blue)] rounded-full animate-spin" style={{ animationDuration: "0.8s" }} />
       </div>
     );
   }

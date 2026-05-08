@@ -461,8 +461,8 @@ body {
 
 @media (pointer: coarse) {
   body {
-    touch-action: pan-y;
-    overscroll-behavior-y: contain;
+    touch-action: auto;
+    overscroll-behavior-y: auto;
   }
   button,
   [role="button"],

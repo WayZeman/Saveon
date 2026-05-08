@@ -51,7 +51,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="mobile-top-bar" aria-hidden="true" />
 
           {/* Main content */}
-          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 relative overflow-x-hidden">
+          <main className="flex-1 flex flex-col min-h-screen min-h-[100dvh] pb-20 relative">
             <div className="pointer-events-none absolute inset-0 -z-[1] hidden md:block">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
@@ -71,7 +71,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
-            <div className="flex justify-around items-center h-[58px]">
+            <div className="mx-auto w-full max-w-[72rem] px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+              <div className="flex justify-around items-center h-[58px]">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;
                 return (
@@ -89,6 +90,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
+              </div>
             </div>
           </nav>
         </div>
