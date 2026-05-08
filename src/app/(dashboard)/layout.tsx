@@ -67,7 +67,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </aside>
 
           {/* Main content */}
-          <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))]">
+          <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-7">
             <div className="pointer-events-none absolute inset-0 -z-[1] hidden md:block">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
