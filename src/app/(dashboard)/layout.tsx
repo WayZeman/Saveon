@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Wallet, FolderTree, Target, Settings } from "lucide-react";
@@ -39,12 +38,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   const { user } = useData();
   const nav = navItems.map((item) => ({ ...item, label: t(item.labelKey) }));
-
-  // На мобільній при перемиканні вкладок показувати сторінку з початку
-  useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth >= 768) return;
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
