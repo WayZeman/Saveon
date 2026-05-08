@@ -5,14 +5,36 @@ import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+let bodyScrollLockCount = 0;
+let previousBodyOverflow = "";
+
+function lockBodyScroll() {
+  if (typeof document === "undefined") return;
+  if (bodyScrollLockCount === 0) {
+    previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+  bodyScrollLockCount += 1;
+}
+
+function unlockBodyScroll() {
+  if (typeof document === "undefined" || bodyScrollLockCount === 0) return;
+  bodyScrollLockCount -= 1;
+  if (bodyScrollLockCount === 0) {
+    document.body.style.overflow = previousBodyOverflow;
+  }
+}
+
 export function ModalOverlay({ children, onClose }: { children: ReactNode; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    lockBodyScroll();
+    return () => {
+      unlockBodyScroll();
+    };
   }, []);
 
   const overlay = (
@@ -163,8 +185,10 @@ export function ConfirmDialog({
     setMounted(true);
   }, []);
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    lockBodyScroll();
+    return () => {
+      unlockBodyScroll();
+    };
   }, []);
 
   const dialog = (

@@ -36,12 +36,35 @@ function IncomingPartnerInviteGate() {
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { t } = useLanguage();
-  const { user } = useData();
   const nav = navItems.map((item) => ({ ...item, label: t(item.labelKey) }));
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-          <div className="mobile-top-bar" aria-hidden="true" />
+    <div className="min-h-screen bg-[var(--bg)] md:pl-24">
+          <div className="mobile-top-bar md:hidden" aria-hidden="true" />
+
+          {/* Desktop sidebar */}
+          <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-24 glass-panel border-r border-[var(--border)] z-30">
+            <nav className="w-full flex flex-col items-center justify-center gap-3 py-8" aria-label={t("nav_aria")}>
+              {nav.map(({ href, label, Icon }) => {
+                const active = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-label={label}
+                    title={label}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                      active
+                        ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
+                        : "text-[var(--text-tertiary)] hover:text-[var(--text)] hover:bg-[var(--input-bg)]"
+                    }`}
+                  >
+                    <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 2 : 1.5} />
+                  </Link>
+                );
+              })}
+            </nav>
+          </aside>
 
           {/* Main content */}
           <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))]">
@@ -60,11 +83,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Bottom nav for all screen sizes */}
           <nav
-            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-[min(calc(100%-3.5rem),72rem)] lg:w-[min(calc(100%-4.5rem),72rem)] border-t border-[var(--border)] md:rounded-t-2xl md:border z-20"
+            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20 md:hidden"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             aria-label={t("nav_aria")}
           >
-            <div className="mx-auto w-full px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] md:px-0 md:pr-0">
+            <div className="mx-auto w-full px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
               <div className="flex justify-around items-center h-[58px]">
               {nav.map(({ href, label, Icon }) => {
                 const active = pathname === href;

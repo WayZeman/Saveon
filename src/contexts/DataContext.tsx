@@ -178,6 +178,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         goals,
         initialLoadDone: true,
       });
+    } catch (error) {
+      console.error("[data] initial load failed", error);
+      setState((s) => ({ ...s, initialLoadDone: true }));
     } finally {
       loadingRef.current = false;
     }

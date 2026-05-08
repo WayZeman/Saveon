@@ -123,7 +123,7 @@ export default function AuthPage() {
   const isLogin = mode === "login";
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex items-center sm:justify-center p-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] bg-[var(--bg)] relative overflow-auto">
+    <div className="min-h-screen min-h-[100dvh] flex items-center sm:justify-center p-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-5 pb-[max(2.5rem,env(safe-area-inset-bottom))] bg-[var(--bg)] relative">
       <div className="relative w-full max-w-[420px] animate-in">
         {/* Logo & heading */}
         <div className="text-center mb-8">
