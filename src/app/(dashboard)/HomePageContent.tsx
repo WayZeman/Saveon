@@ -24,7 +24,7 @@ async function realizeGoal(goalId: string): Promise<boolean> {
   return res.ok;
 }
 
-const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
+const COLORS = ["#ffd451", "#ffffff", "#a1a1a6", "#32d74b", "#ff9f0a", "#ff453a", "#64d2ff", "#636366"];
 
 const PALE_RED = "#e57373";
 
@@ -64,7 +64,7 @@ export default function HomePageContent() {
         </div>
         <div className="flex flex-col items-center gap-3 pb-6">
           <p className="text-[13px] text-[var(--text-tertiary)] animate-pulse">{t("home_loading")}</p>
-          <div className="w-7 h-7 border-2 border-[var(--text-tertiary)]/30 border-t-[var(--accent-blue)] rounded-full animate-spin" style={{ animationDuration: "0.8s" }} />
+          <div className="loader-spinner w-7 h-7" />
         </div>
       </div>
     );
@@ -76,17 +76,12 @@ export default function HomePageContent() {
   return (
     <div className="section-spacing max-w-6xl mx-auto">
       {/* Hero balance */}
-      <section className="rounded-[1.8rem] bg-gradient-to-br from-[#0c7ff5] to-[#4e6cff] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-12 relative overflow-hidden shadow-glow opacity-0 animate-in border border-white/15">
-        <div className="absolute inset-0 opacity-[0.07]">
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white -translate-y-1/3 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white translate-y-1/3 -translate-x-1/3" />
-        </div>
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(70%_60%_at_50%_0%,rgba(255,255,255,0.18),transparent_68%)]" />
-        <div className="flex items-center gap-2 text-white/75 text-[12px] md:text-[13px] font-medium relative tracking-[0.08em] uppercase">
-          <Wallet className="w-4 h-4 shrink-0" strokeWidth={2} />
+      <section className="mono-hero px-6 pt-8 pb-10 md:px-10 md:pt-9 md:pb-12 opacity-0 animate-in">
+        <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[12px] md:text-[13px] font-semibold relative tracking-[0.06em] uppercase">
+          <Wallet className="w-4 h-4 shrink-0 text-[var(--accent-primary)]" strokeWidth={2} />
           {hasPartner ? t("home_totalBalance") : t("home_myBalance")}
         </div>
-        <p className={`text-4xl md:text-5xl lg:text-6xl font-bold mt-3 tracking-tight relative ${data.totalBalance >= 0 ? "text-white" : "text-red-200"}`}>
+        <p className={`text-4xl md:text-5xl lg:text-[3.75rem] font-bold mt-3 tracking-tight relative ${data.totalBalance >= 0 ? "text-[var(--text)]" : "text-[var(--accent-red)]"}`}>
           <AnimatedNumber
             value={data.totalBalance}
             format={(n) => formatMoney(n)}
@@ -114,7 +109,7 @@ export default function HomePageContent() {
         return (
           <section className="card opacity-0 animate-slide-up animate-stagger-3">
             <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-              <Target className="w-[18px] h-[18px] text-[var(--accent-purple)]" strokeWidth={2} />
+              <Target className="w-[18px] h-[18px] text-[var(--accent-primary)]" strokeWidth={2} />
               {t("home_goals")}
             </h2>
             <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_goalsProgress")}</p>
@@ -123,7 +118,7 @@ export default function HomePageContent() {
               <span className="text-[var(--text-secondary)]">{t("home_collected")} <span className="text-[var(--accent-green)] font-medium">{formatMoney(totalCollected)}</span></span>
             </div>
             <div className="h-2.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
-              <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
+              <div className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
             </div>
             <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">{t("home_remaining")} {formatMoney(totalRemaining)}</p>
             <ul className="mt-5 space-y-2">
@@ -149,7 +144,7 @@ export default function HomePageContent() {
                             await Promise.all([refetchGoals(), refetchDashboard()]);
                           }
                         }}
-                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 disabled:opacity-60 transition"
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-bold text-[var(--accent-primary-text)] bg-[var(--accent-primary)] hover:brightness-105 disabled:opacity-60 transition"
                       >
                         {isRealizing ? "..." : t("home_realize")}
                       </button>
@@ -160,24 +155,24 @@ export default function HomePageContent() {
                 );
               })}
             </ul>
-            <Link href="/goals" className="inline-block mt-5 text-[13px] font-medium text-[var(--accent-blue)] hover:underline">{t("home_allGoals")}</Link>
+            <Link href="/goals" className="inline-block mt-5 text-[13px] font-semibold link-accent hover:underline">{t("home_allGoals")}</Link>
           </section>
         );
       })()}
 
       {data.goals.length === 0 && (
         <section className="card opacity-0 animate-slide-up animate-stagger-3 text-center py-10">
-          <Target className="w-10 h-10 mx-auto mb-3 text-[var(--accent-green)]" strokeWidth={1.5} />
+          <Target className="w-10 h-10 mx-auto mb-3 text-[var(--accent-primary)]" strokeWidth={1.5} />
           <h2 className="text-xl font-semibold mb-1.5">{t("home_noGoals")}</h2>
           <p className="text-[var(--text-secondary)] text-[15px]">{t("home_noGoalsHint")}</p>
-          <Link href="/goals" className="inline-block mt-6 rounded-xl bg-[var(--accent-blue)] text-white px-6 py-3 text-[14px] font-semibold hover:brightness-110 transition">{t("home_addGoal")}</Link>
+          <Link href="/goals" className="btn-primary inline-flex mt-6 px-6 py-3">{t("home_addGoal")}</Link>
         </section>
       )}
 
       {/* По категоріях — відсотки на діаграмі з полосками, minAngle щоб малі не налазили */}
       <section className="card opacity-0 animate-slide-up animate-stagger-4">
         <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-          <PieChartIcon className="w-[18px] h-[18px] text-[var(--accent-blue)]" strokeWidth={2} />
+          <PieChartIcon className="w-[18px] h-[18px] text-[var(--accent-primary)]" strokeWidth={2} />
           {t("home_byCategory")}
         </h2>
         <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_byCategoryHint")}</p>
@@ -308,13 +303,13 @@ export default function HomePageContent() {
                     {/* Накопичувальний дохід — зелений (не падає до нуля) */}
                     <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive={false} connectNulls />
                     {/* Баланс накопичувальний */}
-                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive={false} connectNulls />
+                    <Line type="monotone" dataKey="balance" stroke="var(--accent-primary)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-primary)" }} activeDot={{ r: 5, fill: "var(--accent-primary)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive={false} connectNulls />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
               <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[var(--border)] flex-wrap">
                 <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-blue)] inline-block" />
+                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-primary)] inline-block" />
                   {t("home_balanceChart")}
                 </div>
                 <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">

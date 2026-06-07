@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, FolderTree } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Category } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
+import { AppLoader } from "@/components/AppLoader";
 
 export default function CategoriesPage() {
   const { t } = useLanguage();
@@ -82,7 +83,7 @@ export default function CategoriesPage() {
     setName(""); setIsShared(hasPartner);
   }
 
-  if (!initialLoadDone) return <Loader />;
+  if (!initialLoadDone) return <AppLoader />;
 
   const shared = categories.filter((c) => c.isShared);
   const personal = categories.filter((c) => !c.isShared);
@@ -93,7 +94,7 @@ export default function CategoriesPage() {
       <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
         <div>
           <h1 className="page-title flex items-center gap-2">
-            <FolderTree className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
+            <FolderTree className="w-7 h-7 text-[var(--accent-primary)]" strokeWidth={1.5} />
             {t("categories_title")}
           </h1>
           <p className="text-[14px] text-[var(--text-secondary)] mt-1">
@@ -168,13 +169,5 @@ function CategoryList({ title, items, onEdit, onDelete, delay, emptyText }: {
         )}
       </ul>
     </section>
-  );
-}
-
-function Loader() {
-  return (
-    <div className="flex items-center justify-center min-h-[40vh]">
-      <div className="w-6 h-6 border-2 border-[var(--text-tertiary)] border-t-[var(--text-secondary)] rounded-full animate-spin" />
-    </div>
   );
 }

@@ -20,7 +20,8 @@ const config: Config = {
           500: "#48484a",
         },
         accent: {
-          green: "#30d158",
+          primary: "#ffd451",
+          green: "#32d74b",
           red: "#ff453a",
           blue: "#0a84ff",
           purple: "#bf5af2",
@@ -43,7 +44,7 @@ const config: Config = {
       boxShadow: {
         card: "0 2px 16px rgba(0, 0, 0, 0.3)",
         modal: "0 24px 80px rgba(0, 0, 0, 0.6)",
-        glow: "0 0 40px rgba(10, 132, 255, 0.15)",
+        glow: "0 0 48px rgba(255, 212, 81, 0.18)",
       },
       animation: {
         "fade-in": "fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",

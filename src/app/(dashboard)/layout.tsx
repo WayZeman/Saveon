@@ -56,7 +56,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     title={label}
                     className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
                       active
-                        ? "bg-[var(--accent-blue)]/14 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20"
+                        ? "bg-[var(--accent-primary)]/14 text-[var(--accent-primary)] border border-[var(--accent-primary)]/24"
                         : "text-[var(--text-tertiary)] hover:text-[var(--text)] hover:bg-[var(--input-bg)]"
                     }`}
                   >
@@ -69,10 +69,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Main content */}
           <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-7">
-            <div className="pointer-events-none absolute inset-0 -z-[1] hidden">
-              <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
-              <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
-              <div className="absolute -bottom-24 left-1/3 w-[22rem] h-[22rem] rounded-full blur-3xl opacity-15 bg-[var(--accent-teal)]" />
+            <div className="pointer-events-none absolute inset-0 -z-[1] hidden" aria-hidden="true">
+              <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-15 bg-[var(--accent-primary)]" />
+              <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-10 bg-[var(--accent-primary)]" />
             </div>
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
@@ -99,7 +98,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     aria-label={label}
                     title={label}
                     className={`flex-1 flex items-center justify-center py-1.5 transition-colors ${active
-                      ? "text-[var(--accent-blue)]"
+                      ? "text-[var(--accent-primary)]"
                       : "text-[var(--text-tertiary)] active:text-[var(--text-secondary)]"
                       }`}
                   >

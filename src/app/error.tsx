@@ -25,7 +25,7 @@ export default function Error({
       <button
         type="button"
         onClick={() => reset()}
-        className="rounded-xl bg-[var(--accent-blue)] text-white px-6 py-3 font-medium hover:opacity-90"
+        className="btn-primary px-6 py-3"
       >
         {t("error_retry")}
       </button>
