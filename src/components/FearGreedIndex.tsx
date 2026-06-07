@@ -12,8 +12,8 @@ type FearGreedItem = {
 };
 
 type FearGreedData = {
-  stocks: FearGreedItem;
-  crypto: FearGreedItem;
+  stocks: FearGreedItem | null;
+  crypto: FearGreedItem | null;
 };
 
 const CLASSIFICATION_KEYS: Record<string, string> = {
@@ -178,17 +178,25 @@ export function FearGreedIndex() {
         )}
 
         {!loading && !error && data && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <FearGreedGauge
-              item={data.stocks}
-              title={t("fearGreed_stocks")}
-              icon={<TrendingUp className="w-4 h-4 text-[var(--accent-green)]" strokeWidth={2} />}
-            />
-            <FearGreedGauge
-              item={data.crypto}
-              title={t("fearGreed_crypto")}
-              icon={<Bitcoin className="w-4 h-4 text-[var(--accent-purple)]" strokeWidth={2} />}
-            />
+          <div
+            className={`grid gap-3 ${
+              data.stocks && data.crypto ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 max-w-md mx-auto w-full"
+            }`}
+          >
+            {data.stocks && (
+              <FearGreedGauge
+                item={data.stocks}
+                title={t("fearGreed_stocks")}
+                icon={<TrendingUp className="w-4 h-4 text-[var(--accent-green)]" strokeWidth={2} />}
+              />
+            )}
+            {data.crypto && (
+              <FearGreedGauge
+                item={data.crypto}
+                title={t("fearGreed_crypto")}
+                icon={<Bitcoin className="w-4 h-4 text-[var(--accent-purple)]" strokeWidth={2} />}
+              />
+            )}
           </div>
         )}
       </div>

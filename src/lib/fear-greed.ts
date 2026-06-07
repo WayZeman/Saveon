@@ -8,8 +8,8 @@ export type FearGreedItem = {
 };
 
 export type FearGreedData = {
-  stocks: FearGreedItem;
-  crypto: FearGreedItem;
+  stocks: FearGreedItem | null;
+  crypto: FearGreedItem | null;
 };
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
@@ -35,7 +35,7 @@ function normalizeClassification(raw: string): string {
 async function fetchCryptoFearGreed(): Promise<FearGreedItem> {
   const res = await fetch("https://api.alternative.me/fng/?limit=1", {
     headers: { Accept: "application/json" },
-    next: { revalidate: 3600 },
+    cache: "no-store",
   });
   if (!res.ok) throw new Error("Crypto Fear & Greed API failed");
 
@@ -59,14 +59,10 @@ async function fetchCryptoFearGreed(): Promise<FearGreedItem> {
 }
 
 async function fetchStocksFearGreed(): Promise<FearGreedItem> {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 7);
-  const date = startDate.toISOString().slice(0, 10);
-
-  const res = await fetch(
-    `https://production.dataviz.cnn.io/index/fearandgreed/graphdata/${date}`,
-    { headers: CNN_HEADERS, next: { revalidate: 3600 } }
-  );
+  const res = await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", {
+    headers: CNN_HEADERS,
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("Stocks Fear & Greed API failed");
 
   const json = (await res.json()) as {
@@ -92,8 +88,20 @@ export async function getFearGreedIndex(): Promise<{ data: FearGreedData; cached
     return { data: cache.data, cached: true };
   }
 
-  const [stocks, crypto] = await Promise.all([fetchStocksFearGreed(), fetchCryptoFearGreed()]);
-  const data = { stocks, crypto };
+  const [stocksResult, cryptoResult] = await Promise.allSettled([
+    fetchStocksFearGreed(),
+    fetchCryptoFearGreed(),
+  ]);
+
+  const data: FearGreedData = {
+    stocks: stocksResult.status === "fulfilled" ? stocksResult.value : null,
+    crypto: cryptoResult.status === "fulfilled" ? cryptoResult.value : null,
+  };
+
+  if (!data.stocks && !data.crypto) {
+    throw new Error("Fear & Greed APIs failed");
+  }
+
   cache = { data, fetchedAt: now };
   return { data, cached: false };
 }
