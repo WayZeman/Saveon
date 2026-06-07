@@ -233,6 +233,19 @@ function dedupeAndSort(items: RawNewsItem[]): RawNewsItem[] {
   return unique;
 }
 
+function toNewsItems(items: RawNewsItem[]): NewsItem[] {
+  return items.map((item) => ({
+    id: itemId(item.url),
+    title: item.title,
+    summary: item.summary,
+    url: item.url,
+    source: item.source,
+    publishedAt: item.publishedAt.toISOString(),
+    imageUrl: null,
+    category: getNewsCategory(item.title, item.summary),
+  }));
+}
+
 async function loadNews(): Promise<NewsItem[]> {
   const feedResults = await Promise.allSettled(FEEDS.map((url) => fetchFeed(url)));
   const merged: RawNewsItem[] = [];
@@ -241,7 +254,16 @@ async function loadNews(): Promise<NewsItem[]> {
   }
 
   const top = dedupeAndSort(merged);
-  return enrichImages(top);
+  const items = toNewsItems(top);
+
+  // Зображення підвантажуємо у фоні — не блокуємо відповідь API (важливо для serverless).
+  void enrichImages(top).then((withImages) => {
+    if (newsCache) {
+      newsCache = { items: withImages, fetchedAt: newsCache.fetchedAt };
+    }
+  });
+
+  return items;
 }
 
 export async function getInvestmentNews(): Promise<{ items: NewsItem[]; cached: boolean; updatedAt: string }> {

@@ -52,7 +52,7 @@ export function NewsSection() {
   }, []);
 
   return (
-    <section className="card opacity-0 animate-slide-up animate-stagger-6 overflow-hidden">
+    <section className="card opacity-0 animate-slide-up animate-stagger-6 overflow-hidden scroll-mt-4">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
