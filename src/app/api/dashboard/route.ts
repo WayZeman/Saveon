@@ -94,9 +94,10 @@ export async function GET(request: Request) {
   const goals = goalsMapped.filter((g) => !g.realizedAt);
 
   const monthlyData = await getMonthlyData(session.id, partnerId);
+  // Лише категорії з позитивним нетто (вкладення), без витратних категорій на кшталт «Відпустка».
   const pieData = Object.values(categoryTotals)
-    .filter((v) => v.net !== 0)
-    .map((v) => ({ name: v.name, value: v.net, chartValue: Math.abs(v.net) }));
+    .filter((v) => v.net > 0)
+    .map((v) => ({ name: v.name, value: v.net, chartValue: v.net }));
 
   const comparison = hasPartner ? {
     mySaved: (byUserMonth[session.id]?.income ?? 0) - (byUserMonth[session.id]?.expense ?? 0),
