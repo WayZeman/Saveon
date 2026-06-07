@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import LogoImage from "@/components/LogoImage";
 import { ArrowRight, Eye, EyeOff, Mail, Lock, User, Check, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { RECOVERY_CODE_LENGTH, recoveryCodeNewSchema, recoveryCodeResetSchema } from "@/lib/recovery-code";
 
 type Mode = "login" | "register" | "recovery";
 
@@ -38,10 +39,15 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
+  const isRegister = mode === "register";
+  const isRecovery = mode === "recovery";
+
   const strength = useMemo(() => getPasswordStrength(password, t), [password, t]);
   const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
   const recoveryCodesMatch = confirmRecoveryCode.length === 0 || recoveryCode === confirmRecoveryCode;
-  const recoveryCodeValid = /^\d{4}$/.test(recoveryCode);
+  const recoveryCodeValid = isRecovery
+    ? recoveryCodeResetSchema.test(recoveryCode)
+    : recoveryCodeNewSchema.test(recoveryCode);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,13 +65,13 @@ export default function AuthPage() {
       if (!nameValue) { setError(t("auth_errorName")); return; }
       if (passwordValue.length < PASSWORD_MIN) { setError(t("auth_errorPasswordMin", String(PASSWORD_MIN))); return; }
       if (passwordValue !== confirmPasswordValue) { setError(t("auth_errorPasswordsMatch")); return; }
-      if (!/^\d{4}$/.test(recoveryCodeValue)) { setError(t("auth_errorRecoveryCodeLength")); return; }
+      if (!recoveryCodeNewSchema.test(recoveryCodeValue)) { setError(t("auth_errorRecoveryCodeLength")); return; }
       if (recoveryCodeValue !== confirmRecoveryCodeValue) { setError(t("auth_errorRecoveryCodeMatch")); return; }
       if (!agreed) { setError(t("auth_errorAgree")); return; }
     }
 
     if (mode === "recovery") {
-      if (!/^\d{4}$/.test(recoveryCodeValue)) { setError(t("auth_errorRecoveryCodeLength")); return; }
+      if (!recoveryCodeResetSchema.test(recoveryCodeValue)) { setError(t("auth_errorRecoveryCodeLengthReset")); return; }
       if (passwordValue.length < PASSWORD_MIN) { setError(t("auth_errorPasswordMin", String(PASSWORD_MIN))); return; }
     }
 
@@ -118,8 +124,6 @@ export default function AuthPage() {
     setConfirmRecoveryCode("");
   }
 
-  const isRegister = mode === "register";
-  const isRecovery = mode === "recovery";
   const isLogin = mode === "login";
 
   return (
@@ -195,11 +199,11 @@ export default function AuthPage() {
                     type="text"
                     name="recoveryCode"
                     inputMode="numeric"
-                    maxLength={4}
+                    maxLength={6}
                     value={recoveryCode}
                     onChange={(e) => setRecoveryCode(e.target.value.replace(/\D/g, ""))}
                     className="w-full !pl-11"
-                    placeholder={t("auth_recoveryCodePlaceholder")}
+                    placeholder={t("auth_recoveryCodePlaceholderReset")}
                     autoComplete="one-time-code"
                     required
                   />
@@ -299,7 +303,7 @@ export default function AuthPage() {
                       type="text"
                       name="recoveryCode"
                       inputMode="numeric"
-                      maxLength={4}
+                      maxLength={RECOVERY_CODE_LENGTH}
                       value={recoveryCode}
                       onChange={(e) => setRecoveryCode(e.target.value.replace(/\D/g, ""))}
                       className="w-full !pl-11"
@@ -320,7 +324,7 @@ export default function AuthPage() {
                       type="text"
                       name="confirmRecoveryCode"
                       inputMode="numeric"
-                      maxLength={4}
+                      maxLength={RECOVERY_CODE_LENGTH}
                       value={confirmRecoveryCode}
                       onChange={(e) => setConfirmRecoveryCode(e.target.value.replace(/\D/g, ""))}
                       className={`w-full !pl-11 ${!recoveryCodesMatch && confirmRecoveryCode.length > 0 ? "!border-[var(--accent-red)] focus:!border-[var(--accent-red)]" : ""}`}

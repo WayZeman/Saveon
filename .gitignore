@@ -35,6 +35,9 @@ dev.log
 coverage/
 .nyc_output/
 
+# Vercel (local link metadata — use /env pull, not git)
+.vercel/
+
 # Misc
 .cursor/
 terminals/

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { goalsVisibleWhere } from "@/lib/data-scope";
+import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
 import { goalPatchSchema } from "@/lib/validations";
 
 export async function GET(
@@ -54,7 +54,29 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
     if (parsed.data.realize !== undefined) {
+      const goalInclude = {
+        createdByUser: { select: { id: true, email: true, role: true } },
+      } as const;
+
       if (parsed.data.realize) {
+        if (goal.realizedAt) {
+          const current = await prisma.goal.findUnique({
+            where: { id: goalId },
+            include: goalInclude,
+          });
+          return NextResponse.json(current);
+        }
+
+        const sourceCategory = await prisma.category.findFirst({
+          where: { id: parsed.data.sourceCategoryId!, OR: categoriesVisibleWhere(session).OR },
+        });
+        if (!sourceCategory) {
+          return NextResponse.json({ error: "Source category not found" }, { status: 404 });
+        }
+        if (!canUseCategory(session, sourceCategory)) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
         let category = await prisma.category.findFirst({
           where: {
             OR: [
@@ -74,26 +96,33 @@ export async function PATCH(
             },
           });
         }
+
         await prisma.transaction.create({
           data: {
             amount: goal.targetAmount,
             type: "expense",
             categoryId: category.id,
+            sourceCategoryId: sourceCategory.id,
             userId: session.id,
             goalId: goal.id,
           },
         });
-      } else {
-        await prisma.transaction.deleteMany({
-          where: { goalId: goal.id },
+
+        const updated = await prisma.goal.update({
+          where: { id: goalId },
+          data: { realizedAt: new Date() },
+          include: goalInclude,
         });
+        return NextResponse.json(updated);
       }
+
+      await prisma.transaction.deleteMany({
+        where: { goalId: goal.id },
+      });
       const updated = await prisma.goal.update({
         where: { id: goalId },
-        data: { realizedAt: parsed.data.realize ? new Date() : null },
-        include: {
-          createdByUser: { select: { id: true, email: true, role: true } },
-        },
+        data: { realizedAt: null },
+        include: goalInclude,
       });
       return NextResponse.json(updated);
     }

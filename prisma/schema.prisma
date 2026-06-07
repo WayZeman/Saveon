@@ -12,9 +12,11 @@ model User {
   name         String   @default("")
   email        String   @unique
   password     String
-  recoveryCode String?  // хеш 4-значного коду для відновлення пароля
+  recoveryCode String?  // хеш коду для відновлення пароля (4 або 6 цифр)
   role         String   @default("user")
   partnerId    String?
+  partner      User?    @relation("UserPartner", fields: [partnerId], references: [id], onDelete: SetNull)
+  partnerOf    User[]   @relation("UserPartner")
   createdAt    DateTime @default(now())
 
   categories             Category[]       @relation("UserCategories")

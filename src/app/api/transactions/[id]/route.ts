@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere } from "@/lib/data-scope";
+import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 
@@ -19,7 +20,13 @@ export async function PATCH(
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { amount, type, categoryId, sourceCategoryId } = parsed.data;
+    const { amount, type, categoryId, sourceCategoryId, currency } = parsed.data;
+    let amountUah = amount;
+    if (currency && currency !== "UAH") {
+      const rates = await getExchangeRates();
+      if (currency === "USD") amountUah = amount * rates.usd;
+      else if (currency === "EUR") amountUah = amount * rates.eur;
+    }
     const existing = await prisma.transaction.findFirst({
       where: { id, userId: session.id },
     });
@@ -42,7 +49,7 @@ export async function PATCH(
 
     const transaction = await prisma.transaction.update({
       where: { id },
-      data: { amount, type, categoryId, sourceCategoryId: resolvedSourceCategoryId },
+      data: { amount: amountUah, type, categoryId, sourceCategoryId: resolvedSourceCategoryId },
       include: transactionInclude,
     });
     return NextResponse.json(transaction);

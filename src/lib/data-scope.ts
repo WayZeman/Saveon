@@ -37,3 +37,8 @@ export function goalsVisibleWhere(session: SessionUser) {
     OR: [{ createdBy: session.id }, ...(partnerId ? [{ isShared: true, createdBy: partnerId }] : [])],
   };
 }
+
+/** Транзакції: свої та партнера (як на дашборді). */
+export function transactionUserIds(session: SessionUser): string[] {
+  return session.partnerId ? [session.id, session.partnerId] : [session.id];
+}

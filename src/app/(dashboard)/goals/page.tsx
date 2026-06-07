@@ -6,12 +6,14 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Goal } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
+import { RealizeGoalModal } from "@/components/RealizeGoalModal";
 
 export default function GoalsPage() {
   const { formatMoney } = useCurrency();
   const { t } = useLanguage();
-  const { goals, dashboardData, user, initialLoadDone, invalidateAfterMutation } = useData();
+  const { goals, dashboardData, user, categories, initialLoadDone, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
+  const [realizeGoal, setRealizeGoal] = useState<Goal | null>(null);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
   const [form, setForm] = useState({ title: "", targetAmount: "", isShared: true });
   const [error, setError] = useState("");
@@ -83,14 +85,20 @@ export default function GoalsPage() {
     } catch { /* ignore */ }
   }
 
-  async function handleRealize(goal: Goal, realize: boolean) {
+  async function handleRealize(goal: Goal, realize: boolean, sourceCategoryId?: string) {
     try {
       const res = await fetch(`/api/goals/${goal.id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ realize }),
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(realize ? { realize: true, sourceCategoryId } : { realize: false }),
       });
-      if (res.ok) await refreshAfterGoalAction();
+      if (res.ok) {
+        if (realize) setRealizeGoal(null);
+        await refreshAfterGoalAction();
+        return true;
+      }
     } catch { /* ignore */ }
+    return false;
   }
 
   const hasPartner = !!user?.partnerId;
@@ -166,7 +174,7 @@ export default function GoalsPage() {
                     <p className="text-[12px] text-[var(--text-tertiary)] mt-2">На балансі {formatMoney(balanceUsed)} з {formatMoney(goal.targetAmount)}</p>
                     <div className="relative z-[1] flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-[var(--border)]">
                       {hasEnough && (
-                        <button type="button" onClick={() => handleRealize(goal, true)} className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5">
+                        <button type="button" onClick={() => setRealizeGoal(goal)} className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5">
                           <CheckCircle className="w-4 h-4" strokeWidth={2} /> Реалізувати
                         </button>
                       )}
@@ -256,6 +264,15 @@ export default function GoalsPage() {
             </form>
           </ModalPanel>
         </ModalOverlay>
+      )}
+
+      {realizeGoal && (
+        <RealizeGoalModal
+          goal={realizeGoal}
+          categories={categories}
+          onClose={() => setRealizeGoal(null)}
+          onConfirm={(sourceCategoryId) => handleRealize(realizeGoal, true, sourceCategoryId)}
+        />
       )}
     </div>
   );

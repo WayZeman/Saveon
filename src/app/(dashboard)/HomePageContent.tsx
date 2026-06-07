@@ -14,15 +14,7 @@ import { useData } from "@/contexts/DataContext";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
-
-async function realizeGoal(goalId: string): Promise<boolean> {
-  const res = await fetch(`/api/goals/${goalId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ realize: true }),
-  });
-  return res.ok;
-}
+import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoalModal";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
@@ -42,8 +34,22 @@ export default function HomePageContent() {
   const { formatMoney, currency, rates } = useCurrency();
   const { showFearGreed, showMarketNews } = useHomeSections();
   const { t } = useLanguage();
-  const { dashboardData: data, user, initialLoadDone, refetchDashboard, refetchGoals } = useData();
-  const [realizingId, setRealizingId] = useState<string | null>(null);
+  const { dashboardData: data, user, categories, initialLoadDone, refetchDashboard, refetchGoals } = useData();
+  const [realizeGoal, setRealizeGoal] = useState<RealizeGoalInfo | null>(null);
+
+  async function confirmRealizeGoal(goalId: string, sourceCategoryId: string): Promise<boolean> {
+    const res = await fetch(`/api/goals/${goalId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ realize: true, sourceCategoryId }),
+    });
+    if (res.ok) {
+      setRealizeGoal(null);
+      await Promise.all([refetchGoals(), refetchDashboard()]);
+      return true;
+    }
+    return false;
+  }
 
   if (!initialLoadDone || !data) {
     return (
@@ -129,7 +135,6 @@ export default function HomePageContent() {
             <ul className="mt-5 space-y-2">
               {data.goals.map((goal) => {
                 const hasEnough = goal.remainingNeeded <= 0;
-                const isRealizing = realizingId === goal.id;
                 return (
                   <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
                     <Link href="/goals" className="flex-1 min-w-0">
@@ -138,20 +143,13 @@ export default function HomePageContent() {
                     {hasEnough ? (
                       <button
                         type="button"
-                        disabled={!!realizingId}
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.preventDefault();
-                          if (realizingId) return;
-                          setRealizingId(goal.id);
-                          const ok = await realizeGoal(goal.id);
-                          setRealizingId(null);
-                          if (ok) {
-                            await Promise.all([refetchGoals(), refetchDashboard()]);
-                          }
+                          setRealizeGoal(goal);
                         }}
-                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 disabled:opacity-60 transition"
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 transition"
                       >
-                        {isRealizing ? "..." : t("home_realize")}
+                        {t("home_realize")}
                       </button>
                     ) : (
                       <span className="shrink-0 text-[13px] font-medium text-[var(--accent-orange)]">{t("home_remaining")} {formatMoney(goal.remainingNeeded)}</span>
@@ -333,6 +331,15 @@ export default function HomePageContent() {
 
       {showFearGreed && <FearGreedIndex />}
       {showMarketNews && <NewsSection />}
+
+      {realizeGoal && (
+        <RealizeGoalModal
+          goal={realizeGoal}
+          categories={categories}
+          onClose={() => setRealizeGoal(null)}
+          onConfirm={(sourceCategoryId) => confirmRealizeGoal(realizeGoal.id, sourceCategoryId)}
+        />
+      )}
     </div>
   );
 }

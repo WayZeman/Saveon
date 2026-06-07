@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RECOVERY_CODE_LENGTH } from "./recovery-code";
 
 export const loginSchema = z.object({
   email: z.string().email("Невірний формат email"),
@@ -9,14 +10,40 @@ export const registerSchema = z.object({
   name: z.string().min(1, "Вкажіть ваше ім'я").max(50),
   email: z.string().email("Невірний формат email"),
   password: z.string().min(6, "Пароль має містити мінімум 6 символів"),
-  recoveryCode: z.string().length(4, "Код має містити 4 цифри").regex(/^\d{4}$/, "Тільки цифри"),
+  recoveryCode: z
+    .string()
+    .length(RECOVERY_CODE_LENGTH, `Код має містити ${RECOVERY_CODE_LENGTH} цифр`)
+    .regex(/^\d{6}$/, "Тільки цифри"),
 });
 
 export const resetPasswordSchema = z.object({
   email: z.string().email("Невірний формат email"),
-  recoveryCode: z.string().length(4, "Код має містити 4 цифри").regex(/^\d{4}$/, "Тільки цифри"),
+  recoveryCode: z
+    .string()
+    .min(4, "Код має містити від 4 до 6 цифр")
+    .max(6, "Код має містити від 4 до 6 цифр")
+    .regex(/^\d{4,6}$/, "Тільки цифри"),
   newPassword: z.string().min(6, "Пароль має містити мінімум 6 символів"),
 });
+
+export const changeRecoveryCodeSchema = z
+  .object({
+    password: z.string().min(1, "Введіть пароль"),
+    recoveryCode: z
+      .string()
+      .length(RECOVERY_CODE_LENGTH, `Код має містити ${RECOVERY_CODE_LENGTH} цифр`)
+      .regex(/^\d{6}$/, "Тільки цифри"),
+    confirmRecoveryCode: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.recoveryCode !== data.confirmRecoveryCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Коди не співпадають",
+        path: ["confirmRecoveryCode"],
+      });
+    }
+  });
 
 export const addPartnerSchema = z.object({
   email: z.string().email("Невірний формат email"),
@@ -53,21 +80,26 @@ export const goalSchema = z.object({
   isShared: z.boolean().optional().default(true),
 });
 
-export const goalPatchSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  targetAmount: z.number().positive().optional(),
-  isShared: z.boolean().optional(),
-  realize: z.boolean().optional(),
-});
-
-export const goalContributeSchema = z.object({
-  goalId: z.string().min(1),
-  amount: z.number().positive(),
-});
+export const goalPatchSchema = z
+  .object({
+    title: z.string().min(1).max(200).optional(),
+    targetAmount: z.number().positive().optional(),
+    isShared: z.boolean().optional(),
+    realize: z.boolean().optional(),
+    sourceCategoryId: z.string().min(1).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.realize === true && !data.sourceCategoryId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Для реалізації цілі вкажіть категорію, з якої знімаються кошти",
+        path: ["sourceCategoryId"],
+      });
+    }
+  });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type CategoryInput = z.infer<typeof categorySchema>;
 export type TransactionInput = z.infer<typeof transactionSchema>;
 export type GoalInput = z.infer<typeof goalSchema>;
-export type GoalContributeInput = z.infer<typeof goalContributeSchema>;

@@ -16,13 +16,13 @@ export async function POST(request: Request) {
         const { email, recoveryCode, newPassword } = parsed.data;
 
         const user = await prisma.user.findUnique({ where: { email } });
-        if (user) {
-            const isValidCode = await verifyPassword(recoveryCode, user.recoveryCode || "");
-            if (!isValidCode) {
-                return NextResponse.json({ error: "Невірний код відновлення" }, { status: 401 });
-            }
-        } else {
-            return NextResponse.json({ error: "Користувача не знайдено" }, { status: 404 });
+        const isValidCode =
+            !!user && (await verifyPassword(recoveryCode, user.recoveryCode || ""));
+        if (!isValidCode) {
+            return NextResponse.json(
+                { error: "Невірний email або код відновлення" },
+                { status: 401 }
+            );
         }
 
         const hashedPassword = await hashPassword(newPassword);

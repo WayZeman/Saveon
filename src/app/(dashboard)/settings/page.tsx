@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   Settings, Sun, Moon, Monitor, ChevronRight, Palette,
   CircleDollarSign, LifeBuoy, Heart, LogOut, ExternalLink, Check,
-  Users, UserPlus, UserMinus, Activity, Newspaper, LayoutGrid,
+  Users, UserPlus, UserMinus, Activity, Newspaper, LayoutGrid, ShieldCheck,
 } from "lucide-react";
+import { RECOVERY_CODE_LENGTH, recoveryCodeNewSchema } from "@/lib/recovery-code";
 import { AppleSwitch } from "@/components/AppleSwitch";
 import { useHomeSections } from "@/contexts/HomeSectionsContext";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
@@ -38,6 +39,12 @@ export default function SettingsPage() {
   const [partnerRole, setPartnerRole] = useState<"husband" | "wife" | "friend">("husband");
   const [partnerError, setPartnerError] = useState("");
   const [partnerSaving, setPartnerSaving] = useState(false);
+  const [recoveryPassword, setRecoveryPassword] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [confirmRecoveryCode, setConfirmRecoveryCode] = useState("");
+  const [recoveryError, setRecoveryError] = useState("");
+  const [recoverySuccess, setRecoverySuccess] = useState("");
+  const [recoverySaving, setRecoverySaving] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const themes = [
@@ -87,6 +94,49 @@ export default function SettingsPage() {
       await Promise.all([refetchUser(), refetchPartner(), refetchDashboard()]);
     } catch { setPartnerError(t("auth_errorConnection")); }
     finally { setPartnerSaving(false); }
+  }
+
+  async function handleChangeRecoveryCode(e: React.FormEvent) {
+    e.preventDefault();
+    setRecoveryError("");
+    setRecoverySuccess("");
+    if (!recoveryPassword) {
+      setRecoveryError(t("settings_errorRecoveryPassword"));
+      return;
+    }
+    if (!recoveryCodeNewSchema.test(recoveryCode)) {
+      setRecoveryError(t("settings_errorRecoveryCode"));
+      return;
+    }
+    if (recoveryCode !== confirmRecoveryCode) {
+      setRecoveryError(t("settings_errorRecoveryCodeMatch"));
+      return;
+    }
+    setRecoverySaving(true);
+    try {
+      const res = await fetch("/api/auth/recovery-code", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: recoveryPassword,
+          recoveryCode,
+          confirmRecoveryCode,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRecoveryError(data.error ?? t("auth_errorGeneric"));
+        return;
+      }
+      setRecoverySuccess(t("settings_recoveryCodeSaved"));
+      setRecoveryPassword("");
+      setRecoveryCode("");
+      setConfirmRecoveryCode("");
+    } catch {
+      setRecoveryError(t("auth_errorConnection"));
+    } finally {
+      setRecoverySaving(false);
+    }
   }
 
   async function handleRemovePartner() {
@@ -193,8 +243,73 @@ export default function SettingsPage() {
         ) : null}
       </div>
 
-      {/* Appearance */}
+      {/* Recovery code */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-3">
+        <button type="button" onClick={() => toggle("recovery")} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-orange)] to-[var(--accent-red)] flex items-center justify-center">
+            <ShieldCheck className="w-4 h-4 text-white" strokeWidth={2} />
+          </span>
+          <div className="flex-1 text-left">
+            <p className="text-[14px] font-medium">{t("settings_recoveryCode")}</p>
+            <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_recoveryCodeHint")}</p>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform duration-200 ${expandedSection === "recovery" ? "rotate-90" : ""}`} />
+        </button>
+        {expandedSection === "recovery" && (
+          <form onSubmit={handleChangeRecoveryCode} className="px-5 pb-5 space-y-4 animate-slide-up border-t border-[var(--border)] pt-4">
+            <div>
+              <FieldLabel>{t("settings_recoveryCodePassword")}</FieldLabel>
+              <input
+                type="password"
+                value={recoveryPassword}
+                onChange={(e) => setRecoveryPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <div>
+              <FieldLabel>{t("settings_recoveryCodeNew")}</FieldLabel>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={RECOVERY_CODE_LENGTH}
+                value={recoveryCode}
+                onChange={(e) => setRecoveryCode(e.target.value.replace(/\D/g, ""))}
+                placeholder={t("auth_recoveryCodePlaceholder")}
+                autoComplete="off"
+                required
+              />
+            </div>
+            <div>
+              <FieldLabel>{t("settings_recoveryCodeConfirm")}</FieldLabel>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={RECOVERY_CODE_LENGTH}
+                value={confirmRecoveryCode}
+                onChange={(e) => setConfirmRecoveryCode(e.target.value.replace(/\D/g, ""))}
+                placeholder={t("auth_recoveryCodePlaceholder")}
+                autoComplete="off"
+                required
+              />
+            </div>
+            {recoveryError && <FieldError message={recoveryError} />}
+            {recoverySuccess && (
+              <p className="text-[13px] text-[var(--accent-green)] font-medium">{recoverySuccess}</p>
+            )}
+            <button
+              type="submit"
+              disabled={recoverySaving}
+              className="w-full rounded-xl py-3 text-[14px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 disabled:opacity-60 transition"
+            >
+              {recoverySaving ? t("settings_recoveryCodeSaving") : t("modal_save")}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Appearance */}
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-4">
         <button type="button" onClick={() => toggle("theme")} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
           <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-blue)] flex items-center justify-center">
             <Palette className="w-4 h-4 text-white" strokeWidth={2} />
@@ -249,7 +364,7 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-4">
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-5">
         <div className="px-5 py-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-orange)] to-[var(--accent-blue)] flex items-center justify-center">
@@ -296,7 +411,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Support */}
-      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-5">
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-6">
         <a href="https://t.me/familefinance" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
           <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-teal)] flex items-center justify-center"><LifeBuoy className="w-4 h-4 text-white" strokeWidth={2} /></span>
           <div className="flex-1 text-left"><p className="text-[14px] font-medium">{t("settings_support")}</p><p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_supportTelegram")}</p></div>
@@ -311,7 +426,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Logout */}
-      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-6">
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-7">
         <button type="button" onClick={logout} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
           <span className="w-8 h-8 rounded-lg bg-[var(--accent-red)]/10 flex items-center justify-center"><LogOut className="w-4 h-4 text-[var(--accent-red)]" strokeWidth={2} /></span>
           <span className="text-[14px] font-medium text-[var(--accent-red)]">{t("settings_logout")}</span>

@@ -1,22 +1,10 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canUseCategory, categoriesVisibleWhere } from "@/lib/data-scope";
+import { canUseCategory, categoriesVisibleWhere, transactionUserIds } from "@/lib/data-scope";
+import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
-
-async function getRates(): Promise<{ usd: number; eur: number }> {
-  try {
-    const res = await fetch("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json", { next: { revalidate: 3600 } });
-    if (!res.ok) throw new Error("NBU fetch failed");
-    const data = (await res.json()) as { cc: string; rate: number }[];
-    const usd = data.find((x) => x.cc === "USD")?.rate ?? 41;
-    const eur = data.find((x) => x.cc === "EUR")?.rate ?? 45;
-    return { usd, eur };
-  } catch {
-    return { usd: 41, eur: 45 };
-  }
-}
 
 export async function GET(request: Request) {
   const sessionOr = await getRequiredSession();
@@ -27,7 +15,7 @@ export async function GET(request: Request) {
   const month = searchParams.get("month"); // YYYY-MM
   const type = searchParams.get("type") as "income" | "expense" | null;
 
-  const where: Record<string, unknown> = { userId: session.id };
+  const where: Record<string, unknown> = { userId: { in: transactionUserIds(session) } };
   if (categoryId) where.categoryId = categoryId;
   if (type) where.type = type;
   if (month) {
@@ -58,7 +46,7 @@ export async function POST(request: Request) {
     const { amount, type, categoryId, sourceCategoryId, goalId, currency } = parsed.data;
     let amountUah = amount;
     if (currency && currency !== "UAH") {
-      const rates = await getRates();
+      const rates = await getExchangeRates();
       if (currency === "USD") amountUah = amount * rates.usd;
       else if (currency === "EUR") amountUah = amount * rates.eur;
     }
