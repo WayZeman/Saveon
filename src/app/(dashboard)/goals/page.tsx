@@ -164,23 +164,21 @@ export default function GoalsPage() {
                       <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium">{progressPercent.toFixed(0)}%</span>
                     </div>
                     <p className="text-[12px] text-[var(--text-tertiary)] mt-2">На балансі {formatMoney(balanceUsed)} з {formatMoney(goal.targetAmount)}</p>
-                    <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-[var(--border)]">
-                      <div>
-                        {hasEnough && (
-                          <button type="button" onClick={() => handleRealize(goal, true)} className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5">
-                            <CheckCircle className="w-4 h-4" strokeWidth={2} /> Реалізувати
-                          </button>
-                        )}
-                      </div>
+                    <div className="relative z-[1] flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-[var(--border)]">
+                      {hasEnough && (
+                        <button type="button" onClick={() => handleRealize(goal, true)} className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5">
+                          <CheckCircle className="w-4 h-4" strokeWidth={2} /> Реалізувати
+                        </button>
+                      )}
                       {canEditDelete && (
                         <div className="flex gap-2 ml-auto">
-                          <button type="button" onClick={() => openEdit(goal)} className="rounded-lg p-2 md:px-3 md:py-2 text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1.5" title="Змінити">
-                            <Pencil className="w-4 h-4 md:w-3.5 md:h-3.5" strokeWidth={2} />
-                            <span className="hidden md:inline text-[13px] font-medium">Змінити</span>
+                          <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1.5" title={t("goals_edit")}>
+                            <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
+                            <span className="text-[13px] font-medium">{t("goals_edit")}</span>
                           </button>
-                          <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg p-2 md:px-3 md:py-2 text-[var(--accent-red)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1.5" title="Видалити">
-                            <Trash2 className="w-4 h-4 md:w-3.5 md:h-3.5" strokeWidth={2} />
-                            <span className="hidden md:inline text-[13px] font-medium">Видалити</span>
+                          <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-red)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1.5" title={t("goals_delete")}>
+                            <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
+                            <span className="text-[13px] font-medium">{t("goals_delete")}</span>
                           </button>
                         </div>
                       )}
@@ -203,18 +201,21 @@ export default function GoalsPage() {
                             <h3 className="font-medium text-[15px] truncate">{goal.title}</h3>
                             <p className="text-[12px] text-[var(--text-tertiary)]">{formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}</p>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)] mr-1">Реалізовано</span>
-                            <button type="button" onClick={() => handleRealize(goal, false)} className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition" title="Зняти">
-                              <XCircle className="w-4 h-4" strokeWidth={2} />
+                          <div className="relative z-[1] flex flex-wrap items-center justify-end gap-1 shrink-0">
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)]">Реалізовано</span>
+                            <button type="button" onClick={() => handleRealize(goal, false)} className="rounded-lg px-2 py-2 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1" title={t("goals_undo")}>
+                              <XCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
+                              <span className="text-[12px] font-medium sm:hidden">{t("goals_undo")}</span>
                             </button>
                             {canEditDelete && (
                               <>
-                                <button type="button" onClick={() => openEdit(goal)} className="rounded-lg p-2 text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition" title="Змінити">
-                                  <Pencil className="w-4 h-4" strokeWidth={2} />
+                                <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1" title={t("goals_edit")}>
+                                  <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
+                                  <span className="text-[12px] font-medium sm:hidden">{t("goals_edit")}</span>
                                 </button>
-                                <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg p-2 text-[var(--accent-red)] hover:bg-[var(--input-bg)] transition" title="Видалити">
-                                  <Trash2 className="w-4 h-4" strokeWidth={2} />
+                                <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-red)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1" title={t("goals_delete")}>
+                                  <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
+                                  <span className="text-[12px] font-medium sm:hidden">{t("goals_delete")}</span>
                                 </button>
                               </>
                             )}

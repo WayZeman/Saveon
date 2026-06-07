@@ -140,6 +140,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     goals_remainingToCollect: "Залишилось зібрати",
     goals_onBalance: "На балансі",
     goals_edit: "Змінити",
+    goals_delete: "Видалити",
     goals_realizedTitle: "Реалізовані",
     goals_undo: "Зняти",
 
