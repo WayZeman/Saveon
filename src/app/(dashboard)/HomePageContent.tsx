@@ -11,6 +11,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData } from "@/contexts/DataContext";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { NewsSection } from "@/components/NewsSection";
 
 async function realizeGoal(goalId: string): Promise<boolean> {
   const res = await fetch(`/api/goals/${goalId}`, {
@@ -318,6 +319,8 @@ export default function HomePageContent() {
           );
         })()}
       </section>
+
+      <NewsSection />
     </div>
   );
 }

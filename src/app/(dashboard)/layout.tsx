@@ -9,6 +9,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DataProvider, useData } from "@/contexts/DataContext";
 import SwipeNavigation from "@/components/SwipeNavigation";
 import { PartnerInviteModal } from "@/components/PartnerInviteModal";
+import { ReminderScheduler } from "@/components/ReminderScheduler";
+import { PushNotificationsSetup } from "@/components/PushNotificationsSetup";
 
 const navItems = [
   { href: "/dashboard", labelKey: "nav_home" as const, Icon: Home },
@@ -75,6 +77,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
             <SwipeNavigation>
               <IncomingPartnerInviteGate />
+              <PushNotificationsSetup />
+              <ReminderScheduler />
               <div className="relative z-10 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-5 md:pl-[max(1.75rem,env(safe-area-inset-left))] md:pr-[max(1.75rem,env(safe-area-inset-right))] md:py-7 lg:pl-[max(2.25rem,env(safe-area-inset-left))] lg:pr-[max(2.25rem,env(safe-area-inset-right))] lg:pt-8 lg:pb-7">
                 {children}
               </div>

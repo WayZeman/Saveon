@@ -7,6 +7,7 @@ import {
   CircleDollarSign, LifeBuoy, Heart, LogOut, ExternalLink, Check,
   Users, UserPlus, UserMinus,
 } from "lucide-react";
+import { NotificationsSettings } from "@/components/NotificationsSettings";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -245,6 +246,11 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      <NotificationsSettings
+        expanded={expandedSection === "notifications"}
+        onToggle={() => toggle("notifications")}
+      />
 
       {/* Support */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-5">
