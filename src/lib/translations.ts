@@ -101,9 +101,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_newsShowLess: "Згорнути",
 
     fearGreed_title: "Страх і жадібність",
-    fearGreed_hint: "Індекс настрою ринку: акції та криптовалюта",
-    fearGreed_stocks: "Акції",
-    fearGreed_crypto: "Крипто",
+    fearGreed_hint: "Індекс настрою крипторинку",
     fearGreed_fear: "Страх",
     fearGreed_greed: "Жадібність",
     fearGreed_neutral: "Нейтрально",
