@@ -229,14 +229,6 @@ export default function HomePageContent() {
                   </li>
                 );
               })}
-              <li className="flex items-center gap-3 text-[13px] pt-2 mt-1 border-t border-[var(--border)] font-semibold">
-                <span className="w-5 shrink-0" aria-hidden />
-                <span className="flex-1 text-[var(--text)]">{t("home_byCategoryTotal")}</span>
-                <span className={`shrink-0 ${(data.categoryBreakdownTotal ?? data.totalBalance) >= 0 ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
-                  {(data.categoryBreakdownTotal ?? data.totalBalance) >= 0 ? "" : "−"}
-                  {formatMoney(Math.abs(data.categoryBreakdownTotal ?? data.totalBalance))}
-                </span>
-              </li>
             </ul>
           </>
         ) : (
