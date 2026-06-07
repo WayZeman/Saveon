@@ -1,5 +1,22 @@
 import type { SessionUser } from "./auth";
 
+type CategoryAccess = {
+  userId: string | null;
+  createdBy: string | null;
+  isShared: boolean;
+};
+
+export function canUseCategory(session: SessionUser, category: CategoryAccess): boolean {
+  const partnerId = session.partnerId;
+  const isLegacyGlobal = category.isShared && category.userId === null && category.createdBy === null;
+  return (
+    category.userId === session.id ||
+    category.createdBy === session.id ||
+    (!!partnerId && category.isShared && category.createdBy === partnerId) ||
+    isLegacyGlobal
+  );
+}
+
 /** Категорії: власні, спільні з партнером, глобальні шаблони з сиду (createdBy=null). */
 export function categoriesVisibleWhere(session: SessionUser) {
   const partnerId = session.partnerId;

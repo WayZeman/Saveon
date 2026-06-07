@@ -38,6 +38,8 @@ export type DashboardData = {
   }>;
   monthlyData: { month: string; income: number; expense: number }[];
   pieData: { name: string; value: number; chartValue: number }[];
+  categoryBreakdown: { name: string; net: number }[];
+  categoryBreakdownTotal: number;
   comparison: {
     mySaved: number;
     partnerSaved: number;
@@ -54,8 +56,10 @@ export type Transaction = {
   amount: number;
   type: string;
   categoryId: string;
+  sourceCategoryId: string | null;
   createdAt: string;
   category: { id: string; name: string; isShared: boolean };
+  sourceCategory: { id: string; name: string; isShared: boolean } | null;
 };
 
 export type Category = {
@@ -170,10 +174,16 @@ const DEV_PREVIEW_STATE: DataState = {
       { month: "05", income: 24000, expense: 19600 },
     ],
     pieData: [
-      { name: "Готівка", value: 1870.54, chartValue: 69 },
-      { name: "Акції", value: 552.03, chartValue: 20 },
-      { name: "Крипта", value: 290.27, chartValue: 11 },
+      { name: "Готівка", value: 1870.54, chartValue: 1870.54 },
+      { name: "Акції", value: 552.03, chartValue: 552.03 },
+      { name: "Крипта", value: 290.27, chartValue: 290.27 },
     ],
+    categoryBreakdown: [
+      { name: "Готівка", net: 1870.54 },
+      { name: "Акції", net: 552.03 },
+      { name: "Крипта", net: 290.27 },
+    ],
+    categoryBreakdownTotal: 2712.84,
     comparison: {
       mySaved: 1870.54,
       partnerSaved: 842.3,
@@ -189,8 +199,10 @@ const DEV_PREVIEW_STATE: DataState = {
       amount: 1200,
       type: "income",
       categoryId: "cat-1",
+      sourceCategoryId: null,
       createdAt: new Date().toISOString(),
       category: { id: "cat-1", name: "Готівка", isShared: true },
+      sourceCategory: null,
     },
   ],
   categories: [

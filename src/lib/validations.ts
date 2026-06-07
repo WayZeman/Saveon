@@ -28,13 +28,24 @@ export const categorySchema = z.object({
   isShared: z.boolean().optional().default(false),
 });
 
-export const transactionSchema = z.object({
-  amount: z.number().positive(),
-  type: z.enum(["income", "expense"]),
-  categoryId: z.string().min(1),
-  goalId: z.string().optional(),
-  currency: z.enum(["UAH", "USD", "EUR"]).optional().default("UAH"),
-});
+export const transactionSchema = z
+  .object({
+    amount: z.number().positive(),
+    type: z.enum(["income", "expense"]),
+    categoryId: z.string().min(1),
+    sourceCategoryId: z.string().min(1).optional(),
+    goalId: z.string().optional(),
+    currency: z.enum(["UAH", "USD", "EUR"]).optional().default("UAH"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === "expense" && !data.sourceCategoryId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Для витрати вкажіть категорію, з якої знімаються кошти",
+        path: ["sourceCategoryId"],
+      });
+    }
+  });
 
 export const goalSchema = z.object({
   title: z.string().min(1).max(200),

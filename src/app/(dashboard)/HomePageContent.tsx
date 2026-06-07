@@ -181,46 +181,62 @@ export default function HomePageContent() {
           {t("home_byCategory")}
         </h2>
         <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_byCategoryHint")}</p>
-        {data.pieData.length > 0 ? (
+        {(data.categoryBreakdown?.length ?? data.pieData.length) > 0 ? (
           <>
-            <div className="h-56 md:h-64 categories-chart">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 12, right: 12, bottom: 12, left: 12 }}>
-                  <Pie
-                    data={data.pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={44}
-                    outerRadius={74}
-                    paddingAngle={2}
-                    minAngle={5}
-                    dataKey="chartValue"
-                    nameKey="name"
-                    stroke="var(--bg)"
-                    strokeWidth={1}
-                    labelLine={{ stroke: "var(--text-tertiary)", strokeWidth: 1 }}
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    isAnimationActive={false}
-                  >
-                    {data.pieData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px" }}
-                    formatter={(_chartValue: number, _name: string, item: { payload?: { value?: number; name?: string } }) => [formatMoney(item?.payload?.value ?? 0), item?.payload?.name ?? ""]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className="mt-5 space-y-2.5 border-t border-[var(--border)] pt-4">
-              {data.pieData.map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-[13px]">
-                  <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} aria-hidden />
-                  <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
-                  <span className="text-[var(--text-secondary)] shrink-0">{formatMoney(item.value)}</span>
-                </li>
-              ))}
+            {data.pieData.length > 0 && (
+              <div className="h-56 md:h-64 categories-chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart margin={{ top: 12, right: 12, bottom: 12, left: 12 }}>
+                    <Pie
+                      data={data.pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={44}
+                      outerRadius={74}
+                      paddingAngle={2}
+                      minAngle={5}
+                      dataKey="chartValue"
+                      nameKey="name"
+                      stroke="var(--bg)"
+                      strokeWidth={1}
+                      labelLine={{ stroke: "var(--text-tertiary)", strokeWidth: 1 }}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      isAnimationActive={false}
+                    >
+                      {data.pieData.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px" }}
+                      formatter={(_chartValue: number, _name: string, item: { payload?: { value?: number; name?: string } }) => [formatMoney(item?.payload?.value ?? 0), item?.payload?.name ?? ""]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            <ul className={`space-y-2.5 border-t border-[var(--border)] pt-4 ${data.pieData.length > 0 ? "mt-5" : ""}`}>
+              {(data.categoryBreakdown ?? data.pieData.map((p) => ({ name: p.name, net: p.value }))).map((item, i) => {
+                const colorIndex = data.pieData.findIndex((p) => p.name === item.name);
+                const color = colorIndex >= 0 ? COLORS[colorIndex % COLORS.length] : "var(--text-tertiary)";
+                return (
+                  <li key={`${item.name}-${i}`} className="flex items-center gap-3 text-[13px]">
+                    <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                    <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
+                    <span className={`shrink-0 font-medium ${item.net >= 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent-red)]"}`}>
+                      {item.net >= 0 ? "" : "−"}{formatMoney(Math.abs(item.net))}
+                    </span>
+                  </li>
+                );
+              })}
+              <li className="flex items-center gap-3 text-[13px] pt-2 mt-1 border-t border-[var(--border)] font-semibold">
+                <span className="w-5 shrink-0" aria-hidden />
+                <span className="flex-1 text-[var(--text)]">{t("home_byCategoryTotal")}</span>
+                <span className={`shrink-0 ${(data.categoryBreakdownTotal ?? data.totalBalance) >= 0 ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
+                  {(data.categoryBreakdownTotal ?? data.totalBalance) >= 0 ? "" : "−"}
+                  {formatMoney(Math.abs(data.categoryBreakdownTotal ?? data.totalBalance))}
+                </span>
+              </li>
             </ul>
           </>
         ) : (

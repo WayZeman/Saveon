@@ -13,7 +13,13 @@ export default function TransactionsPage() {
   const { transactions, categories, initialLoadDone, setTransactions, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
-  const [form, setForm] = useState({ amount: "", type: "income" as "income" | "expense", categoryId: "", currency: "UAH" as Currency });
+  const [form, setForm] = useState({
+    amount: "",
+    type: "income" as "income" | "expense",
+    categoryId: "",
+    sourceCategoryId: "",
+    currency: "UAH" as Currency,
+  });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
@@ -25,12 +31,19 @@ export default function TransactionsPage() {
     setError("");
     const amount = parseFloat(form.amount.replace(",", "."));
     if (!Number.isFinite(amount) || amount <= 0 || !form.categoryId) { setError(t("transactions_errorAmountCategory")); return; }
+    if (form.type === "expense" && !form.sourceCategoryId) { setError(t("transactions_errorSourceCategory")); return; }
     if (amount > MAX_AMOUNT) { setError(t("transactions_errorAmountTooBig")); return; }
     setSubmitting(true);
     try {
       const res = await fetch("/api/transactions", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, type: form.type, categoryId: form.categoryId, currency: form.currency }),
+        body: JSON.stringify({
+          amount,
+          type: form.type,
+          categoryId: form.categoryId,
+          ...(form.type === "expense" ? { sourceCategoryId: form.sourceCategoryId } : {}),
+          currency: form.currency,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("transactions_errorGeneric")); return; }
@@ -47,12 +60,18 @@ export default function TransactionsPage() {
     setError("");
     const amount = parseFloat(form.amount.replace(",", "."));
     if (!Number.isFinite(amount) || amount <= 0 || !form.categoryId) { setError(t("transactions_errorAmountCategory")); return; }
+    if (form.type === "expense" && !form.sourceCategoryId) { setError(t("transactions_errorSourceCategory")); return; }
     if (amount > MAX_AMOUNT) { setError(t("transactions_errorAmountTooBig")); return; }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/transactions/${editTx.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, type: form.type, categoryId: form.categoryId }),
+        body: JSON.stringify({
+          amount,
+          type: form.type,
+          categoryId: form.categoryId,
+          ...(form.type === "expense" ? { sourceCategoryId: form.sourceCategoryId } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("transactions_errorGeneric")); return; }
@@ -77,15 +96,21 @@ export default function TransactionsPage() {
 
   function openCreate() {
     setModal(true); setEditTx(null); setError("");
-    setForm({ amount: "", type: "income", categoryId: "", currency: "UAH" });
+    setForm({ amount: "", type: "income", categoryId: "", sourceCategoryId: "", currency: "UAH" });
   }
   function openEdit(t: Transaction) {
     setEditTx(t); setError("");
-    setForm({ amount: String(t.amount), type: t.type as "income" | "expense", categoryId: t.categoryId, currency: "UAH" });
+    setForm({
+      amount: String(t.amount),
+      type: t.type as "income" | "expense",
+      categoryId: t.categoryId,
+      sourceCategoryId: t.sourceCategoryId ?? "",
+      currency: "UAH",
+    });
   }
   function closeModal() {
     setModal(false); setEditTx(null); setError("");
-    setForm({ amount: "", type: "income", categoryId: "", currency: "UAH" });
+    setForm({ amount: "", type: "income", categoryId: "", sourceCategoryId: "", currency: "UAH" });
   }
 
   const currencyOptions: { value: Currency; labelKey: string }[] = [
@@ -125,7 +150,11 @@ export default function TransactionsPage() {
                   {tx.type === "income" ? <ArrowUpRight className="w-4 h-4" strokeWidth={2} /> : <ArrowDownLeft className="w-4 h-4" strokeWidth={2} />}
                 </span>
                 <div>
-                  <p className="text-[14px] font-medium truncate">{tx.category.name}</p>
+                  <p className="text-[14px] font-medium truncate">
+                    {tx.type === "expense" && tx.sourceCategory
+                      ? `${tx.category.name} · ${t("transactions_fromCategory", tx.sourceCategory.name)}`
+                      : tx.category.name}
+                  </p>
                   <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">
                     {new Date(tx.createdAt).toLocaleDateString("uk-UA")} · {tx.type === "income" ? t("transactions_income") : t("transactions_expense")}
                   </p>
@@ -159,16 +188,25 @@ export default function TransactionsPage() {
                 <SegmentedControl
                   options={[{ value: "income" as const, label: t("transactions_income") }, { value: "expense" as const, label: t("transactions_expense") }]}
                   value={form.type}
-                  onChange={(v) => setForm((f) => ({ ...f, type: v }))}
+                  onChange={(v) => setForm((f) => ({ ...f, type: v, sourceCategoryId: v === "income" ? "" : f.sourceCategoryId }))}
                 />
               </div>
               <div>
-                <FieldLabel>{t("transactions_category")}</FieldLabel>
+                <FieldLabel>{form.type === "expense" ? t("transactions_expenseCategory") : t("transactions_category")}</FieldLabel>
                 <select value={form.categoryId} onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))} required>
                   <option value="">{t("transactions_selectCategory")}</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}{c.isShared ? ` (${t("transactions_shared")})` : ""}</option>)}
                 </select>
               </div>
+              {form.type === "expense" && (
+                <div>
+                  <FieldLabel>{t("transactions_sourceCategory")}</FieldLabel>
+                  <select value={form.sourceCategoryId} onChange={(e) => setForm((f) => ({ ...f, sourceCategoryId: e.target.value }))} required>
+                    <option value="">{t("transactions_selectSourceCategory")}</option>
+                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}{c.isShared ? ` (${t("transactions_shared")})` : ""}</option>)}
+                  </select>
+                </div>
+              )}
               {!editTx && (
                 <div>
                   <FieldLabel>{t("transactions_currency")}</FieldLabel>

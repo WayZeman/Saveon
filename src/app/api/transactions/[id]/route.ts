@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { categoriesVisibleWhere } from "@/lib/data-scope";
+import { canUseCategory, categoriesVisibleWhere } from "@/lib/data-scope";
+import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 
 export async function PATCH(
@@ -18,7 +19,7 @@ export async function PATCH(
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { amount, type, categoryId } = parsed.data;
+    const { amount, type, categoryId, sourceCategoryId } = parsed.data;
     const existing = await prisma.transaction.findFirst({
       where: { id, userId: session.id },
     });
@@ -27,18 +28,22 @@ export async function PATCH(
       where: { id: categoryId, OR: categoriesVisibleWhere(session).OR },
     });
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
-    const partnerId = session.partnerId;
-    const isLegacyGlobal = category.isShared && category.userId === null && category.createdBy === null;
-    const canUse =
-      category.userId === session.id ||
-      category.createdBy === session.id ||
-      (!!partnerId && category.isShared && category.createdBy === partnerId) ||
-      isLegacyGlobal;
-    if (!canUse) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!canUseCategory(session, category)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    let resolvedSourceCategoryId: string | null = null;
+    if (type === "expense") {
+      const sourceCategory = await prisma.category.findFirst({
+        where: { id: sourceCategoryId!, OR: categoriesVisibleWhere(session).OR },
+      });
+      if (!sourceCategory) return NextResponse.json({ error: "Source category not found" }, { status: 404 });
+      if (!canUseCategory(session, sourceCategory)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      resolvedSourceCategoryId = sourceCategory.id;
+    }
+
     const transaction = await prisma.transaction.update({
       where: { id },
-      data: { amount, type, categoryId },
-      include: { category: { select: { id: true, name: true, isShared: true } } },
+      data: { amount, type, categoryId, sourceCategoryId: resolvedSourceCategoryId },
+      include: transactionInclude,
     });
     return NextResponse.json(transaction);
   } catch (e) {

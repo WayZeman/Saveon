@@ -262,13 +262,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 px-5 py-4">
+        <div className="flex items-center gap-3 px-5 py-4 min-h-[60px]">
           <span className="w-8 h-8 rounded-lg bg-[var(--accent-orange)]/14 border border-[var(--accent-orange)]/20 flex items-center justify-center shrink-0">
             <Activity className="w-4 h-4 text-[var(--accent-orange)]" strokeWidth={2} />
           </span>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-2">
             <p className="text-[14px] font-medium">{t("settings_showFearGreed")}</p>
-            <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_showFearGreedHint")}</p>
+            <p className="text-[12px] text-[var(--text-tertiary)] leading-snug">{t("settings_showFearGreedHint")}</p>
           </div>
           <AppleSwitch
             checked={showFearGreed}
@@ -279,13 +279,13 @@ export default function SettingsPage() {
 
         <div className="h-px bg-[var(--border)] mx-5" />
 
-        <div className="flex items-center gap-3 px-5 py-4">
+        <div className="flex items-center gap-3 px-5 py-4 min-h-[60px]">
           <span className="w-8 h-8 rounded-lg bg-[var(--accent-teal)]/14 border border-[var(--accent-teal)]/20 flex items-center justify-center shrink-0">
             <Newspaper className="w-4 h-4 text-[var(--accent-teal)]" strokeWidth={2} />
           </span>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-2">
             <p className="text-[14px] font-medium">{t("settings_showMarketNews")}</p>
-            <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_showMarketNewsHint")}</p>
+            <p className="text-[12px] text-[var(--text-tertiary)] leading-snug">{t("settings_showMarketNewsHint")}</p>
           </div>
           <AppleSwitch
             checked={showMarketNews}

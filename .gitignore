@@ -8,6 +8,7 @@ node_modules/
 out/
 build/
 dist/
+*.tsbuildinfo
 
 # Env: реальні ключі лише локально (.env.local) або в Vercel — не комітити
 .env*

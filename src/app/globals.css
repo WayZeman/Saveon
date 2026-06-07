@@ -479,6 +479,67 @@ input[type="submit"] {
   background: color-mix(in srgb, var(--accent-red) 12%, transparent);
 }
 
+.apple-switch-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.375rem;
+  margin: -0.375rem;
+}
+
+.apple-switch {
+  --switch-track-w: 3.25rem;
+  --switch-track-h: 2rem;
+  --switch-pad: 2px;
+  --switch-thumb: calc(var(--switch-track-h) - var(--switch-pad) * 2);
+  position: relative;
+  width: var(--switch-track-w);
+  height: var(--switch-track-h);
+  min-width: var(--switch-track-w) !important;
+  min-height: var(--switch-track-h) !important;
+  padding: 0 !important;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.apple-switch--on {
+  background-color: var(--accent-green);
+}
+
+.apple-switch--off {
+  background-color: var(--surface-tertiary);
+}
+
+.apple-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.apple-switch__thumb {
+  position: absolute;
+  top: var(--switch-pad);
+  left: var(--switch-pad);
+  width: var(--switch-thumb);
+  height: var(--switch-thumb);
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease;
+}
+
+.apple-switch--on .apple-switch__thumb {
+  transform: translateX(calc(var(--switch-track-w) - var(--switch-thumb) - var(--switch-pad) * 2));
+}
+
+.apple-switch--off .apple-switch__thumb {
+  transform: translateX(0);
+}
+
 /* ── Mobile viewport fix for keyboard ── */
 @media (max-width: 767px) {
   html {
@@ -500,8 +561,8 @@ input[type="submit"] {
     touch-action: auto;
     overscroll-behavior-y: auto;
   }
-  button,
-  [role="button"],
+  button:not(.apple-switch),
+  [role="button"]:not(.apple-switch),
   input[type="button"],
   input[type="submit"],
   .icon-btn {

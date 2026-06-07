@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
+import { goalsVisibleWhere } from "@/lib/data-scope";
 type Agg = { userId: string; income: number; expense: number };
 
 export async function GET(request: Request) {
@@ -28,7 +28,15 @@ export async function GET(request: Request) {
 
   const allTransactions = await prisma.transaction.findMany({
     where: { userId: { in: userIds } },
-    select: { userId: true, type: true, amount: true, categoryId: true },
+    select: {
+      userId: true,
+      type: true,
+      amount: true,
+      categoryId: true,
+      sourceCategoryId: true,
+      category: { select: { id: true, name: true } },
+      sourceCategory: { select: { id: true, name: true } },
+    },
   });
   const monthTransactions = await prisma.transaction.findMany({
     where: { userId: { in: userIds }, createdAt: { gte: start, lte: end } },
@@ -47,20 +55,20 @@ export async function GET(request: Request) {
     }
   }
 
-  const categories = await prisma.category.findMany({
-    where: categoriesVisibleWhere(session),
-    select: { id: true, name: true },
-  });
-  const categoryIds = new Set(categories.map((c) => c.id));
-  // Розподіл по категоріях за весь час (нетто: дохід - витрата),
-  // щоб сума категорій збігалась із загальним балансом.
+  // Нетто по категоріях-джерелах: дохід зараховується в categoryId, витрата знімається з sourceCategoryId.
   const categoryTotals: Record<string, { name: string; net: number }> = {};
   for (const t of allTransactions) {
-    if (!categoryIds.has(t.categoryId)) continue;
-    const cat = categories.find((x) => x.id === t.categoryId);
-    if (!cat) continue;
-    if (!categoryTotals[cat.id]) categoryTotals[cat.id] = { name: cat.name, net: 0 };
-    categoryTotals[cat.id].net += t.type === "income" ? t.amount : -t.amount;
+    if (t.type === "income") {
+      const catId = t.category?.id ?? t.categoryId;
+      const catName = t.category?.name ?? "Інше";
+      if (!categoryTotals[catId]) categoryTotals[catId] = { name: catName, net: 0 };
+      categoryTotals[catId].net += t.amount;
+    } else {
+      const catId = t.sourceCategory?.id ?? t.sourceCategoryId ?? t.categoryId;
+      const catName = t.sourceCategory?.name ?? t.category?.name ?? "Інше";
+      if (!categoryTotals[catId]) categoryTotals[catId] = { name: catName, net: 0 };
+      categoryTotals[catId].net -= t.amount;
+    }
   }
 
   const myBalance = (byUser[session.id]?.income ?? 0) - (byUser[session.id]?.expense ?? 0);
@@ -94,8 +102,13 @@ export async function GET(request: Request) {
   const goals = goalsMapped.filter((g) => !g.realizedAt);
 
   const monthlyData = await getMonthlyData(session.id, partnerId);
-  // Лише категорії з позитивним нетто (вкладення), без витратних категорій на кшталт «Відпустка».
-  const pieData = Object.values(categoryTotals)
+  const categoryBreakdown = Object.values(categoryTotals)
+    .filter((v) => Math.abs(v.net) >= 0.005)
+    .sort((a, b) => b.net - a.net)
+    .map((v) => ({ name: v.name, net: Math.round(v.net * 100) / 100 }));
+  const categoryBreakdownTotal = Math.round(categoryBreakdown.reduce((s, c) => s + c.net, 0) * 100) / 100;
+  // Діаграма — лише позитивні вкладення; повний список і «Разом» збігаються з балансом.
+  const pieData = categoryBreakdown
     .filter((v) => v.net > 0)
     .map((v) => ({ name: v.name, value: v.net, chartValue: v.net }));
 
@@ -116,6 +129,8 @@ export async function GET(request: Request) {
     goals,
     monthlyData,
     pieData,
+    categoryBreakdown,
+    categoryBreakdownTotal,
     comparison,
     period: { start, end },
   });

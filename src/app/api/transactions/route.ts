@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { categoriesVisibleWhere } from "@/lib/data-scope";
+import { canUseCategory, categoriesVisibleWhere } from "@/lib/data-scope";
+import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 
 async function getRates(): Promise<{ usd: number; eur: number }> {
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
   const transactions = await prisma.transaction.findMany({
     where,
     orderBy: { createdAt: "desc" },
-    include: { category: { select: { id: true, name: true, isShared: true } } },
+    include: transactionInclude,
   });
   return NextResponse.json(transactions);
 }
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { amount, type, categoryId, goalId, currency } = parsed.data;
+    const { amount, type, categoryId, sourceCategoryId, goalId, currency } = parsed.data;
     let amountUah = amount;
     if (currency && currency !== "UAH") {
       const rates = await getRates();
@@ -65,24 +66,28 @@ export async function POST(request: Request) {
       where: { id: categoryId, OR: categoriesVisibleWhere(session).OR },
     });
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
-    const partnerId = session.partnerId;
-    const isLegacyGlobal = category.isShared && category.userId === null && category.createdBy === null;
-    const canUse =
-      category.userId === session.id ||
-      category.createdBy === session.id ||
-      (!!partnerId && category.isShared && category.createdBy === partnerId) ||
-      isLegacyGlobal;
-    if (!canUse) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!canUseCategory(session, category)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    let resolvedSourceCategoryId: string | null = null;
+    if (type === "expense") {
+      const sourceCategory = await prisma.category.findFirst({
+        where: { id: sourceCategoryId!, OR: categoriesVisibleWhere(session).OR },
+      });
+      if (!sourceCategory) return NextResponse.json({ error: "Source category not found" }, { status: 404 });
+      if (!canUseCategory(session, sourceCategory)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      resolvedSourceCategoryId = sourceCategory.id;
+    }
 
     const transaction = await prisma.transaction.create({
       data: {
         amount: amountUah,
         type,
         categoryId,
+        sourceCategoryId: resolvedSourceCategoryId,
         userId: session.id,
         goalId: goalId ?? null,
       },
-      include: { category: { select: { id: true, name: true, isShared: true } } },
+      include: transactionInclude,
     });
     return NextResponse.json(transaction);
   } catch (e) {
