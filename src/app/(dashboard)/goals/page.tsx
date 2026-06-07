@@ -6,7 +6,6 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Goal } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
-import { AppLoader } from "@/components/AppLoader";
 
 export default function GoalsPage() {
   const { formatMoney } = useCurrency();
@@ -109,7 +108,7 @@ export default function GoalsPage() {
     setForm({ title: "", targetAmount: "", isShared: hasPartner });
   }
 
-  if (!initialLoadDone) return <AppLoader />;
+  if (!initialLoadDone) return <Loader />;
 
   const showModal = modal || !!editGoal;
 
@@ -118,7 +117,7 @@ export default function GoalsPage() {
       <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
         <div>
           <h1 className="page-title flex items-center gap-2">
-            <Target className="w-7 h-7 text-[var(--accent-primary)]" strokeWidth={1.5} />
+            <Target className="w-7 h-7 text-[var(--accent-purple)]" strokeWidth={1.5} />
             {t("goals_title")}
           </h1>
           <div className="text-[14px] text-[var(--text-secondary)] mt-1">
@@ -149,18 +148,18 @@ export default function GoalsPage() {
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="font-semibold text-[17px]">{goal.title}</h2>
-                          {hasEnough && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-primary)]/12 text-[var(--accent-primary)]">Достатньо</span>}
+                          {hasEnough && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">Достатньо</span>}
                         </div>
                         <p className="text-[13px] text-[var(--text-secondary)] mt-1">{formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}</p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-[12px] text-[var(--text-tertiary)]">Залишилось зібрати</p>
-                        <p className="text-[18px] font-semibold text-[var(--accent-primary)]">{formatMoney(remainingNeeded)}</p>
+                        <p className="text-[18px] font-semibold text-[var(--accent-blue)]">{formatMoney(remainingNeeded)}</p>
                       </div>
                     </div>
                     <div className="mt-4 flex items-center gap-3">
                       <div className="flex-1 h-2 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
-                        <div className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
+                        <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-green)] rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
                       </div>
                       <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium">{progressPercent.toFixed(0)}%</span>
                     </div>
@@ -258,6 +257,14 @@ export default function GoalsPage() {
           </ModalPanel>
         </ModalOverlay>
       )}
+    </div>
+  );
+}
+
+function Loader() {
+  return (
+    <div className="flex items-center justify-center min-h-[40vh]">
+      <div className="w-6 h-6 border-2 border-[var(--text-tertiary)] border-t-[var(--text-secondary)] rounded-full animate-spin" />
     </div>
   );
 }

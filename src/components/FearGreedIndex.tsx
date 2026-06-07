@@ -29,7 +29,7 @@ function getTone(value: number): { color: string; bg: string } {
   if (value <= 45) return { color: "var(--accent-orange)", bg: "var(--accent-orange)" };
   if (value <= 55) return { color: "var(--text-secondary)", bg: "var(--text-tertiary)" };
   if (value <= 75) return { color: "var(--accent-green)", bg: "var(--accent-green)" };
-  return { color: "var(--accent-green)", bg: "var(--accent-green)" };
+  return { color: "#22c55e", bg: "var(--accent-green)" };
 }
 
 function FearGreedGauge({
@@ -157,7 +157,7 @@ export function FearGreedIndex() {
       <div className="flex items-start justify-between gap-3 mb-4 sm:mb-5">
         <div className="min-w-0">
           <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-            <Activity className="w-[18px] h-[18px] text-[var(--accent-primary)] shrink-0" strokeWidth={2} />
+            <Activity className="w-[18px] h-[18px] text-[var(--accent-orange)] shrink-0" strokeWidth={2} />
             <span className="truncate">{t("fearGreed_title")}</span>
           </h2>
           <p className="text-[13px] text-[var(--text-secondary)] mt-1 leading-relaxed pr-1">
@@ -168,7 +168,7 @@ export function FearGreedIndex() {
           type="button"
           onClick={() => load(true)}
           disabled={loading || refreshing}
-          className="shrink-0 rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] hover:bg-[var(--input-bg)] active:scale-95 transition disabled:opacity-40 touch-manipulation"
+          className="shrink-0 rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--accent-blue)] hover:bg-[var(--input-bg)] active:scale-95 transition disabled:opacity-40 touch-manipulation"
           title={t("fearGreed_refresh")}
           aria-label={t("fearGreed_refresh")}
         >
@@ -189,7 +189,7 @@ export function FearGreedIndex() {
           <button
             type="button"
             onClick={() => load(true)}
-            className="mt-3 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/15 active:scale-[0.98] transition touch-manipulation"
+            className="mt-3 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-[var(--accent-blue)] bg-[var(--accent-blue)]/10 hover:bg-[var(--accent-blue)]/15 active:scale-[0.98] transition touch-manipulation"
           >
             {t("fearGreed_refresh")}
           </button>
@@ -202,7 +202,7 @@ export function FearGreedIndex() {
             <FearGreedGauge
               item={data.stocks}
               title={t("fearGreed_stocks")}
-              accent="var(--accent-primary)"
+              accent="var(--accent-green)"
               icon={<TrendingUp className="w-4 h-4" strokeWidth={2} />}
             />
           )}
@@ -210,7 +210,7 @@ export function FearGreedIndex() {
             <FearGreedGauge
               item={data.crypto}
               title={t("fearGreed_crypto")}
-              accent="var(--accent-teal)"
+              accent="var(--accent-purple)"
               icon={<Bitcoin className="w-4 h-4" strokeWidth={2} />}
             />
           )}

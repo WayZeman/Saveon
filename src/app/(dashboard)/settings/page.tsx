@@ -108,7 +108,7 @@ export default function SettingsPage() {
     <div className="section-spacing max-w-2xl mx-auto">
       <div className="opacity-0 animate-slide-up">
         <h1 className="page-title flex items-center gap-2">
-          <Settings className="w-7 h-7 text-[var(--accent-primary)]" strokeWidth={1.5} />
+          <Settings className="w-7 h-7 text-[var(--text-secondary)]" strokeWidth={1.5} />
           {t("settings_title")}
         </h1>
         <p className="text-[14px] text-[var(--text-secondary)] mt-1">{t("settings_subtitle")}</p>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
       {user && (
         <div className="card opacity-0 animate-slide-up animate-stagger-1">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[var(--accent-primary)] flex items-center justify-center text-[18px] font-bold text-[var(--accent-primary-text)]">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] flex items-center justify-center text-[18px] font-bold text-white">
               {user.name ? user.name[0].toUpperCase() : roleInitial(user.role)}
             </div>
             <div className="flex-1 min-w-0">
@@ -134,8 +134,8 @@ export default function SettingsPage() {
         {!partner && outgoingPartnerInvite ? (
           <div className="px-5 py-4 border-b border-[var(--border)]">
             <div className="flex items-start gap-3">
-              <span className="icon-badge shrink-0">
-                <UserPlus className="w-4 h-4" strokeWidth={2} />
+              <span className="w-8 h-8 rounded-lg bg-[var(--accent-blue)]/15 flex items-center justify-center shrink-0">
+                <UserPlus className="w-4 h-4 text-[var(--accent-blue)]" strokeWidth={2} />
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-medium">{t("settings_partnerInviteSent")}</p>
@@ -163,8 +163,8 @@ export default function SettingsPage() {
         {partner ? (
           <div className="px-5 py-4">
             <div className="flex items-center gap-3">
-              <span className="icon-badge">
-                <Users className="w-4 h-4" strokeWidth={2} />
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-blue)] flex items-center justify-center">
+                <Users className="w-4 h-4 text-white" strokeWidth={2} />
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-medium">{t("settings_partner")}</p>
@@ -181,8 +181,8 @@ export default function SettingsPage() {
             onClick={() => { setAddPartnerModal(true); setPartnerError(""); setPartnerEmail(""); }}
             className="w-full flex items-center gap-3 px-5 py-4 transition-colors"
           >
-            <span className="icon-badge">
-              <UserPlus className="w-4 h-4" strokeWidth={2} />
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-blue)] flex items-center justify-center">
+              <UserPlus className="w-4 h-4 text-white" strokeWidth={2} />
             </span>
             <div className="flex-1 text-left">
               <p className="text-[14px] font-medium">{t("settings_addPartner")}</p>
@@ -196,8 +196,8 @@ export default function SettingsPage() {
       {/* Appearance */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-3">
         <button type="button" onClick={() => toggle("theme")} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
-          <span className="icon-badge">
-            <Palette className="w-4 h-4" strokeWidth={2} />
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-blue)] flex items-center justify-center">
+            <Palette className="w-4 h-4 text-white" strokeWidth={2} />
           </span>
           <div className="flex-1 text-left">
             <p className="text-[14px] font-medium">{t("settings_theme")}</p>
@@ -210,7 +210,7 @@ export default function SettingsPage() {
             <div className="grid grid-cols-3 gap-2">
               {themes.map(({ value, labelKey, Icon }) => (
                 <button key={value} type="button" onClick={() => setTheme(value)}
-                  className={`flex flex-col items-center gap-2 py-3.5 px-2 rounded-xl text-[13px] font-medium transition-all duration-200 border ${theme === value ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]" : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"}`}
+                  className={`flex flex-col items-center gap-2 py-3.5 px-2 rounded-xl text-[13px] font-medium transition-all duration-200 border ${theme === value ? "border-[var(--accent-blue)] bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]" : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"}`}
                 >
                   <Icon className="w-5 h-5" strokeWidth={1.5} />
                   {t(labelKey)}
@@ -223,8 +223,8 @@ export default function SettingsPage() {
         <div className="h-px bg-[var(--border)] mx-5" />
 
         <button type="button" onClick={() => toggle("currency")} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
-          <span className="icon-badge">
-            <CircleDollarSign className="w-4 h-4" strokeWidth={2} />
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-green)] to-[var(--accent-teal)] flex items-center justify-center">
+            <CircleDollarSign className="w-4 h-4 text-white" strokeWidth={2} />
           </span>
           <div className="flex-1 text-left">
             <p className="text-[14px] font-medium">{t("settings_currency")}</p>
@@ -237,7 +237,7 @@ export default function SettingsPage() {
             <div className="space-y-1">
               {currencies.map(({ value, labelKey, symbol }) => (
                 <button key={value} type="button" onClick={() => setCurrency(value)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${currency === value ? "bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${currency === value ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]" : "text-[var(--text-secondary)]"}`}
                 >
                   <span className="w-8 h-8 rounded-full bg-[var(--input-bg)] flex items-center justify-center text-[15px] font-semibold">{symbol}</span>
                   <span className="flex-1 text-left text-[14px] font-medium">{t(labelKey)}</span>
@@ -252,8 +252,8 @@ export default function SettingsPage() {
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-4">
         <div className="px-5 py-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-3">
-            <span className="icon-badge">
-              <LayoutGrid className="w-4 h-4" strokeWidth={2} />
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-orange)] to-[var(--accent-blue)] flex items-center justify-center">
+              <LayoutGrid className="w-4 h-4 text-white" strokeWidth={2} />
             </span>
             <div>
               <p className="text-[14px] font-medium">{t("settings_homeSections")}</p>
@@ -298,13 +298,13 @@ export default function SettingsPage() {
       {/* Support */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-5">
         <a href="https://t.me/familefinance" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
-          <span className="icon-badge"><LifeBuoy className="w-4 h-4" strokeWidth={2} /></span>
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-teal)] flex items-center justify-center"><LifeBuoy className="w-4 h-4 text-white" strokeWidth={2} /></span>
           <div className="flex-1 text-left"><p className="text-[14px] font-medium">{t("settings_support")}</p><p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_supportTelegram")}</p></div>
           <ExternalLink className="w-4 h-4 text-[var(--text-tertiary)]" />
         </a>
         <div className="h-px bg-[var(--border)] mx-5" />
         <a href="https://send.monobank.ua/jar/4znkD4kdM5" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
-          <span className="icon-badge icon-badge--danger"><Heart className="w-4 h-4" strokeWidth={2} /></span>
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-red)] to-[var(--accent-orange)] flex items-center justify-center"><Heart className="w-4 h-4 text-white" strokeWidth={2} /></span>
           <div className="flex-1 text-left"><p className="text-[14px] font-medium">{t("settings_supportProject")}</p><p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_supportJar")}</p></div>
           <ExternalLink className="w-4 h-4 text-[var(--text-tertiary)]" />
         </a>
@@ -335,8 +335,8 @@ export default function SettingsPage() {
                 <FieldLabel>{t("settings_partnerRole")}</FieldLabel>
                 <div className="grid grid-cols-3 gap-2">
                   {([
-                    { value: "husband" as const, labelKey: "settings_roleHusband" as const, color: "var(--accent-primary)" },
-                    { value: "wife" as const, labelKey: "settings_roleWife" as const, color: "var(--accent-teal)" },
+                    { value: "husband" as const, labelKey: "settings_roleHusband" as const, color: "var(--accent-blue)" },
+                    { value: "wife" as const, labelKey: "settings_roleWife" as const, color: "var(--accent-purple)" },
                     { value: "friend" as const, labelKey: "settings_roleFriend" as const, color: "var(--accent-green)" },
                   ]).map((opt) => (
                     <button key={opt.value} type="button" onClick={() => setPartnerRole(opt.value)}

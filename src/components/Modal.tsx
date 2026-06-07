@@ -107,14 +107,14 @@ export function ModalActions({
         type="button"
         onClick={onCancel}
         disabled={submitDisabled}
-        className="flex-1 btn-secondary justify-center py-3 text-[14px] disabled:opacity-50"
+        className="flex-1 rounded-[0.85rem] border border-[var(--border)] py-3 text-[14px] font-medium text-[var(--text-secondary)] hover:bg-[var(--input-bg)] active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {t("modal_cancel")}
       </button>
       <button
         type="submit"
         disabled={submitDisabled}
-        className="flex-1 btn-primary justify-center py-3 text-[14px] disabled:opacity-50"
+        className="flex-1 rounded-[0.85rem] bg-[var(--accent-blue)] text-white py-3 text-[14px] font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {submitLabel}
       </button>
@@ -132,16 +132,16 @@ export function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="segmented-control">
+    <div className="flex rounded-[0.9rem] bg-[var(--input-bg)] p-1 gap-1">
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`segmented-control__btn ${
+          className={`flex-1 py-2.5 rounded-[0.72rem] text-[14px] font-medium transition-all duration-200 ${
             value === opt.value
-              ? "segmented-control__btn--active"
-              : "segmented-control__btn--inactive"
+              ? "bg-[var(--surface-secondary)] text-[var(--text)] shadow-sm"
+              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
           }`}
         >
           {opt.label}
@@ -210,7 +210,7 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-3.5 text-[14px] font-semibold text-[var(--accent-primary)] hover:bg-[var(--input-bg)] transition-colors rounded-bl-2xl"
+            className="flex-1 py-3.5 text-[14px] font-medium text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition-colors rounded-bl-2xl"
           >
             {cancelText}
           </button>

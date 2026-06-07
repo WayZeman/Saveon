@@ -6,7 +6,6 @@ import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Transaction, type Category } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, SegmentedControl, useConfirm } from "@/components/Modal";
-import { AppLoader } from "@/components/AppLoader";
 
 export default function TransactionsPage() {
   const { formatMoney } = useCurrency();
@@ -120,7 +119,7 @@ export default function TransactionsPage() {
     { value: "EUR", labelKey: "transactions_currencyEur" },
   ];
 
-  if (!initialLoadDone) return <AppLoader />;
+  if (!initialLoadDone) return <Loader />;
 
   const showModal = modal || !!editTx;
 
@@ -129,7 +128,7 @@ export default function TransactionsPage() {
       <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
         <div>
           <h1 className="page-title flex items-center gap-2">
-            <Wallet className="w-7 h-7 text-[var(--accent-primary)]" strokeWidth={1.5} />
+            <Wallet className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
             {t("transactions_title")}
           </h1>
           <p className="text-[14px] text-[var(--text-secondary)] mt-1">{t("transactions_subtitle")}</p>
@@ -228,6 +227,14 @@ export default function TransactionsPage() {
           </ModalPanel>
         </ModalOverlay>
       )}
+    </div>
+  );
+}
+
+function Loader() {
+  return (
+    <div className="flex items-center justify-center min-h-[40vh]">
+      <div className="w-6 h-6 border-2 border-[var(--text-tertiary)] border-t-[var(--text-secondary)] rounded-full animate-spin" />
     </div>
   );
 }

@@ -139,7 +139,7 @@ export default function AuthPage() {
         </div>
 
         {/* Form card */}
-        <div className="card rounded-[1.4rem] p-6 sm:p-7 shadow-modal">
+        <div className="rounded-[1.4rem] bg-[var(--bg-elevated)]/86 backdrop-blur-xl border border-[var(--border)] p-6 sm:p-7 shadow-modal">
           <form onSubmit={handleSubmit} className="space-y-4">
 
             {/* Name (register only) */}
@@ -360,7 +360,7 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setMode("recovery")}
-                  className="text-[13px] font-semibold link-accent hover:underline"
+                  className="text-[13px] font-medium text-[var(--accent-blue)] hover:underline"
                 >
                   Забули пароль?
                 </button>
@@ -378,10 +378,10 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading || (isRegister && (!agreed || !recoveryCodeValid || recoveryCode !== confirmRecoveryCode))}
-              className="btn-primary w-full justify-center text-[15px] py-3.5 disabled:opacity-40 !mt-6"
+              className="w-full rounded-xl bg-[var(--accent-blue)] text-white font-semibold text-[15px] py-3.5 hover:brightness-110 disabled:opacity-40 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 shadow-glow !mt-6"
             >
               {loading ? (
-                <div className="loader-spinner w-5 h-5 border-[var(--accent-primary-text)]/20 border-t-[var(--accent-primary-text)]" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   {isRegister ? t("auth_register") : isRecovery ? "Скинути пароль" : t("auth_login")}
@@ -402,7 +402,7 @@ export default function AuthPage() {
           <button
             type="button"
             onClick={switchMode}
-            className="btn-secondary w-full py-3 text-[14px]"
+            className="w-full rounded-xl border border-[var(--border)] py-3 text-[14px] font-medium text-[var(--text-secondary)] hover:bg-[var(--input-bg)] hover:text-[var(--text)] active:scale-[0.98] transition-all"
           >
             {isRegister || isRecovery ? t("auth_switchToLogin") : t("auth_switchToRegister")}
           </button>

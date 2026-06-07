@@ -61,8 +61,8 @@ export function PartnerInviteModal({
         </div>
         <div className="px-5 pt-5 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-7 sm:pb-7 overflow-y-auto flex-1 min-h-0 space-y-5">
           <div className="flex items-start gap-3">
-            <span className="icon-badge w-10 h-10 rounded-xl shrink-0">
-              <Users className="w-5 h-5" strokeWidth={2} />
+            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-blue)] flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 text-white" strokeWidth={2} />
             </span>
             <div className="min-w-0">
               <p className="text-[14px] text-[var(--text-secondary)] leading-relaxed">
@@ -80,7 +80,7 @@ export function PartnerInviteModal({
               type="button"
               disabled={loading !== null}
               onClick={() => respond("reject")}
-              className="btn-secondary px-4 py-2.5 text-[14px] disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl text-[14px] font-medium border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition-colors disabled:opacity-50"
             >
               {loading === "reject" ? "…" : t("partnerInvite_reject")}
             </button>
@@ -88,7 +88,7 @@ export function PartnerInviteModal({
               type="button"
               disabled={loading !== null}
               onClick={() => respond("accept")}
-              className="btn-primary px-4 py-2.5 text-[14px] disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl text-[14px] font-medium bg-[var(--accent-blue)] text-white hover:opacity-95 transition-opacity disabled:opacity-50"
             >
               {loading === "accept" ? "…" : t("partnerInvite_accept")}
             </button>

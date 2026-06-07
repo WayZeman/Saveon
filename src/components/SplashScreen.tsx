@@ -47,7 +47,7 @@ export default function SplashScreen() {
         </h1>
         <div className="mt-8 w-32 h-0.5 rounded-full bg-[var(--text-tertiary)]/20 overflow-hidden">
           <div
-            className="h-full rounded-full bg-[var(--accent-primary)] origin-left opacity-0"
+            className="h-full rounded-full bg-[var(--accent-blue)] origin-left opacity-0"
             style={{
               animation: "splashProgress 1s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards",
             }}

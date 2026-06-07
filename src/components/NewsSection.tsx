@@ -43,7 +43,7 @@ function CategoryBadge({
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
         isCrypto
-          ? "bg-[var(--accent-teal)]/14 text-[var(--accent-teal)]"
+          ? "bg-[var(--accent-purple)]/14 text-[var(--accent-purple)]"
           : "bg-[var(--accent-green)]/14 text-[var(--accent-green)]"
       }`}
     >
@@ -112,7 +112,7 @@ export function NewsSection() {
       <div className="flex items-start justify-between gap-3 mb-3 sm:mb-4">
         <div className="min-w-0 flex-1">
           <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-            <Newspaper className="w-[18px] h-[18px] text-[var(--accent-primary)] shrink-0" strokeWidth={2} />
+            <Newspaper className="w-[18px] h-[18px] text-[var(--accent-teal)] shrink-0" strokeWidth={2} />
             <span className="truncate">{t("home_news")}</span>
           </h2>
           <p className="text-[12px] sm:text-[13px] text-[var(--text-secondary)] mt-1 leading-snug">
@@ -128,7 +128,7 @@ export function NewsSection() {
           type="button"
           onClick={() => loadNews(true)}
           disabled={loading || refreshing}
-          className="shrink-0 rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] hover:bg-[var(--input-bg)] active:scale-95 transition disabled:opacity-40 touch-manipulation"
+          className="shrink-0 rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--accent-blue)] hover:bg-[var(--input-bg)] active:scale-95 transition disabled:opacity-40 touch-manipulation"
           title={t("home_newsRefresh")}
           aria-label={t("home_newsRefresh")}
         >
@@ -150,7 +150,7 @@ export function NewsSection() {
                 }}
                 className={`shrink-0 rounded-full px-3 py-2 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-[12px] font-semibold transition touch-manipulation active:scale-[0.97] min-h-[36px] ${
                   active
-                    ? "bg-[var(--accent-primary)] text-[var(--accent-primary-text)] shadow-glow"
+                    ? "bg-[var(--accent-blue)] text-white shadow-glow"
                     : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--border-strong)] hover:text-[var(--text)]"
                 }`}
               >
@@ -186,7 +186,7 @@ export function NewsSection() {
           <button
             type="button"
             onClick={() => loadNews(true)}
-            className="mt-3 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/15 active:scale-[0.98] transition touch-manipulation"
+            className="mt-3 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-[var(--accent-blue)] bg-[var(--accent-blue)]/10 hover:bg-[var(--accent-blue)]/15 active:scale-[0.98] transition touch-manipulation"
           >
             {t("home_newsRefresh")}
           </button>
@@ -219,7 +219,7 @@ export function NewsSection() {
                       </span>
                     </div>
                     <h3
-                      className={`font-semibold leading-snug text-[var(--text)] group-hover:text-[var(--accent-primary)] transition line-clamp-2 ${
+                      className={`font-semibold leading-snug text-[var(--text)] group-hover:text-[var(--accent-blue)] transition line-clamp-2 ${
                         index === 0 ? "text-[15px] sm:text-[16px] md:text-[17px]" : "text-[13px] sm:text-[14px]"
                       }`}
                     >
@@ -242,7 +242,7 @@ export function NewsSection() {
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="w-full rounded-xl border border-[var(--border)] py-3 sm:py-2.5 text-[12px] sm:text-[13px] font-semibold text-[var(--accent-primary)] bg-[var(--accent-primary)]/8 hover:bg-[var(--accent-primary)]/12 active:scale-[0.99] transition touch-manipulation min-h-[44px]"
+              className="w-full rounded-xl border border-[var(--border)] py-3 sm:py-2.5 text-[12px] sm:text-[13px] font-semibold text-[var(--accent-blue)] bg-[var(--accent-blue)]/8 hover:bg-[var(--accent-blue)]/12 active:scale-[0.99] transition touch-manipulation min-h-[44px]"
             >
               {expanded ? t("home_newsShowLess") : t("home_newsShowMore", String(filtered.length - VISIBLE_COUNT))}
             </button>
