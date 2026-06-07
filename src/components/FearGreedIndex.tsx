@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, RefreshCw } from "lucide-react";
+import { Activity, RefreshCw, TrendingUp, Bitcoin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type FearGreedData = {
+type FearGreedItem = {
+  market: "stocks" | "crypto";
   value: number;
   classification: string;
   updatedAt: string;
+};
+
+type FearGreedData = {
+  stocks: FearGreedItem;
+  crypto: FearGreedItem;
 };
 
 const CLASSIFICATION_KEYS: Record<string, string> = {
@@ -24,6 +30,70 @@ function getTone(value: number): { color: string; bg: string } {
   if (value <= 55) return { color: "var(--text-secondary)", bg: "var(--text-tertiary)" };
   if (value <= 75) return { color: "var(--accent-green)", bg: "var(--accent-green)" };
   return { color: "#22c55e", bg: "var(--accent-green)" };
+}
+
+function FearGreedGauge({
+  item,
+  title,
+  icon,
+}: {
+  item: FearGreedItem;
+  title: string;
+  icon: React.ReactNode;
+}) {
+  const { t } = useLanguage();
+  const tone = getTone(item.value);
+  const labelKey = CLASSIFICATION_KEYS[item.classification];
+  const label = labelKey ? t(labelKey) : item.classification;
+
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--input-bg)]/70 p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--input-bg)] border border-[var(--border)]">
+          {icon}
+        </span>
+        <span className="text-[14px] font-semibold text-[var(--text)]">{title}</span>
+      </div>
+
+      <div className="flex items-end justify-between gap-3 mb-4">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: tone.color }}>
+            {item.value}
+          </span>
+          <span className="text-[12px] text-[var(--text-tertiary)] pb-0.5">/ 100</span>
+        </div>
+        <span
+          className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+          style={{ color: tone.color, backgroundColor: `color-mix(in srgb, ${tone.bg} 14%, transparent)` }}
+        >
+          {label}
+        </span>
+      </div>
+
+      <div className="relative h-2.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--input-bg)]">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{
+            width: `${item.value}%`,
+            background: `linear-gradient(90deg, var(--accent-red) 0%, var(--accent-orange) 35%, var(--accent-green) 100%)`,
+            opacity: 0.85,
+          }}
+        />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-md"
+          style={{
+            left: `calc(${item.value}% - 7px)`,
+            backgroundColor: tone.bg,
+          }}
+        />
+      </div>
+
+      <div className="flex justify-between mt-2 text-[10px] font-medium text-[var(--text-tertiary)]">
+        <span>{t("fearGreed_fear")}</span>
+        <span>{t("fearGreed_greed")}</span>
+      </div>
+    </div>
+  );
 }
 
 export function FearGreedIndex() {
@@ -54,10 +124,6 @@ export function FearGreedIndex() {
     load();
   }, []);
 
-  const tone = data ? getTone(data.value) : null;
-  const labelKey = data ? CLASSIFICATION_KEYS[data.classification] : null;
-  const label = labelKey ? t(labelKey) : data?.classification ?? "";
-
   return (
     <section className="card opacity-0 animate-slide-up animate-stagger-6 overflow-hidden scroll-mt-4 !p-0">
       <div className="relative px-5 pt-5 pb-4 md:px-6 md:pt-6 border-b border-[var(--border)]">
@@ -87,16 +153,14 @@ export function FearGreedIndex() {
 
       <div className="px-5 py-5 md:px-6 md:py-6">
         {loading && (
-          <div className="animate-pulse space-y-4">
-            <div className="flex items-end justify-between">
-              <div className="h-10 w-16 rounded-lg bg-[var(--surface-secondary)]" />
-              <div className="h-5 w-28 rounded bg-[var(--surface-secondary)]" />
-            </div>
-            <div className="h-3 rounded-full bg-[var(--surface-secondary)]" />
-            <div className="flex justify-between">
-              <div className="h-3 w-12 rounded bg-[var(--surface-secondary)]/70" />
-              <div className="h-3 w-16 rounded bg-[var(--surface-secondary)]/70" />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-pulse">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-[var(--border)] bg-[var(--input-bg)] p-4 space-y-4">
+                <div className="h-4 w-20 rounded bg-[var(--surface-secondary)]" />
+                <div className="h-9 w-14 rounded bg-[var(--surface-secondary)]" />
+                <div className="h-2.5 rounded-full bg-[var(--surface-secondary)]" />
+              </div>
+            ))}
           </div>
         )}
 
@@ -113,45 +177,18 @@ export function FearGreedIndex() {
           </div>
         )}
 
-        {!loading && !error && data && tone && (
-          <div>
-            <div className="flex items-end justify-between gap-4 mb-5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl md:text-5xl font-bold tracking-tight" style={{ color: tone.color }}>
-                  {data.value}
-                </span>
-                <span className="text-[13px] text-[var(--text-tertiary)] pb-1">/ 100</span>
-              </div>
-              <span
-                className="rounded-full px-3 py-1 text-[12px] font-semibold"
-                style={{ color: tone.color, backgroundColor: `color-mix(in srgb, ${tone.bg} 14%, transparent)` }}
-              >
-                {label}
-              </span>
-            </div>
-
-            <div className="relative h-3 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--input-bg)]">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{
-                  width: `${data.value}%`,
-                  background: `linear-gradient(90deg, var(--accent-red) 0%, var(--accent-orange) 35%, var(--accent-green) 100%)`,
-                  opacity: 0.85,
-                }}
-              />
-              <div
-                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white shadow-md"
-                style={{
-                  left: `calc(${data.value}% - 8px)`,
-                  backgroundColor: tone.bg,
-                }}
-              />
-            </div>
-
-            <div className="flex justify-between mt-2 text-[11px] font-medium text-[var(--text-tertiary)]">
-              <span>{t("fearGreed_fear")}</span>
-              <span>{t("fearGreed_greed")}</span>
-            </div>
+        {!loading && !error && data && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <FearGreedGauge
+              item={data.stocks}
+              title={t("fearGreed_stocks")}
+              icon={<TrendingUp className="w-4 h-4 text-[var(--accent-green)]" strokeWidth={2} />}
+            />
+            <FearGreedGauge
+              item={data.crypto}
+              title={t("fearGreed_crypto")}
+              icon={<Bitcoin className="w-4 h-4 text-[var(--accent-purple)]" strokeWidth={2} />}
+            />
           </div>
         )}
       </div>
