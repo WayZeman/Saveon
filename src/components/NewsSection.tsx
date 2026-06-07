@@ -58,10 +58,11 @@ function CategoryBadge({
 }
 
 function NewsThumb({ item, featured = false }: { item: NewsItem; featured?: boolean }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const size = featured ? "w-full h-36 md:h-40" : "w-[72px] h-[72px] md:w-20 md:h-20";
   const isCrypto = item.category === "crypto";
 
-  if (item.imageUrl) {
+  if (item.imageUrl && !imageFailed) {
     return (
       <div className={`${size} shrink-0 rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--input-bg)]`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -71,6 +72,7 @@ function NewsThumb({ item, featured = false }: { item: NewsItem; featured?: bool
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
+          onError={() => setImageFailed(true)}
           className="w-full h-full object-cover"
         />
       </div>
