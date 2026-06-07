@@ -463,6 +463,22 @@ input[type="submit"] {
   background: var(--input-bg);
 }
 
+.icon-btn-edit {
+  color: var(--accent-green);
+}
+.icon-btn-edit:hover {
+  color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
+}
+
+.icon-btn-delete {
+  color: var(--accent-red);
+}
+.icon-btn-delete:hover {
+  color: var(--accent-red);
+  background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+}
+
 /* ── Mobile viewport fix for keyboard ── */
 @media (max-width: 767px) {
   html {

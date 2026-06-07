@@ -54,25 +54,6 @@ export const goalContributeSchema = z.object({
   amount: z.number().positive(),
 });
 
-export const reminderSchema = z.object({
-  message: z.string().min(1, "Вкажіть текст сповіщення").max(500),
-  time: z.string().regex(/^\d{2}:\d{2}$/, "Невірний формат часу"),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Невірна дата"),
-  interval: z.enum(["once", "daily", "weekly", "monthly"]),
-  timezone: z.string().min(1).max(80).optional().default("Europe/Kyiv"),
-  enabled: z.boolean().optional().default(true),
-});
-
-export const reminderPatchSchema = z.object({
-  message: z.string().min(1).max(500).optional(),
-  time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  interval: z.enum(["once", "daily", "weekly", "monthly"]).optional(),
-  timezone: z.string().min(1).max(80).optional(),
-  enabled: z.boolean().optional(),
-  markTriggered: z.boolean().optional(),
-});
-
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type CategoryInput = z.infer<typeof categorySchema>;

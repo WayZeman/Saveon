@@ -136,10 +136,10 @@ export default function TransactionsPage() {
                   {tx.type === "income" ? "+" : "−"}{formatMoney(tx.amount)}
                 </span>
                 <span className="flex items-center gap-1">
-                  <button type="button" onClick={() => openEdit(tx)} className="icon-btn sm:opacity-0 sm:group-hover:opacity-100">
+                  <button type="button" onClick={() => openEdit(tx)} className="icon-btn icon-btn-edit sm:opacity-0 sm:group-hover:opacity-100">
                     <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
                   </button>
-                  <button type="button" onClick={() => handleDelete(tx)} className="icon-btn hover:text-[var(--accent-red)] sm:opacity-0 sm:group-hover:opacity-100">
+                  <button type="button" onClick={() => handleDelete(tx)} className="icon-btn icon-btn-delete sm:opacity-0 sm:group-hover:opacity-100">
                     <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                   </button>
                 </span>

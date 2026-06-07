@@ -22,8 +22,6 @@ model User {
   goalsCreated           Goal[]           @relation("GoalCreatedBy")
   partnerInvitesSent     PartnerInvite[]  @relation("PartnerInviteFrom")
   partnerInvitesReceived PartnerInvite[]  @relation("PartnerInviteTo")
-  reminders              Reminder[]
-  pushSubscriptions      PushSubscription[]
 }
 
 // Запрошення до спільного рахунку (підтвердження одержувачем)
@@ -86,34 +84,3 @@ model Goal {
   transactions  Transaction[]
 }
 
-model Reminder {
-  id              String    @id @default(cuid())
-  userId          String
-  message         String
-  time            String    // HH:mm (локальний час користувача)
-  startDate       DateTime  @db.Date
-  interval        String    // once | daily | weekly | monthly
-  timezone        String    @default("Europe/Kyiv")
-  enabled         Boolean   @default(true)
-  lastTriggeredAt DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, enabled])
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}

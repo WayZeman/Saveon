@@ -14,7 +14,6 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.includes("favicon.ico") ||
-    pathname === "/sw.js" ||
     /\.(png|ico|svg|json|webmanifest|js)$/i.test(pathname) ||
     pathname === "/manifest.json"
   ) {
@@ -30,9 +29,6 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api/") && !apiAuthPaths.some((p) => pathname === p)) {
-    if (pathname.startsWith("/api/cron/")) {
-      return NextResponse.next();
-    }
     if (!sessionCookie) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

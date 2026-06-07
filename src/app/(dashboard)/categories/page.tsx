@@ -154,11 +154,10 @@ function CategoryList({ title, items, onEdit, onDelete, delay, emptyText }: {
           <li key={c.id} className="flex items-center justify-between gap-3 py-3.5 group">
             <span className="text-[14px] font-medium">{c.name}</span>
             <div className="flex items-center gap-2">
-              <span className="text-[12px] text-[var(--text-tertiary)]">{c._count?.transactions ?? 0} тр.</span>
-              <button type="button" onClick={() => onEdit(c)} className="icon-btn sm:opacity-0 sm:group-hover:opacity-100">
+              <button type="button" onClick={() => onEdit(c)} className="icon-btn icon-btn-edit sm:opacity-0 sm:group-hover:opacity-100">
                 <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
-              <button type="button" onClick={() => onDelete(c)} className="icon-btn hover:text-[var(--accent-red)] sm:opacity-0 sm:group-hover:opacity-100">
+              <button type="button" onClick={() => onDelete(c)} className="icon-btn icon-btn-delete sm:opacity-0 sm:group-hover:opacity-100">
                 <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
             </div>

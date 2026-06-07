@@ -172,11 +172,11 @@ export default function GoalsPage() {
                       )}
                       {canEditDelete && (
                         <div className="flex gap-2 ml-auto">
-                          <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1.5" title={t("goals_edit")}>
+                          <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5" title={t("goals_edit")}>
                             <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
                             <span className="text-[13px] font-medium">{t("goals_edit")}</span>
                           </button>
-                          <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-red)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1.5" title={t("goals_delete")}>
+                          <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center gap-1.5" title={t("goals_delete")}>
                             <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
                             <span className="text-[13px] font-medium">{t("goals_delete")}</span>
                           </button>
@@ -209,11 +209,11 @@ export default function GoalsPage() {
                             </button>
                             {canEditDelete && (
                               <>
-                                <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1" title={t("goals_edit")}>
+                                <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1" title={t("goals_edit")}>
                                   <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
                                   <span className="text-[12px] font-medium sm:hidden">{t("goals_edit")}</span>
                                 </button>
-                                <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-red)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1" title={t("goals_delete")}>
+                                <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center gap-1" title={t("goals_delete")}>
                                   <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
                                   <span className="text-[12px] font-medium sm:hidden">{t("goals_delete")}</span>
                                 </button>

@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   Settings, Sun, Moon, Monitor, ChevronRight, Palette,
   CircleDollarSign, LifeBuoy, Heart, LogOut, ExternalLink, Check,
-  Users, UserPlus, UserMinus,
+  Users, UserPlus, UserMinus, Activity, Newspaper, LayoutGrid,
 } from "lucide-react";
-import { NotificationsSettings } from "@/components/NotificationsSettings";
+import { AppleSwitch } from "@/components/AppleSwitch";
+import { useHomeSections } from "@/contexts/HomeSectionsContext";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
+  const { showFearGreed, showMarketNews, setShowFearGreed, setShowMarketNews } = useHomeSections();
   const {
     user,
     partner,
@@ -247,10 +249,51 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <NotificationsSettings
-        expanded={expandedSection === "notifications"}
-        onToggle={() => toggle("notifications")}
-      />
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-4">
+        <div className="px-5 py-4 border-b border-[var(--border)]">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-orange)] to-[var(--accent-blue)] flex items-center justify-center">
+              <LayoutGrid className="w-4 h-4 text-white" strokeWidth={2} />
+            </span>
+            <div>
+              <p className="text-[14px] font-medium">{t("settings_homeSections")}</p>
+              <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_homeSectionsHint")}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 px-5 py-4">
+          <span className="w-8 h-8 rounded-lg bg-[var(--accent-orange)]/14 border border-[var(--accent-orange)]/20 flex items-center justify-center shrink-0">
+            <Activity className="w-4 h-4 text-[var(--accent-orange)]" strokeWidth={2} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-medium">{t("settings_showFearGreed")}</p>
+            <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_showFearGreedHint")}</p>
+          </div>
+          <AppleSwitch
+            checked={showFearGreed}
+            onChange={setShowFearGreed}
+            ariaLabel={t("settings_showFearGreed")}
+          />
+        </div>
+
+        <div className="h-px bg-[var(--border)] mx-5" />
+
+        <div className="flex items-center gap-3 px-5 py-4">
+          <span className="w-8 h-8 rounded-lg bg-[var(--accent-teal)]/14 border border-[var(--accent-teal)]/20 flex items-center justify-center shrink-0">
+            <Newspaper className="w-4 h-4 text-[var(--accent-teal)]" strokeWidth={2} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-medium">{t("settings_showMarketNews")}</p>
+            <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_showMarketNewsHint")}</p>
+          </div>
+          <AppleSwitch
+            checked={showMarketNews}
+            onChange={setShowMarketNews}
+            ariaLabel={t("settings_showMarketNews")}
+          />
+        </div>
+      </div>
 
       {/* Support */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-5">

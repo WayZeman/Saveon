@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { Wallet, Target, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useHomeSections } from "@/contexts/HomeSectionsContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData } from "@/contexts/DataContext";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
@@ -39,6 +40,7 @@ function formatAxisShort(valueUah: number, currency: string, rates: { usd: numbe
 
 export default function HomePageContent() {
   const { formatMoney, currency, rates } = useCurrency();
+  const { showFearGreed, showMarketNews } = useHomeSections();
   const { t } = useLanguage();
   const { dashboardData: data, user, initialLoadDone, refetchDashboard, refetchGoals } = useData();
   const [realizingId, setRealizingId] = useState<string | null>(null);
@@ -321,8 +323,8 @@ export default function HomePageContent() {
         })()}
       </section>
 
-      <FearGreedIndex />
-      <NewsSection />
+      {showFearGreed && <FearGreedIndex />}
+      {showMarketNews && <NewsSection />}
     </div>
   );
 }
