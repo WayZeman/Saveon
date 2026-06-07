@@ -12,6 +12,7 @@ type NewsItem = {
   source: string;
   publishedAt: string;
   imageUrl: string | null;
+  category?: "stocks" | "crypto";
 };
 
 function formatNewsDate(iso: string, locale: string): string {
@@ -120,9 +121,22 @@ export function NewsSection() {
                     <ExternalLink className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 transition" />
                   </div>
                   <p className="mt-1.5 text-[13px] text-[var(--text-secondary)] line-clamp-2">{item.summary}</p>
-                  <p className="mt-2 text-[11px] text-[var(--text-tertiary)]">
-                    {item.source}
-                    {item.publishedAt ? ` · ${formatNewsDate(item.publishedAt, "uk-UA")}` : ""}
+                  <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--text-tertiary)]">
+                    {item.category && (
+                      <span
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          item.category === "crypto"
+                            ? "bg-[var(--accent-purple)]/15 text-[var(--accent-purple)]"
+                            : "bg-[var(--accent-green)]/15 text-[var(--accent-green)]"
+                        }`}
+                      >
+                        {item.category === "crypto" ? t("home_newsCrypto") : t("home_newsStocks")}
+                      </span>
+                    )}
+                    <span>
+                      {item.source}
+                      {item.publishedAt ? ` · ${formatNewsDate(item.publishedAt, "uk-UA")}` : ""}
+                    </span>
                   </p>
                 </div>
               </a>

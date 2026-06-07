@@ -85,7 +85,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_balanceChart: "Баланс",
     home_loading: "Завантажуємо дані",
     home_news: "Новини",
-    home_newsHint: "Інвестиції та криптовалюта — оновлюється автоматично",
+    home_newsHint: "Акції та криптовалюта — оновлюється автоматично",
+    home_newsStocks: "Акції",
+    home_newsCrypto: "Крипто",
     home_newsError: "Не вдалося завантажити новини",
     home_newsEmpty: "Новин поки немає",
 

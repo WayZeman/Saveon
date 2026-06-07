@@ -24,7 +24,7 @@ function readFiredKeys(): Set<string> {
 function markFiredLocally(key: string) {
   const keys = readFiredKeys();
   keys.add(key);
-  sessionStorage.setItem(FIRED_KEY, JSON.stringify([...keys].slice(-200)));
+  sessionStorage.setItem(FIRED_KEY, JSON.stringify(Array.from(keys).slice(-200)));
 }
 
 function showNotification(message: string) {

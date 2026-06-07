@@ -1,3 +1,5 @@
+export type NewsCategory = "stocks" | "crypto";
+
 export type NewsItem = {
   id: string;
   title: string;
@@ -6,6 +8,7 @@ export type NewsItem = {
   source: string;
   publishedAt: string;
   imageUrl: string | null;
+  category: NewsCategory;
 };
 
 const USER_AGENT = "Mozilla/5.0 (compatible; Saveon/1.0; +https://github.com/WayZeman/Saveon)";
@@ -14,11 +17,28 @@ const CACHE_TTL_MS = 30 * 60 * 1000;
 const IMAGE_FETCH_TIMEOUT_MS = 4500;
 
 const FEEDS = [
-  "https://news.google.com/rss/search?q=%D0%B8%D0%BD%D0%B2%D0%B5%D1%81%D1%82%D0%B8%D1%86%D1%96%D1%97+%D0%BA%D1%80%D0%B8%D0%BF%D1%82%D0%BE&hl=uk&gl=UA&ceid=UA:uk",
+  // Акції та фондовий ринок
+  "https://news.google.com/rss/search?q=%D0%B0%D0%BA%D1%86%D1%96%D1%97+%D1%84%D0%BE%D0%BD%D0%B4%D0%BE%D0%B2%D0%B8%D0%B9+%D1%80%D0%B8%D0%BD%D0%BE%D0%BA&hl=uk&gl=UA&ceid=UA:uk",
+  "https://news.google.com/rss/search?q=%D0%B0%D0%BA%D1%86%D1%96%D1%97+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&hl=uk&gl=UA&ceid=UA:uk",
+  "https://news.google.com/rss/search?q=%D1%84%D0%BE%D0%BD%D0%B4%D0%BE%D0%B2%D0%B8%D0%B9+%D1%80%D0%B8%D0%BD%D0%BE%D0%BA+%D0%B1%D1%96%D1%80%D0%B6%D0%B0&hl=uk&gl=UA&ceid=UA:uk",
+  // Криптовалюта
   "https://news.google.com/rss/search?q=%D0%BA%D1%80%D0%B8%D0%BF%D1%82%D0%BE%D0%B2%D0%B0%D0%BB%D1%8E%D1%82%D0%B0&hl=uk&gl=UA&ceid=UA:uk",
-  "https://news.google.com/rss/search?q=%D1%96%D0%BD%D0%B2%D0%B5%D1%81%D1%82%D0%B8%D1%86%D1%96%D1%97+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&hl=uk&gl=UA&ceid=UA:uk",
   "https://news.google.com/rss/search?q=bitcoin+%D0%B1%D1%96%D1%82%D0%BA%D0%BE%D1%97%D0%BD&hl=uk&gl=UA&ceid=UA:uk",
-  "https://news.google.com/rss/search?q=%D1%84%D0%BE%D0%BD%D0%B4%D0%BE%D0%B2%D0%B8%D0%B9+%D1%80%D0%B8%D0%BD%D0%BE%D0%BA&hl=uk&gl=UA&ceid=UA:uk",
+  "https://news.google.com/rss/search?q=%D0%B5%D1%82%D0%B5%D1%80%D0%B5%D1%83%D0%BC+%D0%BA%D1%80%D0%B8%D0%BF%D1%82%D0%BE&hl=uk&gl=UA&ceid=UA:uk",
+];
+
+const STOCK_KEYWORDS = [
+  "акці", "фондов", "бірж", "індекс", "s&p", "nasdaq", "dow", "etf", "дивіденд",
+  "капіталізац", "ipo", "tesla", "apple", "nvidia", "microsoft", "google",
+];
+const CRYPTO_KEYWORDS = [
+  "крипт", "біткоїн", "bitcoin", "btc", "ethereum", "етер", "eth", "блокчейн",
+  "altcoin", "стейблкоїн", "defi", "nft", "солана", "solana", "binance",
+];
+const EXCLUDE_PATTERNS = [
+  /курс\s+.+\s+на\s+сьогодні/i,
+  /курс\s+.+\s+до\s+(долар|євро|гривн)/i,
+  /ціна\s+.+\s+на\s+сьогодні/i,
 ];
 
 type RawNewsItem = {
@@ -70,6 +90,22 @@ function hasCyrillic(text: string): boolean {
   return /[\u0400-\u04FF]/.test(text);
 }
 
+function isRelevantFinanceNews(title: string, summary: string): boolean {
+  const text = `${title} ${summary}`.toLowerCase();
+  if (EXCLUDE_PATTERNS.some((re) => re.test(text))) return false;
+  const isStock = STOCK_KEYWORDS.some((kw) => text.includes(kw));
+  const isCrypto = CRYPTO_KEYWORDS.some((kw) => text.includes(kw));
+  return isStock || isCrypto;
+}
+
+export function getNewsCategory(title: string, summary: string): NewsCategory {
+  const text = `${title} ${summary}`.toLowerCase();
+  const isCrypto = CRYPTO_KEYWORDS.some((kw) => text.includes(kw));
+  const isStock = STOCK_KEYWORDS.some((kw) => text.includes(kw));
+  if (isCrypto && !isStock) return "crypto";
+  return "stocks";
+}
+
 function itemId(url: string): string {
   let hash = 0;
   for (let i = 0; i < url.length; i++) hash = (hash * 31 + url.charCodeAt(i)) | 0;
@@ -100,6 +136,8 @@ function parseRssItems(xml: string): RawNewsItem[] {
     if (!summary || summary === cleanedTitle || summary.length < 20) {
       summary = cleanedTitle;
     }
+    if (!isRelevantFinanceNews(cleanedTitle, summary)) continue;
+
     summary = truncate(summary, 160);
 
     items.push({
@@ -172,6 +210,7 @@ async function enrichImages(items: RawNewsItem[]): Promise<NewsItem[]> {
         source: item.source,
         publishedAt: item.publishedAt.toISOString(),
         imageUrl: images[j],
+        category: getNewsCategory(item.title, item.summary),
       });
     }
   }
