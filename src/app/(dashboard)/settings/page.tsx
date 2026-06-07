@@ -275,7 +275,7 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <p className="text-center text-[12px] text-[var(--text-tertiary)] pb-4">Saveon v0.3.0</p>
+      <p className="text-center text-[12px] text-[var(--text-tertiary)] pb-4">Saveon v3.0</p>
 
       {confirmDialog}
 
