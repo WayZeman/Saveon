@@ -36,10 +36,12 @@ function FearGreedGauge({
   item,
   title,
   icon,
+  accent,
 }: {
   item: FearGreedItem;
   title: string;
   icon: React.ReactNode;
+  accent: string;
 }) {
   const { t } = useLanguage();
   const tone = getTone(item.value);
@@ -47,51 +49,77 @@ function FearGreedGauge({
   const label = labelKey ? t(labelKey) : item.classification;
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--input-bg)]/70 p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--input-bg)] border border-[var(--border)]">
+    <div className="rounded-xl bg-[var(--input-bg)] border border-[var(--border)] p-3 sm:p-4 flex flex-col min-h-0">
+      <div className="flex items-center gap-2 mb-3">
+        <span
+          className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border shrink-0"
+          style={{
+            color: accent,
+            backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`,
+            borderColor: `color-mix(in srgb, ${accent} 22%, transparent)`,
+          }}
+        >
           {icon}
         </span>
-        <span className="text-[14px] font-semibold text-[var(--text)]">{title}</span>
+        <span className="text-[12px] sm:text-[14px] font-semibold text-[var(--text)] truncate">{title}</span>
       </div>
 
-      <div className="flex items-end justify-between gap-3 mb-4">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: tone.color }}>
+      <div className="flex items-end justify-between gap-2 mb-3">
+        <div className="flex items-baseline gap-1 min-w-0">
+          <span
+            className="text-[26px] sm:text-3xl md:text-4xl font-bold tracking-tight leading-none"
+            style={{ color: tone.color }}
+          >
             {item.value}
           </span>
-          <span className="text-[12px] text-[var(--text-tertiary)] pb-0.5">/ 100</span>
+          <span className="text-[10px] sm:text-[12px] text-[var(--text-tertiary)] pb-0.5">/100</span>
         </div>
         <span
-          className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+          className="shrink-0 max-w-[48%] text-right rounded-full px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[11px] font-semibold leading-tight"
           style={{ color: tone.color, backgroundColor: `color-mix(in srgb, ${tone.bg} 14%, transparent)` }}
         >
           {label}
         </span>
       </div>
 
-      <div className="relative h-2.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--input-bg)]">
+      <div className="relative h-2 sm:h-2.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--surface)] mt-auto">
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
             width: `${item.value}%`,
             background: `linear-gradient(90deg, var(--accent-red) 0%, var(--accent-orange) 35%, var(--accent-green) 100%)`,
-            opacity: 0.85,
+            opacity: 0.9,
           }}
         />
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-md"
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 border-white shadow-sm"
           style={{
-            left: `calc(${item.value}% - 7px)`,
+            left: `clamp(0px, calc(${item.value}% - 6px), calc(100% - 12px))`,
             backgroundColor: tone.bg,
           }}
         />
       </div>
 
-      <div className="flex justify-between mt-2 text-[10px] font-medium text-[var(--text-tertiary)]">
+      <div className="flex justify-between mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] font-medium text-[var(--text-tertiary)]">
         <span>{t("fearGreed_fear")}</span>
         <span>{t("fearGreed_greed")}</span>
       </div>
+    </div>
+  );
+}
+
+function GaugeSkeleton() {
+  return (
+    <div className="rounded-xl bg-[var(--input-bg)] border border-[var(--border)] p-3 sm:p-4 space-y-3 animate-pulse">
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-[var(--surface-secondary)]" />
+        <div className="h-3.5 w-16 rounded bg-[var(--surface-secondary)]" />
+      </div>
+      <div className="flex justify-between">
+        <div className="h-8 w-12 rounded bg-[var(--surface-secondary)]" />
+        <div className="h-5 w-20 rounded-full bg-[var(--surface-secondary)]" />
+      </div>
+      <div className="h-2 rounded-full bg-[var(--surface-secondary)]" />
     </div>
   );
 }
@@ -125,81 +153,75 @@ export function FearGreedIndex() {
   }, []);
 
   return (
-    <section className="card opacity-0 animate-slide-up animate-stagger-6 overflow-hidden scroll-mt-4 !p-0">
-      <div className="relative px-5 pt-5 pb-4 md:px-6 md:pt-6 border-b border-[var(--border)]">
-        <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[var(--accent-orange)]/8 via-transparent to-transparent pointer-events-none" />
-        <div className="relative flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--accent-orange)]/14 border border-[var(--accent-orange)]/20 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-[var(--accent-orange)]" strokeWidth={2} />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-[17px] md:text-lg font-semibold text-[var(--text)]">{t("fearGreed_title")}</h2>
-              <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{t("fearGreed_hint")}</p>
-            </div>
-          </div>
+    <section className="card opacity-0 animate-slide-up animate-stagger-6 scroll-mt-4">
+      <div className="flex items-start justify-between gap-3 mb-4 sm:mb-5">
+        <div className="min-w-0">
+          <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
+            <Activity className="w-[18px] h-[18px] text-[var(--accent-orange)] shrink-0" strokeWidth={2} />
+            <span className="truncate">{t("fearGreed_title")}</span>
+          </h2>
+          <p className="text-[12px] sm:text-[13px] text-[var(--text-secondary)] mt-1 leading-snug">
+            {t("fearGreed_hint")}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => load(true)}
+          disabled={loading || refreshing}
+          className="shrink-0 rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--accent-blue)] hover:bg-[var(--input-bg)] active:scale-95 transition disabled:opacity-40 touch-manipulation"
+          title={t("fearGreed_refresh")}
+          aria-label={t("fearGreed_refresh")}
+        >
+          <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2} />
+        </button>
+      </div>
+
+      {loading && (
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <GaugeSkeleton />
+          <GaugeSkeleton />
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--input-bg)] py-8 sm:py-10 text-center">
+          <p className="text-[13px] sm:text-[14px] text-[var(--text-secondary)]">{t("fearGreed_error")}</p>
           <button
             type="button"
             onClick={() => load(true)}
-            disabled={loading || refreshing}
-            className="shrink-0 rounded-xl p-2.5 text-[var(--text-tertiary)] hover:text-[var(--accent-blue)] hover:bg-[var(--input-bg)] transition disabled:opacity-40"
-            title={t("fearGreed_refresh")}
-            aria-label={t("fearGreed_refresh")}
+            className="mt-3 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-[var(--accent-blue)] bg-[var(--accent-blue)]/10 hover:bg-[var(--accent-blue)]/15 active:scale-[0.98] transition touch-manipulation"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2} />
+            {t("fearGreed_refresh")}
           </button>
         </div>
-      </div>
+      )}
 
-      <div className="px-5 py-5 md:px-6 md:py-6">
-        {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-pulse">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-[var(--border)] bg-[var(--input-bg)] p-4 space-y-4">
-                <div className="h-4 w-20 rounded bg-[var(--surface-secondary)]" />
-                <div className="h-9 w-14 rounded bg-[var(--surface-secondary)]" />
-                <div className="h-2.5 rounded-full bg-[var(--surface-secondary)]" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="py-6 text-center">
-            <p className="text-[14px] text-[var(--text-secondary)]">{t("fearGreed_error")}</p>
-            <button
-              type="button"
-              onClick={() => load(true)}
-              className="mt-3 rounded-xl px-4 py-2 text-[13px] font-semibold text-[var(--accent-blue)] bg-[var(--accent-blue)]/10 hover:bg-[var(--accent-blue)]/15 transition"
-            >
-              {t("fearGreed_refresh")}
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && data && (
-          <div
-            className={`grid gap-3 ${
-              data.stocks && data.crypto ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 max-w-md mx-auto w-full"
-            }`}
-          >
-            {data.stocks && (
-              <FearGreedGauge
-                item={data.stocks}
-                title={t("fearGreed_stocks")}
-                icon={<TrendingUp className="w-4 h-4 text-[var(--accent-green)]" strokeWidth={2} />}
-              />
-            )}
-            {data.crypto && (
-              <FearGreedGauge
-                item={data.crypto}
-                title={t("fearGreed_crypto")}
-                icon={<Bitcoin className="w-4 h-4 text-[var(--accent-purple)]" strokeWidth={2} />}
-              />
-            )}
-          </div>
-        )}
-      </div>
+      {!loading && !error && data && (
+        <div
+          className={`grid gap-2.5 sm:gap-3 ${
+            data.stocks && data.crypto
+              ? "grid-cols-2"
+              : "grid-cols-1 max-w-sm mx-auto w-full sm:max-w-none sm:grid-cols-2"
+          }`}
+        >
+          {data.stocks && (
+            <FearGreedGauge
+              item={data.stocks}
+              title={t("fearGreed_stocks")}
+              accent="var(--accent-green)"
+              icon={<TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={2} />}
+            />
+          )}
+          {data.crypto && (
+            <FearGreedGauge
+              item={data.crypto}
+              title={t("fearGreed_crypto")}
+              accent="var(--accent-purple)"
+              icon={<Bitcoin className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={2} />}
+            />
+          )}
+        </div>
+      )}
     </section>
   );
 }

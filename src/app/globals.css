@@ -354,6 +354,7 @@ input[type="submit"] {
   .animate-stagger-4 { animation-delay: 0.24s; }
   .animate-stagger-5 { animation-delay: 0.3s; }
   .animate-stagger-6 { animation-delay: 0.36s; }
+  .animate-stagger-7 { animation-delay: 0.42s; }
   .animate-apple-reveal {
     animation: appleReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
