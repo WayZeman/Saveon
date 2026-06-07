@@ -100,6 +100,16 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_newsShowMore: "Ще {0} новин",
     home_newsShowLess: "Згорнути",
 
+    fearGreed_title: "Страх і жадібність",
+    fearGreed_hint: "Індекс настрою крипторинку",
+    fearGreed_fear: "Страх",
+    fearGreed_greed: "Жадібність",
+    fearGreed_neutral: "Нейтрально",
+    fearGreed_extremeFear: "Екстремальний страх",
+    fearGreed_extremeGreed: "Екстремальна жадібність",
+    fearGreed_error: "Не вдалося завантажити індекс",
+    fearGreed_refresh: "Оновити",
+
     // Transactions
     transactions_title: "Транзакції",
     transactions_subtitle: "Доходи та витрати по категоріях",

@@ -1,5 +1,3 @@
-import { decodeGoogleNewsUrl } from "./google-news-url";
-
 export type NewsCategory = "stocks" | "crypto";
 
 export type NewsItem = {
@@ -9,15 +7,12 @@ export type NewsItem = {
   url: string;
   source: string;
   publishedAt: string;
-  imageUrl: string | null;
   category: NewsCategory;
 };
 
 const USER_AGENT = "Mozilla/5.0 (compatible; Saveon/1.0; +https://github.com/WayZeman/Saveon)";
 const NEWS_LIMIT = 20;
 const CACHE_TTL_MS = 30 * 60 * 1000;
-const IMAGE_FETCH_TIMEOUT_MS = 3500;
-const IMAGE_ENRICH_LIMIT = 10;
 
 const FEEDS = [
   // Акції та фондовий ринок
@@ -53,7 +48,6 @@ type RawNewsItem = {
 };
 
 let newsCache: { items: NewsItem[]; fetchedAt: number } | null = null;
-const imageCache = new Map<string, string | null>();
 
 function decodeXml(text: string): string {
   return text
@@ -165,68 +159,16 @@ async function fetchFeed(url: string): Promise<RawNewsItem[]> {
   return parseRssItems(xml);
 }
 
-function extractOgImage(html: string): string | null {
-  const match =
-    html.match(/property=["']og:image(?::[^"']*)?["']\s+content=["']([^"']+)["']/i) ??
-    html.match(/content=["']([^"']+)["']\s+property=["']og:image(?::[^"']*)?["']/i) ??
-    html.match(/name=["']twitter:image(?::[^"']*)?["']\s+content=["']([^"']+)["']/i);
-  const imageUrl = match?.[1]?.trim() ?? null;
-  if (!imageUrl || imageUrl.includes("google_news_192")) return null;
-  return imageUrl;
-}
-
-async function fetchHtml(url: string, signal: AbortSignal): Promise<string | null> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
-    signal,
-    redirect: "follow",
-  });
-  if (!res.ok) return null;
-  return (await res.text()).slice(0, 120_000);
-}
-
-async function fetchArticleImage(sourceUrl: string): Promise<string | null> {
-  if (imageCache.has(sourceUrl)) return imageCache.get(sourceUrl) ?? null;
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), IMAGE_FETCH_TIMEOUT_MS);
-  try {
-    const articleUrl = await decodeGoogleNewsUrl(sourceUrl);
-    const html = await fetchHtml(articleUrl, controller.signal);
-    const imageUrl = html ? extractOgImage(html) : null;
-    imageCache.set(sourceUrl, imageUrl);
-    return imageUrl;
-  } catch {
-    imageCache.set(sourceUrl, null);
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-function toNewsItem(item: RawNewsItem, imageUrl: string | null): NewsItem {
-  return {
+function toNewsItems(items: RawNewsItem[]): NewsItem[] {
+  return items.map((item) => ({
     id: itemId(item.url),
     title: item.title,
     summary: item.summary,
     url: item.url,
     source: item.source,
     publishedAt: item.publishedAt.toISOString(),
-    imageUrl,
     category: getNewsCategory(item.title, item.summary),
-  };
-}
-
-async function enrichImages(items: RawNewsItem[]): Promise<NewsItem[]> {
-  const prioritized = items.slice(0, IMAGE_ENRICH_LIMIT);
-  const rest = items.slice(IMAGE_ENRICH_LIMIT);
-
-  const images = await Promise.all(prioritized.map((item) => fetchArticleImage(item.url)));
-
-  return [
-    ...prioritized.map((item, index) => toNewsItem(item, images[index])),
-    ...rest.map((item) => toNewsItem(item, null)),
-  ];
+  }));
 }
 
 function dedupeAndSort(items: RawNewsItem[]): RawNewsItem[] {
@@ -252,7 +194,7 @@ async function loadNews(): Promise<NewsItem[]> {
   }
 
   const top = dedupeAndSort(merged);
-  return enrichImages(top);
+  return toNewsItems(top);
 }
 
 export async function getInvestmentNews(): Promise<{ items: NewsItem[]; cached: boolean; updatedAt: string }> {

@@ -11,6 +11,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData } from "@/contexts/DataContext";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
 
 async function realizeGoal(goalId: string): Promise<boolean> {
@@ -320,6 +321,7 @@ export default function HomePageContent() {
         })()}
       </section>
 
+      <FearGreedIndex />
       <NewsSection />
     </div>
   );
