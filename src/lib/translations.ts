@@ -85,7 +85,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_balanceChart: "Баланс",
     home_loading: "Завантажуємо дані",
     home_news: "Ринок",
-    home_newsHint: "Акції та криптовалюта з українських джерел",
+    home_newsHint: "Акцій та криптовалют з українських джерел",
     home_newsAll: "Усі",
     home_newsStocks: "Акції",
     home_newsCrypto: "Крипто",
@@ -101,7 +101,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_newsShowLess: "Згорнути",
 
     fearGreed_title: "Страх і жадібність",
-    fearGreed_hint: "Індекс настрою ринку: акції та криптовалюта",
+    fearGreed_hint: "Індекс настрою ринку: акцій та криптовалюти",
     fearGreed_stocks: "Акції",
     fearGreed_crypto: "Крипто",
     fearGreed_fear: "Страх",

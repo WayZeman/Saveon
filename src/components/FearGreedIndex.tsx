@@ -49,10 +49,10 @@ function FearGreedGauge({
   const label = labelKey ? t(labelKey) : item.classification;
 
   return (
-    <div className="rounded-xl bg-[var(--input-bg)] border border-[var(--border)] p-3 sm:p-4 flex flex-col min-h-0">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-xl bg-[var(--input-bg)] border border-[var(--border)] p-4 flex flex-col">
+      <div className="flex items-center gap-2.5 mb-4">
         <span
-          className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border shrink-0"
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg border shrink-0"
           style={{
             color: accent,
             backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`,
@@ -61,28 +61,28 @@ function FearGreedGauge({
         >
           {icon}
         </span>
-        <span className="text-[12px] sm:text-[14px] font-semibold text-[var(--text)] truncate">{title}</span>
+        <span className="text-[14px] font-semibold text-[var(--text)]">{title}</span>
       </div>
 
-      <div className="flex items-end justify-between gap-2 mb-3">
-        <div className="flex items-baseline gap-1 min-w-0">
+      <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2 mb-4">
+        <div className="flex items-baseline gap-1.5">
           <span
-            className="text-[26px] sm:text-3xl md:text-4xl font-bold tracking-tight leading-none"
+            className="text-3xl md:text-4xl font-bold tracking-tight leading-none"
             style={{ color: tone.color }}
           >
             {item.value}
           </span>
-          <span className="text-[10px] sm:text-[12px] text-[var(--text-tertiary)] pb-0.5">/100</span>
+          <span className="text-[12px] text-[var(--text-tertiary)] pb-0.5">/ 100</span>
         </div>
         <span
-          className="shrink-0 max-w-[48%] text-right rounded-full px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[11px] font-semibold leading-tight"
+          className="rounded-full px-2.5 py-1 text-[11px] font-semibold leading-snug"
           style={{ color: tone.color, backgroundColor: `color-mix(in srgb, ${tone.bg} 14%, transparent)` }}
         >
           {label}
         </span>
       </div>
 
-      <div className="relative h-2 sm:h-2.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--surface)] mt-auto">
+      <div className="relative h-2.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
@@ -92,15 +92,15 @@ function FearGreedGauge({
           }}
         />
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 border-white shadow-sm"
+          className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"
           style={{
-            left: `clamp(0px, calc(${item.value}% - 6px), calc(100% - 12px))`,
+            left: `clamp(0px, calc(${item.value}% - 7px), calc(100% - 14px))`,
             backgroundColor: tone.bg,
           }}
         />
       </div>
 
-      <div className="flex justify-between mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] font-medium text-[var(--text-tertiary)]">
+      <div className="flex justify-between mt-2 text-[10px] font-medium text-[var(--text-tertiary)]">
         <span>{t("fearGreed_fear")}</span>
         <span>{t("fearGreed_greed")}</span>
       </div>
@@ -110,7 +110,7 @@ function FearGreedGauge({
 
 function GaugeSkeleton() {
   return (
-    <div className="rounded-xl bg-[var(--input-bg)] border border-[var(--border)] p-3 sm:p-4 space-y-3 animate-pulse">
+    <div className="rounded-xl bg-[var(--input-bg)] border border-[var(--border)] p-4 space-y-3 animate-pulse">
       <div className="flex items-center gap-2">
         <div className="w-7 h-7 rounded-lg bg-[var(--surface-secondary)]" />
         <div className="h-3.5 w-16 rounded bg-[var(--surface-secondary)]" />
@@ -160,7 +160,7 @@ export function FearGreedIndex() {
             <Activity className="w-[18px] h-[18px] text-[var(--accent-orange)] shrink-0" strokeWidth={2} />
             <span className="truncate">{t("fearGreed_title")}</span>
           </h2>
-          <p className="text-[12px] sm:text-[13px] text-[var(--text-secondary)] mt-1 leading-snug">
+          <p className="text-[13px] text-[var(--text-secondary)] mt-1 leading-relaxed pr-1">
             {t("fearGreed_hint")}
           </p>
         </div>
@@ -177,7 +177,7 @@ export function FearGreedIndex() {
       </div>
 
       {loading && (
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <GaugeSkeleton />
           <GaugeSkeleton />
         </div>
@@ -197,19 +197,13 @@ export function FearGreedIndex() {
       )}
 
       {!loading && !error && data && (
-        <div
-          className={`grid gap-2.5 sm:gap-3 ${
-            data.stocks && data.crypto
-              ? "grid-cols-2"
-              : "grid-cols-1 max-w-sm mx-auto w-full sm:max-w-none sm:grid-cols-2"
-          }`}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {data.stocks && (
             <FearGreedGauge
               item={data.stocks}
               title={t("fearGreed_stocks")}
               accent="var(--accent-green)"
-              icon={<TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={2} />}
+              icon={<TrendingUp className="w-4 h-4" strokeWidth={2} />}
             />
           )}
           {data.crypto && (
@@ -217,7 +211,7 @@ export function FearGreedIndex() {
               item={data.crypto}
               title={t("fearGreed_crypto")}
               accent="var(--accent-purple)"
-              icon={<Bitcoin className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={2} />}
+              icon={<Bitcoin className="w-4 h-4" strokeWidth={2} />}
             />
           )}
         </div>
