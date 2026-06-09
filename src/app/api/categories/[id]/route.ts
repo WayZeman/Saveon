@@ -16,6 +16,9 @@ export async function PATCH(
     where: { id, OR: categoriesVisibleWhere(session).OR },
   });
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (category.goalId) {
+    return NextResponse.json({ error: "Категорію цілі неможливо змінити" }, { status: 403 });
+  }
   const isProtectedTemplate =
     category.isSystem ||
     (category.isShared && category.userId === null && category.createdBy === null);
@@ -67,6 +70,9 @@ export async function DELETE(
     where: { id, OR: categoriesVisibleWhere(session).OR },
   });
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (category.goalId) {
+    return NextResponse.json({ error: "Категорію цілі неможливо змінити" }, { status: 403 });
+  }
   const isProtectedTemplate =
     category.isSystem ||
     (category.isShared && category.userId === null && category.createdBy === null);

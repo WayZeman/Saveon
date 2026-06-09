@@ -60,6 +60,8 @@ model Category {
   transactions      Transaction[]
   sourceTransactions Transaction[] @relation("TransactionSourceCategory")
   goalSources       GoalSourceCategory[]
+  goalId            String?  @unique
+  goal              Goal?    @relation("GoalExpenseCategory", fields: [goalId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
@@ -92,6 +94,7 @@ model Goal {
   createdByUser User          @relation("GoalCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
   transactions  Transaction[]
   sourceCategories GoalSourceCategory[]
+  expenseCategory Category? @relation("GoalExpenseCategory")
 }
 
 // Категорії, з балансу яких рахується прогрес цілі та з яких списуються кошти при реалізації

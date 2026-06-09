@@ -3,7 +3,7 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
 import { isPrimaryCategory } from "@/lib/category-tier";
-import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
+import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds, getOrCreateGoalExpenseCategory, removeGoalExpenseCategory } from "@/lib/goal-api";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalPatchSchema } from "@/lib/validations";
 
@@ -82,25 +82,7 @@ export async function PATCH(
           return NextResponse.json({ error: "Category not allowed for this goal" }, { status: 400 });
         }
 
-        let category = await prisma.category.findFirst({
-          where: {
-            OR: [
-              { name: "Цілі", isShared: true, isSystem: true },
-              { name: "Цілі", isShared: true, userId: null, createdBy: null },
-            ],
-          },
-        });
-        if (!category) {
-          category = await prisma.category.create({
-            data: {
-              name: "Цілі",
-              userId: null,
-              isShared: true,
-              isSystem: true,
-              createdBy: session.id,
-            },
-          });
-        }
+        let category = await getOrCreateGoalExpenseCategory(goal);
 
         await prisma.transaction.create({
           data: {
@@ -124,6 +106,7 @@ export async function PATCH(
       await prisma.transaction.deleteMany({
         where: { goalId: goal.id },
       });
+      await removeGoalExpenseCategory(goal.id);
       const updated = await prisma.goal.update({
         where: { id: goalId },
         data: { realizedAt: null },

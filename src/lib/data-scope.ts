@@ -30,6 +30,17 @@ export function categoriesVisibleWhere(session: SessionUser) {
   };
 }
 
+/** Категорії для сторінки керування та форм (без службових «Цілі» та авто-категорій цілей). */
+export function categoriesManageWhere(session: SessionUser) {
+  return {
+    AND: [
+      { OR: categoriesVisibleWhere(session).OR },
+      { goalId: null },
+      { NOT: { AND: [{ isSystem: true }, { name: "Цілі" }] } },
+    ],
+  };
+}
+
 /** Цілі: лише свої або спільні створені партнером (не всі isShared у системі). */
 export function goalsVisibleWhere(session: SessionUser) {
   const partnerId = session.partnerId;

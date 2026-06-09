@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "dev:safe": "ulimit -n 10240 2>/dev/null; next dev -p 3000 -H 0.0.0.0",
-    "build": "prisma generate && prisma db push --skip-generate && npm run build:icons && next build",
+    "build": "prisma generate && prisma db push --skip-generate && npm run migrate:goal-categories && npm run build:icons && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
@@ -15,6 +15,7 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "migrate:security": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/migrate-security-data.ts",
+    "migrate:goal-categories": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/migrate-goal-categories.ts",
     "run": "prisma generate && prisma migrate deploy && prisma db seed && (ulimit -n 10240 2>/dev/null; next dev -p 3000 -H 0.0.0.0)",
     "build:icons": "node scripts/build-icons.js"
   },

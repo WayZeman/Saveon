@@ -33,3 +33,39 @@ export const goalListInclude = {
     include: { category: { select: { id: true, name: true, isShared: true } } },
   },
 } as const;
+
+type GoalForExpenseCategory = {
+  id: string;
+  title: string;
+  createdBy: string;
+  isShared: boolean;
+};
+
+export async function getOrCreateGoalExpenseCategory(goal: GoalForExpenseCategory) {
+  const existing = await prisma.category.findFirst({
+    where: { goalId: goal.id },
+  });
+  if (existing) {
+    if (existing.name !== goal.title) {
+      return prisma.category.update({
+        where: { id: existing.id },
+        data: { name: goal.title },
+      });
+    }
+    return existing;
+  }
+  return prisma.category.create({
+    data: {
+      name: goal.title,
+      userId: goal.isShared ? null : goal.createdBy,
+      createdBy: goal.createdBy,
+      isShared: goal.isShared,
+      tier: "secondary",
+      goalId: goal.id,
+    },
+  });
+}
+
+export async function removeGoalExpenseCategory(goalId: string) {
+  await prisma.category.deleteMany({ where: { goalId } });
+}

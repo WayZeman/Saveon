@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { categoriesVisibleWhere } from "@/lib/data-scope";
+import { categoriesManageWhere } from "@/lib/data-scope";
 import { categorySchema } from "@/lib/validations";
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
   if (isApiUnauthorized(sessionOr)) return sessionOr;
   const session = sessionOr;
   const categories = await prisma.category.findMany({
-    where: categoriesVisibleWhere(session),
+    where: categoriesManageWhere(session),
     orderBy: [{ tier: "asc" }, { isShared: "desc" }, { name: "asc" }],
     include: { _count: { select: { transactions: true } } },
   });
