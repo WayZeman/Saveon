@@ -34,6 +34,7 @@ export type DashboardData = {
     balanceUsed: number;
     remainingNeeded: number;
     progressPercent: number;
+    sourceCategories: { id: string; name: string; isShared: boolean }[];
     createdByUser: { id: string; email: string; role: string };
   }>;
   monthlyData: { month: string; income: number; expense: number }[];
@@ -77,6 +78,7 @@ export type Goal = {
   isShared: boolean;
   createdBy: string;
   realizedAt: string | null;
+  sourceCategories: { id: string; name: string; isShared: boolean }[];
   createdByUser: { id: string; email: string; role: string };
 };
 
@@ -152,6 +154,11 @@ const DEV_PREVIEW_STATE: DataState = {
         balanceUsed: 2712.84,
         remainingNeeded: 16287.16,
         progressPercent: 14.28,
+        sourceCategories: [
+          { id: "cat-1", name: "Готівка", isShared: true },
+          { id: "cat-2", name: "Акції", isShared: true },
+          { id: "cat-3", name: "Крипта", isShared: false },
+        ],
         createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
       },
       {
@@ -160,9 +167,10 @@ const DEV_PREVIEW_STATE: DataState = {
         targetAmount: 12000,
         isShared: true,
         realizedAt: null,
-        balanceUsed: 2712.84,
-        remainingNeeded: 9287.16,
-        progressPercent: 22.61,
+        balanceUsed: 1870.54,
+        remainingNeeded: 10129.46,
+        progressPercent: 15.59,
+        sourceCategories: [{ id: "cat-1", name: "Готівка", isShared: true }],
         createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
       },
     ],
@@ -218,6 +226,11 @@ const DEV_PREVIEW_STATE: DataState = {
       isShared: true,
       createdBy: "preview-user",
       realizedAt: null,
+      sourceCategories: [
+        { id: "cat-1", name: "Готівка", isShared: true },
+        { id: "cat-2", name: "Акції", isShared: true },
+        { id: "cat-3", name: "Крипта", isShared: false },
+      ],
       createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
     },
     {
@@ -227,6 +240,7 @@ const DEV_PREVIEW_STATE: DataState = {
       isShared: true,
       createdBy: "preview-user",
       realizedAt: null,
+      sourceCategories: [{ id: "cat-1", name: "Готівка", isShared: true }],
       createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
     },
   ],

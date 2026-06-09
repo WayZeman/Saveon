@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { goalsVisibleWhere } from "@/lib/data-scope";
+import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
+import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalSchema } from "@/lib/validations";
 
 export async function GET() {
@@ -11,11 +13,9 @@ export async function GET() {
   const goals = await prisma.goal.findMany({
     where: goalsVisibleWhere(session),
     orderBy: { createdAt: "desc" },
-    include: {
-      createdByUser: { select: { id: true, email: true, role: true } },
-    },
+    include: goalListInclude,
   });
-  return NextResponse.json(goals);
+  return NextResponse.json(goals.map(mapGoalSourceCategories));
 }
 
 export async function POST(request: Request) {
@@ -28,7 +28,11 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { title, targetAmount, isShared } = parsed.data;
+    const { title, targetAmount, isShared, sourceCategoryIds } = parsed.data;
+    const resolvedIds = await validateGoalSourceCategoryIds(session, sourceCategoryIds);
+    if (!resolvedIds) {
+      return NextResponse.json({ error: "Invalid source categories" }, { status: 400 });
+    }
     const hasPartner = !!session.partnerId;
     const effectiveShared = hasPartner ? (isShared ?? true) : false;
     const goal = await prisma.goal.create({
@@ -39,11 +43,14 @@ export async function POST(request: Request) {
         createdBy: session.id,
         isShared: effectiveShared,
       },
-      include: {
-        createdByUser: { select: { id: true, email: true, role: true } },
-      },
+      include: goalListInclude,
     });
-    return NextResponse.json(goal);
+    await syncGoalSourceCategories(goal.id, resolvedIds);
+    const withCategories = await prisma.goal.findUnique({
+      where: { id: goal.id },
+      include: goalListInclude,
+    });
+    return NextResponse.json(mapGoalSourceCategories(withCategories!));
   } catch (e: any) {
     console.error(e);
     return NextResponse.json({ error: String(e.message || e) }, { status: 500 });

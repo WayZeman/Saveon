@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
+import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
+import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalPatchSchema } from "@/lib/validations";
 
 export async function GET(
@@ -17,12 +19,10 @@ export async function GET(
       id,
       ...goalsVisibleWhere(session),
     },
-    include: {
-      createdByUser: { select: { id: true, email: true, role: true } },
-    },
+    include: goalListInclude,
   });
   if (!goal) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(goal);
+  return NextResponse.json(mapGoalSourceCategories(goal));
 }
 
 export async function PATCH(
@@ -38,6 +38,7 @@ export async function PATCH(
       id: goalId,
       ...goalsVisibleWhere(session),
     },
+    include: { sourceCategories: { select: { categoryId: true } } },
   });
   if (!goal) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const partnerId = session.partnerId;
@@ -54,17 +55,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
     if (parsed.data.realize !== undefined) {
-      const goalInclude = {
-        createdByUser: { select: { id: true, email: true, role: true } },
-      } as const;
-
       if (parsed.data.realize) {
         if (goal.realizedAt) {
           const current = await prisma.goal.findUnique({
             where: { id: goalId },
-            include: goalInclude,
+            include: goalListInclude,
           });
-          return NextResponse.json(current);
+          return NextResponse.json(mapGoalSourceCategories(current!));
         }
 
         const sourceCategory = await prisma.category.findFirst({
@@ -75,6 +72,10 @@ export async function PATCH(
         }
         if (!canUseCategory(session, sourceCategory)) {
           return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        const allowedIds = goal.sourceCategories.map((s) => s.categoryId);
+        if (allowedIds.length > 0 && !allowedIds.includes(sourceCategory.id)) {
+          return NextResponse.json({ error: "Category not allowed for this goal" }, { status: 400 });
         }
 
         let category = await prisma.category.findFirst({
@@ -111,9 +112,9 @@ export async function PATCH(
         const updated = await prisma.goal.update({
           where: { id: goalId },
           data: { realizedAt: new Date() },
-          include: goalInclude,
+          include: goalListInclude,
         });
-        return NextResponse.json(updated);
+        return NextResponse.json(mapGoalSourceCategories(updated));
       }
 
       await prisma.transaction.deleteMany({
@@ -122,33 +123,48 @@ export async function PATCH(
       const updated = await prisma.goal.update({
         where: { id: goalId },
         data: { realizedAt: null },
-        include: goalInclude,
+        include: goalListInclude,
       });
-      return NextResponse.json(updated);
+      return NextResponse.json(mapGoalSourceCategories(updated));
     }
     const hasPartner = !!session.partnerId;
     const updateData: { title?: string; targetAmount?: number; isShared?: boolean } = {};
     if (parsed.data.title !== undefined) updateData.title = parsed.data.title.trim();
     if (parsed.data.targetAmount !== undefined) updateData.targetAmount = parsed.data.targetAmount;
     if (parsed.data.isShared !== undefined) updateData.isShared = hasPartner ? parsed.data.isShared : false;
-    if (Object.keys(updateData).length === 0) {
+
+    let resolvedSourceIds: string[] | null = null;
+    if (parsed.data.sourceCategoryIds !== undefined) {
+      resolvedSourceIds = await validateGoalSourceCategoryIds(session, parsed.data.sourceCategoryIds);
+      if (!resolvedSourceIds) {
+        return NextResponse.json({ error: "Invalid source categories" }, { status: 400 });
+      }
+    }
+
+    if (Object.keys(updateData).length === 0 && resolvedSourceIds === null) {
       const current = await prisma.goal.findUnique({
         where: { id: goalId },
-        include: { createdByUser: { select: { id: true, email: true, role: true } } },
+        include: goalListInclude,
       });
-      return NextResponse.json(current);
+      return NextResponse.json(mapGoalSourceCategories(current!));
     }
     if (goal.createdBy !== session.id && !goal.isShared) {
       return NextResponse.json({ error: "Can only edit title/amount of your own goals" }, { status: 403 });
     }
-    const updated = await prisma.goal.update({
+    if (Object.keys(updateData).length > 0) {
+      await prisma.goal.update({
+        where: { id: goalId },
+        data: updateData,
+      });
+    }
+    if (resolvedSourceIds !== null) {
+      await syncGoalSourceCategories(goalId, resolvedSourceIds);
+    }
+    const updated = await prisma.goal.findUnique({
       where: { id: goalId },
-      data: updateData,
-      include: {
-        createdByUser: { select: { id: true, email: true, role: true } },
-      },
+      include: goalListInclude,
     });
-    return NextResponse.json(updated);
+    return NextResponse.json(mapGoalSourceCategories(updated!));
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

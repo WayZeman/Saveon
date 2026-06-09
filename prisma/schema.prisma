@@ -57,6 +57,7 @@ model Category {
   user              User?         @relation("UserCategories", fields: [userId], references: [id], onDelete: SetNull)
   transactions      Transaction[]
   sourceTransactions Transaction[] @relation("TransactionSourceCategory")
+  goalSources       GoalSourceCategory[]
 }
 
 model Transaction {
@@ -88,5 +89,17 @@ model Goal {
 
   createdByUser User          @relation("GoalCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
   transactions  Transaction[]
+  sourceCategories GoalSourceCategory[]
+}
+
+// Категорії, з балансу яких рахується прогрес цілі та з яких списуються кошти при реалізації
+model GoalSourceCategory {
+  goalId     String
+  categoryId String
+
+  goal     Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([goalId, categoryId])
 }
 

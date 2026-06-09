@@ -78,6 +78,7 @@ export const goalSchema = z.object({
   title: z.string().min(1).max(200),
   targetAmount: z.number().positive(),
   isShared: z.boolean().optional().default(true),
+  sourceCategoryIds: z.array(z.string().min(1)).min(1, "Оберіть хоча б одну категорію"),
 });
 
 export const goalPatchSchema = z
@@ -85,6 +86,7 @@ export const goalPatchSchema = z
     title: z.string().min(1).max(200).optional(),
     targetAmount: z.number().positive().optional(),
     isShared: z.boolean().optional(),
+    sourceCategoryIds: z.array(z.string().min(1)).min(1).optional(),
     realize: z.boolean().optional(),
     sourceCategoryId: z.string().min(1).optional(),
   })

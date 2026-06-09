@@ -10,6 +10,7 @@ export type RealizeGoalInfo = {
   id: string;
   title: string;
   targetAmount: number;
+  sourceCategories?: { id: string; name: string }[];
 };
 
 type Props = {

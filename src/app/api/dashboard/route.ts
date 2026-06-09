@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { goalsVisibleWhere } from "@/lib/data-scope";
+import { goalListInclude } from "@/lib/goal-api";
+import { buildCategoryNetsByUser, computeGoalProgress, mapGoalSourceCategories } from "@/lib/goal-balance";
 type Agg = { userId: string; income: number; expense: number };
 
 export async function GET(request: Request) {
@@ -90,14 +92,16 @@ export async function GET(request: Request) {
   const goalsRaw = await prisma.goal.findMany({
     where: goalsVisibleWhere(session),
     orderBy: { createdAt: "desc" },
-    include: { createdByUser: { select: { id: true, email: true, role: true } } },
+    include: goalListInclude,
   });
 
+  const categoryNetsByUser = buildCategoryNetsByUser(allTransactions, userIds);
+  const fallback = { myBalance, totalBalance };
+
   const goalsMapped = goalsRaw.map((g) => {
-    const balanceUsed = g.isShared ? totalBalance : myBalance;
-    const remainingNeeded = Math.max(0, g.targetAmount - balanceUsed);
-    const progressPercent = Math.min(100, (balanceUsed / g.targetAmount) * 100);
-    return { ...g, balanceUsed, remainingNeeded, progressPercent };
+    const mapped = mapGoalSourceCategories(g);
+    const progress = computeGoalProgress(g, categoryNetsByUser, session.id, partnerId, fallback);
+    return { ...mapped, ...progress };
   });
   const goals = goalsMapped.filter((g) => !g.realizedAt);
 

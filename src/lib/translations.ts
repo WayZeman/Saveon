@@ -173,6 +173,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     goals_undo: "Зняти",
     goals_realizeTitle: "Реалізувати ціль",
     goals_realizeHint: "Ціль «{0}» на суму {1} буде оформлена як витрата.",
+    goals_sourceCategories: "Категорії для накопичення",
+    goals_sourceCategoriesHint: "Прогрес і списання при реалізації враховують лише обрані категорії.",
+    goals_errorSourceCategories: "Оберіть хоча б одну категорію",
+    goals_categoriesLabel: "Категорії",
 
     // Categories
     categories_title: "Категорії",

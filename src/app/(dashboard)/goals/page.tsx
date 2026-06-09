@@ -15,20 +15,35 @@ export default function GoalsPage() {
   const [modal, setModal] = useState(false);
   const [realizeGoal, setRealizeGoal] = useState<Goal | null>(null);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
-  const [form, setForm] = useState({ title: "", targetAmount: "", isShared: true });
+  const [form, setForm] = useState({ title: "", targetAmount: "", isShared: true, sourceCategoryIds: [] as string[] });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const MAX_AMOUNT = 999_999_999.99;
-  const balances = dashboardData ? { myBalance: dashboardData.myBalance, totalBalance: dashboardData.totalBalance } : null;
-
   function getGoalDisplay(goal: Goal) {
-    if (!balances) return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0 };
-    const balanceUsed = goal.isShared ? balances.totalBalance : balances.myBalance;
-    const remainingNeeded = Math.max(0, goal.targetAmount - balanceUsed);
-    const progressPercent = Math.min(100, (balanceUsed / goal.targetAmount) * 100);
-    return { balanceUsed, remainingNeeded, progressPercent };
+    const dashGoal = dashboardData?.goals.find((g) => g.id === goal.id);
+    if (dashGoal) {
+      return {
+        balanceUsed: dashGoal.balanceUsed,
+        remainingNeeded: dashGoal.remainingNeeded,
+        progressPercent: dashGoal.progressPercent,
+      };
+    }
+    return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0 };
+  }
+
+  function defaultSourceCategoryIds(): string[] {
+    return categories.map((c) => c.id);
+  }
+
+  function toggleSourceCategory(categoryId: string) {
+    setForm((f) => ({
+      ...f,
+      sourceCategoryIds: f.sourceCategoryIds.includes(categoryId)
+        ? f.sourceCategoryIds.filter((id) => id !== categoryId)
+        : [...f.sourceCategoryIds, categoryId],
+    }));
   }
 
   async function refreshAfterGoalAction() {
@@ -41,11 +56,17 @@ export default function GoalsPage() {
     const target = parseFloat(form.targetAmount.replace(",", "."));
     if (!form.title.trim() || !Number.isFinite(target) || target <= 0) { setError(t("goals_errorFill")); return; }
     if (target > MAX_AMOUNT) { setError(t("goals_errorAmountBig")); return; }
+    if (form.sourceCategoryIds.length === 0) { setError(t("goals_errorSourceCategories")); return; }
     setSubmitting(true);
     try {
       const res = await fetch("/api/goals", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: form.title.trim(), targetAmount: target, isShared: form.isShared }),
+        body: JSON.stringify({
+          title: form.title.trim(),
+          targetAmount: target,
+          isShared: form.isShared,
+          sourceCategoryIds: form.sourceCategoryIds,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("goals_errorGeneric")); return; }
@@ -62,11 +83,17 @@ export default function GoalsPage() {
     const target = parseFloat(form.targetAmount.replace(",", "."));
     if (!form.title.trim() || !Number.isFinite(target) || target <= 0) { setError(t("goals_errorFill")); return; }
     if (target > MAX_AMOUNT) { setError(t("goals_errorAmountBig")); return; }
+    if (form.sourceCategoryIds.length === 0) { setError(t("goals_errorSourceCategories")); return; }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/goals/${editGoal.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: form.title.trim(), targetAmount: target, isShared: form.isShared }),
+        body: JSON.stringify({
+          title: form.title.trim(),
+          targetAmount: target,
+          isShared: form.isShared,
+          sourceCategoryIds: form.sourceCategoryIds,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("goals_errorGeneric")); return; }
@@ -105,15 +132,20 @@ export default function GoalsPage() {
 
   function openCreate() {
     setModal(true); setEditGoal(null); setError("");
-    setForm({ title: "", targetAmount: "", isShared: hasPartner });
+    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: defaultSourceCategoryIds() });
   }
   function openEdit(g: Goal) {
     setEditGoal(g); setError("");
-    setForm({ title: g.title, targetAmount: String(g.targetAmount), isShared: hasPartner ? g.isShared : false });
+    setForm({
+      title: g.title,
+      targetAmount: String(g.targetAmount),
+      isShared: hasPartner ? g.isShared : false,
+      sourceCategoryIds: g.sourceCategories.length > 0 ? g.sourceCategories.map((c) => c.id) : defaultSourceCategoryIds(),
+    });
   }
   function closeModal() {
     setModal(false); setEditGoal(null); setError("");
-    setForm({ title: "", targetAmount: "", isShared: hasPartner });
+    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: defaultSourceCategoryIds() });
   }
 
   if (!initialLoadDone) return <Loader />;
@@ -158,7 +190,14 @@ export default function GoalsPage() {
                           <h2 className="font-semibold text-[17px]">{goal.title}</h2>
                           {hasEnough && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">Достатньо</span>}
                         </div>
-                        <p className="text-[13px] text-[var(--text-secondary)] mt-1">{formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}</p>
+                        <p className="text-[13px] text-[var(--text-secondary)] mt-1">
+                          {formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}
+                          {goal.sourceCategories.length > 0 && (
+                            <span className="block mt-0.5 text-[12px] text-[var(--text-tertiary)]">
+                              {t("goals_categoriesLabel")}: {goal.sourceCategories.map((c) => c.name).join(", ")}
+                            </span>
+                          )}
+                        </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-[12px] text-[var(--text-tertiary)]">Залишилось зібрати</p>
@@ -172,19 +211,19 @@ export default function GoalsPage() {
                       <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium">{progressPercent.toFixed(0)}%</span>
                     </div>
                     <p className="text-[12px] text-[var(--text-tertiary)] mt-2">На балансі {formatMoney(balanceUsed)} з {formatMoney(goal.targetAmount)}</p>
-                    <div className="relative z-[1] flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-[var(--border)]">
+                    <div className="relative z-[1] flex flex-col gap-2 mt-4 pt-3 border-t border-[var(--border)] sm:flex-row sm:flex-wrap sm:items-center">
                       {hasEnough && (
-                        <button type="button" onClick={() => setRealizeGoal(goal)} className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5">
+                        <button type="button" onClick={() => setRealizeGoal(goal)} className="rounded-lg px-3 py-2.5 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 w-full sm:w-auto">
                           <CheckCircle className="w-4 h-4" strokeWidth={2} /> Реалізувати
                         </button>
                       )}
                       {canEditDelete && (
-                        <div className="flex gap-2 ml-auto">
-                          <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5" title={t("goals_edit")}>
+                        <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+                          <button type="button" onClick={() => openEdit(goal)} className="flex-1 sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_edit")}>
                             <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
                             <span className="text-[13px] font-medium">{t("goals_edit")}</span>
                           </button>
-                          <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-3 py-2 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center gap-1.5" title={t("goals_delete")}>
+                          <button type="button" onClick={() => handleDelete(goal)} className="flex-1 sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_delete")}>
                             <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
                             <span className="text-[13px] font-medium">{t("goals_delete")}</span>
                           </button>
@@ -204,29 +243,31 @@ export default function GoalsPage() {
                     const canEditDelete = user && (goal.createdBy === user.id || goal.isShared);
                     return (
                       <div key={goal.id} className="card py-3 border-[var(--accent-green)]/20">
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
                             <h3 className="font-medium text-[15px] truncate">{goal.title}</h3>
                             <p className="text-[12px] text-[var(--text-tertiary)]">{formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}</p>
                           </div>
-                          <div className="relative z-[1] flex flex-wrap items-center justify-end gap-1 shrink-0">
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)]">Реалізовано</span>
-                            <button type="button" onClick={() => handleRealize(goal, false)} className="rounded-lg px-2 py-2 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition inline-flex items-center gap-1" title={t("goals_undo")}>
-                              <XCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
-                              <span className="text-[12px] font-medium sm:hidden">{t("goals_undo")}</span>
-                            </button>
-                            {canEditDelete && (
-                              <>
-                                <button type="button" onClick={() => openEdit(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1" title={t("goals_edit")}>
-                                  <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
-                                  <span className="text-[12px] font-medium sm:hidden">{t("goals_edit")}</span>
-                                </button>
-                                <button type="button" onClick={() => handleDelete(goal)} className="rounded-lg px-2 py-2 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center gap-1" title={t("goals_delete")}>
-                                  <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
-                                  <span className="text-[12px] font-medium sm:hidden">{t("goals_delete")}</span>
-                                </button>
-                              </>
-                            )}
+                          <div className="relative z-[1] flex flex-col gap-2 w-full sm:w-auto sm:min-w-0">
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)] self-start">Реалізовано</span>
+                            <div className="flex flex-wrap gap-2">
+                              <button type="button" onClick={() => handleRealize(goal, false)} className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_undo")}>
+                                <XCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
+                                <span className="text-[12px] font-medium">{t("goals_undo")}</span>
+                              </button>
+                              {canEditDelete && (
+                                <>
+                                  <button type="button" onClick={() => openEdit(goal)} className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_edit")}>
+                                    <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
+                                    <span className="text-[12px] font-medium">{t("goals_edit")}</span>
+                                  </button>
+                                  <button type="button" onClick={() => handleDelete(goal)} className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_delete")}>
+                                    <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
+                                    <span className="text-[12px] font-medium">{t("goals_delete")}</span>
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -259,6 +300,20 @@ export default function GoalsPage() {
                   label={t("goals_shared")}
                 />
               )}
+              <div>
+                <FieldLabel>{t("goals_sourceCategories")}</FieldLabel>
+                <p className="text-[12px] text-[var(--text-tertiary)] mb-2">{t("goals_sourceCategoriesHint")}</p>
+                <div className="space-y-2 max-h-40 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
+                  {categories.map((c) => (
+                    <CheckboxField
+                      key={c.id}
+                      checked={form.sourceCategoryIds.includes(c.id)}
+                      onChange={() => toggleSourceCategory(c.id)}
+                      label={c.name}
+                    />
+                  ))}
+                </div>
+              </div>
               {error && <FieldError message={error} />}
               <ModalActions onCancel={closeModal} submitLabel={editGoal ? t("modal_save") : t("modal_create")} submitDisabled={submitting} />
             </form>
@@ -269,7 +324,11 @@ export default function GoalsPage() {
       {realizeGoal && (
         <RealizeGoalModal
           goal={realizeGoal}
-          categories={categories}
+          categories={
+            realizeGoal.sourceCategories.length > 0
+              ? categories.filter((c) => realizeGoal.sourceCategories.some((s) => s.id === c.id))
+              : categories
+          }
           onClose={() => setRealizeGoal(null)}
           onConfirm={(sourceCategoryId) => handleRealize(realizeGoal, true, sourceCategoryId)}
         />

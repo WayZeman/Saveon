@@ -114,8 +114,8 @@ export default function HomePageContent() {
       {/* Goals — тільки нереалізовані; "Залишилось" = загальна сума до збору мінус поточний баланс */}
       {data.goals.length > 0 && (() => {
         const totalTarget = data.goals.reduce((s, g) => s + g.targetAmount, 0);
-        const totalCollected = data.totalBalance;
-        const totalRemaining = Math.max(0, totalTarget - totalCollected);
+        const totalRemaining = data.goals.reduce((s, g) => s + g.remainingNeeded, 0);
+        const totalCollected = data.goals.reduce((s, g) => s + Math.min(g.balanceUsed, g.targetAmount), 0);
         const fillPercent = totalTarget > 0 ? Math.max(0, Math.min(100, (totalCollected / totalTarget) * 100)) : 0;
         return (
           <section className="card opacity-0 animate-slide-up animate-stagger-3">
@@ -335,7 +335,11 @@ export default function HomePageContent() {
       {realizeGoal && (
         <RealizeGoalModal
           goal={realizeGoal}
-          categories={categories}
+          categories={
+            realizeGoal.sourceCategories && realizeGoal.sourceCategories.length > 0
+              ? categories.filter((c) => realizeGoal.sourceCategories!.some((s) => s.id === c.id))
+              : categories
+          }
           onClose={() => setRealizeGoal(null)}
           onConfirm={(sourceCategoryId) => confirmRealizeGoal(realizeGoal.id, sourceCategoryId)}
         />
