@@ -177,6 +177,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     goals_sourceCategoriesHint: "Прогрес і списання при реалізації враховують лише обрані категорії.",
     goals_errorSourceCategories: "Оберіть хоча б одну категорію",
     goals_categoriesLabel: "Категорії",
+    goals_selectedCategories: "Обрано: {0}",
+    goals_noCategoriesAvailable: "Спочатку створіть категорії на сторінці «Категорії»",
+    goals_allCategoriesFallback: "Усі категорії",
 
     // Categories
     categories_title: "Категорії",

@@ -33,17 +33,19 @@ export default function GoalsPage() {
     return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0 };
   }
 
-  function defaultSourceCategoryIds(): string[] {
-    return categories.map((c) => c.id);
-  }
-
-  function toggleSourceCategory(categoryId: string) {
+  function setSourceCategory(categoryId: string, checked: boolean) {
     setForm((f) => ({
       ...f,
-      sourceCategoryIds: f.sourceCategoryIds.includes(categoryId)
-        ? f.sourceCategoryIds.filter((id) => id !== categoryId)
-        : [...f.sourceCategoryIds, categoryId],
+      sourceCategoryIds: checked
+        ? f.sourceCategoryIds.includes(categoryId)
+          ? f.sourceCategoryIds
+          : [...f.sourceCategoryIds, categoryId]
+        : f.sourceCategoryIds.filter((id) => id !== categoryId),
     }));
+  }
+
+  function goalSourceCategoryIds(goal: Goal): string[] {
+    return (goal.sourceCategories ?? []).map((c) => c.id);
   }
 
   async function refreshAfterGoalAction() {
@@ -132,20 +134,30 @@ export default function GoalsPage() {
 
   function openCreate() {
     setModal(true); setEditGoal(null); setError("");
-    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: defaultSourceCategoryIds() });
+    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: [] });
   }
-  function openEdit(g: Goal) {
+  async function openEdit(g: Goal) {
     setEditGoal(g); setError("");
-    setForm({
-      title: g.title,
-      targetAmount: String(g.targetAmount),
-      isShared: hasPartner ? g.isShared : false,
-      sourceCategoryIds: g.sourceCategories.length > 0 ? g.sourceCategories.map((c) => c.id) : defaultSourceCategoryIds(),
-    });
+    let sourceCategoryIds = goalSourceCategoryIds(g);
+    let title = g.title;
+    let targetAmount = String(g.targetAmount);
+    let isShared = hasPartner ? g.isShared : false;
+    try {
+      const res = await fetch(`/api/goals/${g.id}`);
+      if (res.ok) {
+        const fresh: Goal = await res.json();
+        sourceCategoryIds = goalSourceCategoryIds({ ...fresh, sourceCategories: fresh.sourceCategories ?? [] });
+        title = fresh.title;
+        targetAmount = String(fresh.targetAmount);
+        isShared = hasPartner ? fresh.isShared : false;
+        setEditGoal({ ...fresh, sourceCategories: fresh.sourceCategories ?? [] });
+      }
+    } catch { /* use list data */ }
+    setForm({ title, targetAmount, isShared, sourceCategoryIds });
   }
   function closeModal() {
     setModal(false); setEditGoal(null); setError("");
-    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: defaultSourceCategoryIds() });
+    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: [] });
   }
 
   if (!initialLoadDone) return <Loader />;
@@ -192,11 +204,12 @@ export default function GoalsPage() {
                         </div>
                         <p className="text-[13px] text-[var(--text-secondary)] mt-1">
                           {formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}
-                          {goal.sourceCategories.length > 0 && (
-                            <span className="block mt-0.5 text-[12px] text-[var(--text-tertiary)]">
-                              {t("goals_categoriesLabel")}: {goal.sourceCategories.map((c) => c.name).join(", ")}
-                            </span>
-                          )}
+                          <span className="block mt-0.5 text-[12px] text-[var(--text-tertiary)]">
+                            {t("goals_categoriesLabel")}:{" "}
+                            {(goal.sourceCategories ?? []).length > 0
+                              ? goal.sourceCategories.map((c) => c.name).join(", ")
+                              : t("goals_allCategoriesFallback")}
+                          </span>
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -293,6 +306,33 @@ export default function GoalsPage() {
                 <FieldLabel>{t("goals_targetAmount")}</FieldLabel>
                 <input type="text" inputMode="decimal" value={form.targetAmount} onChange={(e) => setForm((f) => ({ ...f, targetAmount: e.target.value }))} placeholder="0.00" required />
               </div>
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <FieldLabel>{t("goals_sourceCategories")}</FieldLabel>
+                  {categories.length > 0 && (
+                    <span className="text-[12px] text-[var(--text-tertiary)]">
+                      {t("goals_selectedCategories", String(form.sourceCategoryIds.length))}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[12px] text-[var(--text-tertiary)] mb-2">{t("goals_sourceCategoriesHint")}</p>
+                {categories.length === 0 ? (
+                  <p className="text-[13px] text-[var(--text-secondary)] rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3">
+                    {t("goals_noCategoriesAvailable")}
+                  </p>
+                ) : (
+                  <div className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
+                    {categories.map((c) => (
+                      <CheckboxField
+                        key={c.id}
+                        checked={form.sourceCategoryIds.includes(c.id)}
+                        onChange={(checked) => setSourceCategory(c.id, checked)}
+                        label={c.name}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
               {hasPartner && (
                 <CheckboxField
                   checked={form.isShared}
@@ -300,20 +340,6 @@ export default function GoalsPage() {
                   label={t("goals_shared")}
                 />
               )}
-              <div>
-                <FieldLabel>{t("goals_sourceCategories")}</FieldLabel>
-                <p className="text-[12px] text-[var(--text-tertiary)] mb-2">{t("goals_sourceCategoriesHint")}</p>
-                <div className="space-y-2 max-h-40 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
-                  {categories.map((c) => (
-                    <CheckboxField
-                      key={c.id}
-                      checked={form.sourceCategoryIds.includes(c.id)}
-                      onChange={() => toggleSourceCategory(c.id)}
-                      label={c.name}
-                    />
-                  ))}
-                </div>
-              </div>
               {error && <FieldError message={error} />}
               <ModalActions onCancel={closeModal} submitLabel={editGoal ? t("modal_save") : t("modal_create")} submitDisabled={submitting} />
             </form>
@@ -326,7 +352,7 @@ export default function GoalsPage() {
           goal={realizeGoal}
           categories={
             realizeGoal.sourceCategories.length > 0
-              ? categories.filter((c) => realizeGoal.sourceCategories.some((s) => s.id === c.id))
+              ? categories.filter((c) => (realizeGoal.sourceCategories ?? []).some((s) => s.id === c.id))
               : categories
           }
           onClose={() => setRealizeGoal(null)}

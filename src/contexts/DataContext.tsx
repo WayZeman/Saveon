@@ -294,7 +294,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const dashboardData = dashboardRes.ok ? await dashboardRes.json() : null;
       const transactions = transactionsRes.ok ? await transactionsRes.json() : [];
       const categories = categoriesRes.ok ? await categoriesRes.json() : [];
-      const goals = goalsRes.ok ? await goalsRes.json() : [];
+      const goalsRaw = goalsRes.ok ? await goalsRes.json() : [];
+      const goals = Array.isArray(goalsRaw)
+        ? goalsRaw.map((g: Goal) => ({ ...g, sourceCategories: g.sourceCategories ?? [] }))
+        : [];
       const partnerData = partnerRes.ok
         ? await partnerRes.json()
         : { partner: null, incomingInvite: null, outgoingInvite: null };
@@ -403,7 +406,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const refetchGoals = useCallback(async () => {
     const res = await fetch("/api/goals");
     if (!res.ok) return;
-    const goals = await res.json();
+    const raw = await res.json();
+    const goals = Array.isArray(raw)
+      ? raw.map((g: Goal) => ({ ...g, sourceCategories: g.sourceCategories ?? [] }))
+      : [];
     setState((s) => ({ ...s, goals }));
   }, []);
 

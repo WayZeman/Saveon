@@ -137,10 +137,13 @@ export default function HomePageContent() {
                 const hasEnough = goal.remainingNeeded <= 0;
                 return (
                   <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
-                    <Link href="/goals" className="flex-1 min-w-0">
-                      <span className="text-[14px] font-medium">{goal.title}</span>
+                    <Link href="/goals" className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                      <span className="text-[14px] font-medium truncate">{goal.title}</span>
+                      <span className="text-[13px] font-semibold text-[var(--accent-blue)] shrink-0 tabular-nums">
+                        {Math.min(100, Math.max(0, goal.progressPercent)).toFixed(0)}%
+                      </span>
                     </Link>
-                    {hasEnough ? (
+                    {hasEnough && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -151,8 +154,6 @@ export default function HomePageContent() {
                       >
                         {t("home_realize")}
                       </button>
-                    ) : (
-                      <span className="shrink-0 text-[13px] font-medium text-[var(--accent-orange)]">{t("home_remaining")} {formatMoney(goal.remainingNeeded)}</span>
                     )}
                   </li>
                 );
