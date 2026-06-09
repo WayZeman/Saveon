@@ -1,9 +1,36 @@
+import fs from "fs";
+import path from "path";
 import PDFDocument from "pdfkit";
 import type { ReportData } from "./report-data";
 import { getReportFonts } from "./report-fonts";
 
-const MARGIN = 48;
-const PAGE_BOTTOM = 792 - MARGIN;
+const PAGE_W = 595.28;
+const PAGE_H = 841.89;
+const MARGIN = 44;
+const CONTENT_W = PAGE_W - MARGIN * 2;
+const RIGHT = PAGE_W - MARGIN;
+const FOOTER_Y = PAGE_H - 36;
+
+const C = {
+  brand: "#0a84ff",
+  brandDark: "#0660c7",
+  ink: "#141820",
+  inkSecondary: "#4a5568",
+  inkMuted: "#8a95a8",
+  border: "#e2e8f0",
+  surface: "#f6f8fc",
+  surfaceAlt: "#eef2f8",
+  white: "#ffffff",
+  income: "#1a9d4f",
+  expense: "#e04545",
+  incomeBg: "#e8f7ee",
+  expenseBg: "#fdeeee",
+  netPosBg: "#e8f2ff",
+  netNegBg: "#fdeeee",
+};
+
+type ReportFonts = { regular: string; bold: string };
+type Doc = InstanceType<typeof PDFDocument>;
 
 function formatUah(amount: number): string {
   return `${new Intl.NumberFormat("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} ₴`;
@@ -11,6 +38,10 @@ function formatUah(amount: number): string {
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function formatDateShort(d: Date): string {
+  return d.toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function formatDateTime(d: Date): string {
@@ -23,146 +54,411 @@ function formatDateTime(d: Date): string {
   });
 }
 
-function ensureSpace(doc: InstanceType<typeof PDFDocument>, needed: number) {
-  if (doc.y + needed > PAGE_BOTTOM) doc.addPage();
+function contentBottom(doc: Doc): number {
+  return FOOTER_Y - 14;
 }
 
-type ReportFonts = { regular: string; bold: string };
+function startContentPage(doc: Doc) {
+  drawPageChrome(doc);
+  doc.x = MARGIN;
+  doc.y = 52;
+}
 
-function sectionTitle(doc: InstanceType<typeof PDFDocument>, fonts: ReportFonts, title: string) {
-  ensureSpace(doc, 40);
-  doc.moveDown(0.5);
-  doc.font(fonts.bold).fontSize(13).fillColor("#111111").text(title);
+function ensureSpace(doc: Doc, needed: number) {
+  if (doc.y + needed > contentBottom(doc)) {
+    doc.addPage();
+    startContentPage(doc);
+  }
+}
+
+function drawPageChrome(doc: Doc) {
+  doc.save();
+  doc.strokeColor(C.border).lineWidth(0.5);
+  doc.moveTo(MARGIN, FOOTER_Y - 8).lineTo(RIGHT, FOOTER_Y - 8).stroke();
+  doc.restore();
+}
+
+function drawCoverHeader(doc: Doc, fonts: ReportFonts, data: ReportData) {
+  const headerH = 128;
+
+  doc.save();
+  doc.rect(0, 0, PAGE_W, headerH).fill(C.brand);
+  doc.rect(0, headerH - 28, PAGE_W, 28).fill(C.brandDark);
+  doc.restore();
+
+  const logoPath = path.join(process.cwd(), "public/icon-192.png");
+  const logoX = MARGIN;
+  const logoY = 36;
+  if (fs.existsSync(logoPath)) {
+    doc.image(logoPath, logoX, logoY, { width: 40, height: 40 });
+  }
+
+  const textX = fs.existsSync(logoPath) ? logoX + 50 : logoX;
+  doc.font(fonts.bold).fontSize(26).fillColor(C.white).text("Saveon", textX, logoY + 2);
+  doc.font(fonts.regular).fontSize(11).fillColor("#e8f4ff").text("Фінансовий звіт", textX, logoY + 32);
+
+  doc.font(fonts.regular).fontSize(9).fillColor(C.white);
+  doc.text(formatDateTime(data.generatedAt), MARGIN, headerH - 22, { width: CONTENT_W, align: "right" });
+
+  doc.y = headerH + 22;
+
+  const metaY = doc.y;
+  const metaH = data.hasPartner ? 72 : 58;
+  doc.roundedRect(MARGIN, metaY, CONTENT_W, metaH, 10).fill(C.surface);
+  doc.roundedRect(MARGIN, metaY, CONTENT_W, metaH, 10).stroke(C.border);
+
+  const colW = CONTENT_W / 2 - 16;
+  const leftX = MARGIN + 16;
+  const rightX = MARGIN + CONTENT_W / 2 + 4;
+  const row1Y = metaY + 14;
+
+  doc.font(fonts.regular).fontSize(8).fillColor(C.inkMuted).text("КЛІЄНТ", leftX, row1Y);
+  doc.font(fonts.bold).fontSize(11).fillColor(C.ink).text(data.userName, leftX, row1Y + 12, { width: colW });
+
+  doc.font(fonts.regular).fontSize(8).fillColor(C.inkMuted).text("ПЕРІОД ЗВІТУ", rightX, row1Y);
+  doc.font(fonts.bold).fontSize(11).fillColor(C.ink).text(
+    `${formatDate(data.periodFrom)} — ${formatDate(data.periodTo)}`,
+    rightX,
+    row1Y + 12,
+    { width: colW }
+  );
+
+  if (data.userEmail) {
+    doc.font(fonts.regular).fontSize(9).fillColor(C.inkSecondary).text(data.userEmail, leftX, row1Y + 30, { width: colW });
+  }
+
+  if (data.hasPartner) {
+    doc.font(fonts.regular).fontSize(8).fillColor(C.inkMuted).text("ОХОПЛЕННЯ", rightX, row1Y + 30);
+    doc.font(fonts.regular).fontSize(9).fillColor(C.inkSecondary).text(
+      "Спільні дані з партнером",
+      rightX,
+      row1Y + 42,
+      { width: colW }
+    );
+  }
+
+  doc.y = metaY + metaH + 22;
+}
+
+function drawSectionHeader(doc: Doc, fonts: ReportFonts, title: string, subtitle?: string) {
+  ensureSpace(doc, subtitle ? 52 : 40);
+  doc.moveDown(0.25);
+
+  const y = doc.y;
+  doc.save();
+  doc.roundedRect(MARGIN, y, 4, subtitle ? 28 : 18, 2).fill(C.brand);
+  doc.restore();
+
+  doc.font(fonts.bold).fontSize(13).fillColor(C.ink).text(title, MARGIN + 12, y);
+  if (subtitle) {
+    doc.font(fonts.regular).fontSize(9).fillColor(C.inkMuted).text(subtitle, MARGIN + 12, y + 16, { width: CONTENT_W - 12 });
+    doc.y = y + 34;
+  } else {
+    doc.y = y + 22;
+  }
   doc.moveDown(0.35);
-  doc
-    .strokeColor("#cccccc")
-    .lineWidth(0.5)
-    .moveTo(MARGIN, doc.y)
-    .lineTo(547, doc.y)
-    .stroke();
-  doc.moveDown(0.5);
 }
 
-function drawSummaryRow(
-  doc: InstanceType<typeof PDFDocument>,
+function drawKpiCard(
+  doc: Doc,
   fonts: ReportFonts,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   label: string,
   value: string,
-  color = "#111111"
+  accent: string,
+  bg: string
 ) {
+  doc.roundedRect(x, y, w, h, 10).fill(bg);
+  doc.roundedRect(x, y, w, h, 10).stroke(C.border);
+  doc.save();
+  doc.roundedRect(x, y, w, 4, 10).clip();
+  doc.rect(x, y, w, 4).fill(accent);
+  doc.restore();
+
+  doc.font(fonts.regular).fontSize(8).fillColor(C.inkMuted).text(label.toUpperCase(), x + 14, y + 16, { width: w - 28 });
+  doc.font(fonts.bold).fontSize(14).fillColor(accent).text(value, x + 14, y + 32, { width: w - 28 });
+}
+
+function drawSummarySection(doc: Doc, fonts: ReportFonts, data: ReportData) {
+  drawSectionHeader(doc, fonts, "Підсумок за період", "Ключові показники руху коштів");
+
+  const gap = 10;
+  const cardW = (CONTENT_W - gap * 2) / 3;
+  const cardH = 68;
   const y = doc.y;
-  doc.font(fonts.regular).fontSize(11).fillColor("#555555").text(label, MARGIN, y, { width: 280 });
-  doc.font(fonts.bold).fontSize(11).fillColor(color).text(value, 330, y, { width: 217, align: "right" });
-  doc.y = y + 18;
+
+  drawKpiCard(doc, fonts, MARGIN, y, cardW, cardH, "Доходи", formatUah(data.totalIncome), C.income, C.incomeBg);
+  drawKpiCard(
+    doc,
+    fonts,
+    MARGIN + cardW + gap,
+    y,
+    cardW,
+    cardH,
+    "Витрати",
+    formatUah(data.totalExpense),
+    C.expense,
+    C.expenseBg
+  );
+  drawKpiCard(
+    doc,
+    fonts,
+    MARGIN + (cardW + gap) * 2,
+    y,
+    cardW,
+    cardH,
+    "Чиста зміна",
+    formatUah(data.netChange),
+    data.netChange >= 0 ? C.brand : C.expense,
+    data.netChange >= 0 ? C.netPosBg : C.netNegBg
+  );
+
+  doc.y = y + cardH + 20;
+}
+
+type TableColumn = { label: string; width: number; align?: "left" | "right" | "center" };
+
+function drawTableHeader(doc: Doc, fonts: ReportFonts, x: number, y: number, w: number, cols: TableColumn[]) {
+  doc.roundedRect(x, y, w, 22, 6).fill(C.surfaceAlt);
+  let cx = x + 10;
+  doc.font(fonts.bold).fontSize(8).fillColor(C.inkMuted);
+  for (const col of cols) {
+    doc.text(col.label.toUpperCase(), cx, y + 7, { width: col.width - 8, align: col.align ?? "left" });
+    cx += col.width;
+  }
+}
+
+function drawTableRow(
+  doc: Doc,
+  fonts: ReportFonts,
+  x: number,
+  y: number,
+  w: number,
+  cols: TableColumn[],
+  cells: { text: string; color?: string; bold?: boolean }[],
+  alt: boolean
+) {
+  if (alt) doc.rect(x, y, w, 20).fill(C.surface);
+  doc.save();
+  doc.strokeColor(C.border).lineWidth(0.5);
+  doc.moveTo(x, y + 20).lineTo(x + w, y + 20).stroke();
+  doc.restore();
+
+  let cx = x + 10;
+  for (let i = 0; i < cols.length; i++) {
+    const cell = cells[i];
+    doc.font(cell.bold ? fonts.bold : fonts.regular)
+      .fontSize(8.5)
+      .fillColor(cell.color ?? C.ink)
+      .text(cell.text, cx, y + 6, { width: cols[i].width - 8, align: cols[i].align ?? "left" });
+    cx += cols[i].width;
+  }
+}
+
+function drawCategoryTable(doc: Doc, fonts: ReportFonts, data: ReportData) {
+  drawSectionHeader(doc, fonts, "Рух по категоріях", "Доходи, витрати та нетто за обраний період");
+
+  const cols: TableColumn[] = [
+    { label: "Категорія", width: 198 },
+    { label: "Дохід", width: 92, align: "right" },
+    { label: "Витрата", width: 92, align: "right" },
+    { label: "Нетто", width: 117, align: "right" },
+  ];
+
+  const tableX = MARGIN;
+  const tableW = CONTENT_W;
+  let y = doc.y;
+
+  ensureSpace(doc, 30);
+  drawTableHeader(doc, fonts, tableX, y, tableW, cols);
+  y += 22;
+
+  data.categoryRows.forEach((row, i) => {
+    ensureSpace(doc, 22);
+    if (doc.y > y) y = doc.y;
+    drawTableRow(
+      doc,
+      fonts,
+      tableX,
+      y,
+      tableW,
+      cols,
+      [
+        { text: row.name, bold: true },
+        { text: row.income > 0 ? formatUah(row.income) : "—", color: C.inkSecondary },
+        { text: row.expense > 0 ? formatUah(row.expense) : "—", color: C.inkSecondary },
+        { text: formatUah(row.net), color: row.net >= 0 ? C.income : C.expense, bold: true },
+      ],
+      i % 2 === 1
+    );
+    y += 20;
+  });
+
+  doc.y = y + 12;
+}
+
+function drawProgressBar(doc: Doc, x: number, y: number, w: number, percent: number) {
+  const h = 6;
+  const fill = Math.max(0, Math.min(100, percent));
+  doc.roundedRect(x, y, w, h, 3).fill(C.border);
+  if (fill > 0) {
+    doc.roundedRect(x, y, Math.max(6, (w * fill) / 100), h, 3).fill(C.brand);
+  }
+}
+
+function drawGoalsSection(doc: Doc, fonts: ReportFonts, data: ReportData) {
+  drawSectionHeader(doc, fonts, "Активні цілі", "Стан накопичень на момент формування звіту");
+
+  for (const goal of data.goals) {
+    ensureSpace(doc, 58);
+    const y = doc.y;
+    const boxH = 52;
+
+    doc.roundedRect(MARGIN, y, CONTENT_W, boxH, 10).fill(C.white);
+    doc.roundedRect(MARGIN, y, CONTENT_W, boxH, 10).stroke(C.border);
+
+    doc.font(fonts.bold).fontSize(10).fillColor(C.ink).text(goal.title, MARGIN + 14, y + 12, { width: CONTENT_W - 100 });
+    doc.font(fonts.bold).fontSize(10).fillColor(C.brand).text(
+      `${goal.progressPercent.toFixed(0)}%`,
+      MARGIN + 14,
+      y + 12,
+      { width: CONTENT_W - 28, align: "right" }
+    );
+
+    drawProgressBar(doc, MARGIN + 14, y + 30, CONTENT_W - 28, goal.progressPercent);
+
+    doc.font(fonts.regular).fontSize(8.5).fillColor(C.inkSecondary);
+    doc.text(
+      `Ціль ${formatUah(goal.targetAmount)}  ·  Зібрано ${formatUah(goal.balanceUsed)}`,
+      MARGIN + 14,
+      y + 40,
+      { width: CONTENT_W - 28 }
+    );
+
+    doc.y = y + boxH + 8;
+  }
+
+  doc.moveDown(0.5);
+}
+
+function drawTransactionsSection(doc: Doc, fonts: ReportFonts, data: ReportData) {
+  drawSectionHeader(doc, fonts, "Транзакції", "Деталізація операцій за період");
+
+  if (data.transactions.length === 0) {
+    ensureSpace(doc, 40);
+    const y = doc.y;
+    doc.roundedRect(MARGIN, y, CONTENT_W, 44, 10).fill(C.surface);
+    doc.font(fonts.regular).fontSize(10).fillColor(C.inkMuted).text(
+      "За обраний період транзакцій немає.",
+      MARGIN + 16,
+      y + 16,
+      { width: CONTENT_W - 32, align: "center" }
+    );
+    doc.y = y + 56;
+    return;
+  }
+
+  const cols: TableColumn[] = [
+    { label: "Дата", width: 62 },
+    { label: "Тип", width: 52 },
+    { label: "Опис", width: 168 },
+    { label: "Хто", width: 72 },
+    { label: "Сума", width: 145, align: "right" },
+  ];
+
+  const tableX = MARGIN;
+  const tableW = CONTENT_W;
+  let y = doc.y;
+
+  ensureSpace(doc, 30);
+  drawTableHeader(doc, fonts, tableX, y, tableW, cols);
+  y += 22;
+
+  data.transactions.forEach((tx, i) => {
+    ensureSpace(doc, 22);
+    if (doc.y > y) y = doc.y;
+
+    const typeLabel = tx.type === "income" ? "Дохід" : "Витрата";
+    const desc =
+      tx.type === "expense" && tx.sourceCategoryName
+        ? `${tx.categoryName} ← ${tx.sourceCategoryName}`
+        : tx.categoryName;
+    const amountPrefix = tx.type === "income" ? "+" : "−";
+    const amountColor = tx.type === "income" ? C.income : C.expense;
+
+    drawTableRow(
+      doc,
+      fonts,
+      tableX,
+      y,
+      tableW,
+      cols,
+      [
+        { text: formatDateShort(tx.date), color: C.inkSecondary },
+        { text: typeLabel, color: amountColor, bold: true },
+        { text: desc },
+        { text: tx.ownerLabel, color: C.inkSecondary },
+        { text: `${amountPrefix}${formatUah(tx.amount)}`, color: amountColor, bold: true },
+      ],
+      i % 2 === 1
+    );
+    y += 20;
+  });
+
+  doc.y = y + 12;
+}
+
+function drawFooters(doc: Doc, fonts: ReportFonts, generatedAt: Date) {
+  const range = doc.bufferedPageRange();
+  for (let i = range.start; i < range.start + range.count; i++) {
+    doc.switchToPage(i);
+    drawPageChrome(doc);
+    doc.font(fonts.regular).fontSize(7.5).fillColor(C.inkMuted);
+    doc.text("Saveon · Конфіденційний фінансовий звіт", MARGIN, FOOTER_Y, { width: 280 });
+    doc.text(`Сторінка ${i - range.start + 1} з ${range.count}`, 0, FOOTER_Y, {
+      width: PAGE_W,
+      align: "center",
+    });
+    doc.text(formatDateTime(generatedAt), 0, FOOTER_Y, { width: PAGE_W - MARGIN, align: "right" });
+  }
 }
 
 export function buildReportPdf(data: ReportData): Promise<Buffer> {
   const fonts = getReportFonts();
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: MARGIN, size: "A4" });
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 0,
+      bufferPages: true,
+      info: {
+        Title: `Saveon — звіт ${formatDateShort(data.periodFrom)} – ${formatDateShort(data.periodTo)}`,
+        Author: "Saveon",
+        Subject: "Фінансовий звіт",
+      },
+    });
     const chunks: Buffer[] = [];
 
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    doc.font(fonts.bold).fontSize(22).fillColor("#0a84ff").text("Saveon");
-    doc.font(fonts.regular).fontSize(12).fillColor("#444444").text("Фінансовий звіт");
-    doc.moveDown(0.75);
-
-    doc.font(fonts.regular).fontSize(10).fillColor("#666666");
-    doc.text(`Користувач: ${data.userName}`);
-    if (data.userEmail) doc.text(`Email: ${data.userEmail}`);
-    doc.text(`Період: ${formatDate(data.periodFrom)} — ${formatDate(data.periodTo)}`);
-    doc.text(`Згенеровано: ${formatDateTime(data.generatedAt)}`);
-    if (data.hasPartner) doc.text("Дані включають спільні транзакції з партнером");
-
-    sectionTitle(doc, fonts, "Підсумок за період");
-    drawSummaryRow(doc, fonts, "Доходи", formatUah(data.totalIncome), "#27b554");
-    drawSummaryRow(doc, fonts, "Витрати", formatUah(data.totalExpense), "#f24747");
-    drawSummaryRow(doc, fonts, "Чиста зміна", formatUah(data.netChange), data.netChange >= 0 ? "#27b554" : "#f24747");
+    drawCoverHeader(doc, fonts, data);
+    drawSummarySection(doc, fonts, data);
 
     if (data.categoryRows.length > 0) {
-      sectionTitle(doc, fonts, "Рух по категоріях");
-      const colX = [MARGIN, 220, 320, 420];
-      ensureSpace(doc, 24);
-      const headerY = doc.y;
-      doc.font(fonts.bold).fontSize(9).fillColor("#888888");
-      doc.text("Категорія", colX[0], headerY, { width: 190 });
-      doc.text("Дохід", colX[1], headerY, { width: 90, align: "right" });
-      doc.text("Витрата", colX[2], headerY, { width: 90, align: "right" });
-      doc.text("Нетто", colX[3], headerY, { width: 127, align: "right" });
-      doc.y = headerY + 16;
-
-      for (const row of data.categoryRows) {
-        ensureSpace(doc, 16);
-        const y = doc.y;
-        doc.font(fonts.regular).fontSize(9).fillColor("#222222");
-        doc.text(row.name, colX[0], y, { width: 190 });
-        doc.text(row.income > 0 ? formatUah(row.income) : "—", colX[1], y, { width: 90, align: "right" });
-        doc.text(row.expense > 0 ? formatUah(row.expense) : "—", colX[2], y, { width: 90, align: "right" });
-        doc.fillColor(row.net >= 0 ? "#27b554" : "#f24747").text(formatUah(row.net), colX[3], y, { width: 127, align: "right" });
-        doc.y = y + 14;
-      }
+      drawCategoryTable(doc, fonts, data);
     }
 
     if (data.goals.length > 0) {
-      sectionTitle(doc, fonts, "Активні цілі (на момент звіту)");
-      for (const goal of data.goals) {
-        ensureSpace(doc, 28);
-        doc.font(fonts.bold).fontSize(10).fillColor("#222222").text(goal.title);
-        doc.font(fonts.regular).fontSize(9).fillColor("#555555");
-        doc.text(
-          `Ціль: ${formatUah(goal.targetAmount)} · Зібрано: ${formatUah(goal.balanceUsed)} · ${goal.progressPercent.toFixed(0)}%`
-        );
-        doc.moveDown(0.25);
-      }
+      drawGoalsSection(doc, fonts, data);
     }
 
-    sectionTitle(doc, fonts, "Транзакції");
-    if (data.transactions.length === 0) {
-      doc.font(fonts.regular).fontSize(10).fillColor("#888888").text("За обраний період транзакцій немає.");
-    } else {
-      const txCols = [MARGIN, 95, 155, 290, 420];
-      ensureSpace(doc, 24);
-      let headerY = doc.y;
-      doc.font(fonts.bold).fontSize(8).fillColor("#888888");
-      doc.text("Дата", txCols[0], headerY, { width: 75 });
-      doc.text("Тип", txCols[1], headerY, { width: 52 });
-      doc.text("Опис", txCols[2], headerY, { width: 125 });
-      doc.text("Хто", txCols[3], headerY, { width: 120 });
-      doc.text("Сума", txCols[4], headerY, { width: 127, align: "right" });
-      doc.y = headerY + 14;
-
-      for (const tx of data.transactions) {
-        ensureSpace(doc, 14);
-        const y = doc.y;
-        const typeLabel = tx.type === "income" ? "Дохід" : "Витрата";
-        const desc =
-          tx.type === "expense" && tx.sourceCategoryName
-            ? `${tx.categoryName} ← ${tx.sourceCategoryName}`
-            : tx.categoryName;
-        const amountPrefix = tx.type === "income" ? "+" : "−";
-        const amountColor = tx.type === "income" ? "#27b554" : "#f24747";
-
-        doc.font(fonts.regular).fontSize(8).fillColor("#333333");
-        doc.text(
-          tx.date.toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit", year: "2-digit" }),
-          txCols[0],
-          y,
-          { width: 75 }
-        );
-        doc.text(typeLabel, txCols[1], y, { width: 52 });
-        doc.text(desc, txCols[2], y, { width: 125 });
-        doc.text(tx.ownerLabel, txCols[3], y, { width: 120 });
-        doc.fillColor(amountColor).text(`${amountPrefix}${formatUah(tx.amount)}`, txCols[4], y, {
-          width: 127,
-          align: "right",
-        });
-        doc.y = y + 12;
-      }
-    }
+    drawTransactionsSection(doc, fonts, data);
+    drawFooters(doc, fonts, data.generatedAt);
 
     doc.end();
   });

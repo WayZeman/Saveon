@@ -9,6 +9,7 @@ const nextConfig = {
         "./node_modules/pdfkit/js/data/*.afm",
         "./public/fonts/DejaVuSans.ttf",
         "./public/fonts/DejaVuSans-Bold.ttf",
+        "./public/icon-192.png",
       ],
     },
   },
