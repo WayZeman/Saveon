@@ -111,10 +111,10 @@ export default function CategoriesPage() {
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
-      <div className="page-header opacity-0 animate-slide-up">
-        <div className="page-header__intro">
+      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
+        <div>
           <h1 className="page-title flex items-center gap-2">
-            <FolderTree className="text-[var(--accent-blue)]" strokeWidth={1.5} />
+            <FolderTree className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
             {t("categories_title")}
           </h1>
           <p className="text-[14px] text-[var(--text-secondary)] mt-1">
@@ -122,12 +122,10 @@ export default function CategoriesPage() {
             {!hasPartner && t("categories_addPartnerHint")}
           </p>
         </div>
-        <div className="page-header__actions">
-          <button type="button" onClick={openCreate} className="btn-primary">
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
-            {t("categories_add")}
-          </button>
-        </div>
+        <button type="button" onClick={openCreate} className="btn-primary">
+          <Plus className="w-4 h-4" strokeWidth={2.5} />
+          {t("categories_add")}
+        </button>
       </div>
 
       {error && !showModal && (
@@ -216,12 +214,12 @@ function CategoryList({
       <h2 className="text-[15px] font-semibold mb-3 text-[var(--text-secondary)]">{title}</h2>
       <ul className="divide-y divide-[var(--border)]">
         {items.map((c) => (
-          <li key={c.id} className="flex items-center justify-between gap-2 sm:gap-3 py-3.5 group">
+          <li key={c.id} className="flex items-center justify-between gap-3 py-3.5 group">
             <button
               type="button"
               onClick={() => onMove(c)}
               disabled={movingId === c.id}
-              className="flex-1 min-w-0 text-left rounded-lg -my-1 py-2 px-1.5 sm:py-1 sm:px-1 hover:bg-[var(--input-bg)] active:bg-[var(--input-bg)] transition disabled:opacity-60"
+              className="flex-1 min-w-0 text-left rounded-lg -my-1 py-1 px-1 hover:bg-[var(--input-bg)] transition disabled:opacity-60"
               title={moveLabel}
             >
               <span className="text-[14px] font-medium block truncate">{c.name}</span>
@@ -230,14 +228,13 @@ function CategoryList({
                   {c.isShared ? t("categories_sharedBadge") : t("categories_personalBadge")}
                 </span>
               )}
-              <span className="text-[10px] text-[var(--text-tertiary)] mt-1 block sm:hidden">{moveLabel}</span>
             </button>
-            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => onMove(c)}
                 disabled={movingId === c.id}
-                className="hidden sm:inline-flex rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-60"
+                className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-60"
                 title={moveLabel}
               >
                 <MoveIcon className="w-4 h-4" strokeWidth={2} />

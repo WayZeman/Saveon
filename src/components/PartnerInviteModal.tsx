@@ -53,13 +53,10 @@ export function PartnerInviteModal({
   return (
     <ModalOverlay onClose={() => {}}>
       <div
-        className="modal-panel-mobile glass-modal rounded-2xl w-full max-w-[440px] max-h-[82dvh] shadow-modal animate-in flex flex-col"
+        className="glass-modal rounded-2xl w-full max-w-[440px] max-h-[82dvh] shadow-modal animate-in flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 pt-3 sm:pt-5 shrink-0">
-          <div className="modal-panel-handle" aria-hidden="true" />
-        </div>
-        <div className="px-5 pb-0 sm:px-7 sm:pt-2 shrink-0">
+        <div className="px-5 pt-5 pb-0 sm:px-7 sm:pt-7 shrink-0">
           <h2 className="text-[18px] font-semibold tracking-tight pr-2">{t("partnerInvite_title")}</h2>
         </div>
         <div className="px-5 pt-5 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-7 sm:pb-7 overflow-y-auto flex-1 min-h-0 space-y-5">

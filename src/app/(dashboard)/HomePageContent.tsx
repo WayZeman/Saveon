@@ -55,7 +55,7 @@ export default function HomePageContent() {
 
   if (!initialLoadDone || !data) {
     return (
-      <div className="section-spacing max-w-6xl mx-auto min-h-[60vh]">
+      <div className="section-spacing max-w-6xl mx-auto min-h-[110vh]">
         <div className="h-44 rounded-[1.8rem] bg-[var(--input-bg)]/60 animate-pulse border border-[var(--border)]" />
         <div className="card !p-5 animate-pulse">
           <div className="h-5 w-40 rounded bg-[var(--input-bg)] mb-3" />
@@ -84,7 +84,7 @@ export default function HomePageContent() {
   return (
     <div className="section-spacing max-w-6xl mx-auto">
       {/* Hero balance */}
-      <section className="rounded-[1.35rem] sm:rounded-[1.8rem] bg-gradient-to-br from-[#0c7ff5] to-[#4e6cff] px-5 pt-6 pb-8 sm:px-6 md:px-10 md:pt-9 md:pb-12 relative overflow-hidden shadow-glow opacity-0 animate-in border border-white/15">
+      <section className="rounded-[1.8rem] bg-gradient-to-br from-[#0c7ff5] to-[#4e6cff] px-6 pt-7 pb-10 md:px-10 md:pt-9 md:pb-12 relative overflow-hidden shadow-glow opacity-0 animate-in border border-white/15">
         <div className="absolute inset-0 opacity-[0.07]">
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white -translate-y-1/3 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white translate-y-1/3 -translate-x-1/3" />
@@ -94,7 +94,7 @@ export default function HomePageContent() {
           <Wallet className="w-4 h-4 shrink-0" strokeWidth={2} />
           {hasPartner ? t("home_totalBalance") : t("home_myBalance")}
         </div>
-        <p className={`hero-balance-amount text-4xl md:text-5xl lg:text-6xl font-bold mt-3 tracking-tight relative tabular-nums ${data.totalBalance >= 0 ? "text-white" : "text-red-200"}`}>
+        <p className={`text-4xl md:text-5xl lg:text-6xl font-bold mt-3 tracking-tight relative ${data.totalBalance >= 0 ? "text-white" : "text-red-200"}`}>
           <AnimatedNumber
             value={data.totalBalance}
             format={(n) => formatMoney(n)}
@@ -126,7 +126,7 @@ export default function HomePageContent() {
               {t("home_goals")}
             </h2>
             <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_goalsProgress")}</p>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-[13px] mb-4">
+            <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-[13px] mb-4">
               <span className="text-[var(--text-secondary)]">{t("home_needed")} <span className="text-[var(--text)] font-medium">{formatMoney(totalTarget)}</span></span>
               <span className="text-[var(--text-secondary)]">{t("home_collected")} <span className="text-[var(--accent-green)] font-medium">{formatMoney(totalCollected)}</span></span>
             </div>
@@ -138,8 +138,8 @@ export default function HomePageContent() {
               {data.goals.map((goal) => {
                 const hasEnough = goal.remainingNeeded <= 0;
                 return (
-                  <li key={goal.id} className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
-                    <Link href="/goals" className="min-w-0 flex items-center justify-between gap-3 sm:flex-1">
+                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
+                    <Link href="/goals" className="flex-1 min-w-0 flex items-center justify-between gap-3">
                       <span className="text-[14px] font-medium truncate">{goal.title}</span>
                       <span className="text-[13px] font-semibold text-[var(--accent-blue)] shrink-0 tabular-nums">
                         {Math.min(100, Math.max(0, goal.progressPercent)).toFixed(0)}%
@@ -152,7 +152,7 @@ export default function HomePageContent() {
                           e.preventDefault();
                           setRealizeGoal(goal);
                         }}
-                        className="w-full sm:w-auto shrink-0 rounded-lg px-3 py-2.5 sm:py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 active:scale-[0.98] transition text-center"
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 transition"
                       >
                         {t("home_realize")}
                       </button>
@@ -185,7 +185,7 @@ export default function HomePageContent() {
         {(data.categoryBreakdown?.length ?? data.pieData.length) > 0 ? (
           <>
             {data.pieData.length > 0 && (
-              <div className="h-48 sm:h-56 md:h-64 categories-chart -mx-1">
+              <div className="h-56 md:h-64 categories-chart">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart margin={{ top: 12, right: 12, bottom: 12, left: 12 }}>
                     <Pie
@@ -281,7 +281,7 @@ export default function HomePageContent() {
           });
           return (
             <>
-              <div className="h-48 sm:h-52 md:h-64 chart-minimal -mx-1">
+              <div className="h-52 md:h-64 chart-minimal -mx-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
