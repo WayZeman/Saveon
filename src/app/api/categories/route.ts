@@ -10,7 +10,7 @@ export async function GET() {
   const session = sessionOr;
   const categories = await prisma.category.findMany({
     where: categoriesVisibleWhere(session),
-    orderBy: [{ isShared: "desc" }, { name: "asc" }],
+    orderBy: [{ tier: "asc" }, { isShared: "desc" }, { name: "asc" }],
     include: { _count: { select: { transactions: true } } },
   });
   return NextResponse.json(categories);
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { name, isShared } = parsed.data;
+    const { name, isShared, tier } = parsed.data;
     const hasPartner = !!session.partnerId;
     const effectiveShared = hasPartner ? (isShared ?? false) : false;
     const category = await prisma.category.create({
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         userId: effectiveShared ? null : session.id,
         createdBy: session.id,
         isShared: effectiveShared,
+        tier: tier ?? "primary",
       },
     });
     return NextResponse.json(category);

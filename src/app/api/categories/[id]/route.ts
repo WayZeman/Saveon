@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { categoriesVisibleWhere } from "@/lib/data-scope";
-import { categorySchema } from "@/lib/validations";
+import { categoryPatchSchema } from "@/lib/validations";
 
 export async function PATCH(
   request: Request,
@@ -32,15 +32,17 @@ export async function PATCH(
   }
   try {
     const body = await request.json();
-    const parsed = categorySchema.safeParse(body);
+    const parsed = categoryPatchSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
     const hasPartner = !!session.partnerId;
-    const effectiveShared = hasPartner ? parsed.data.isShared : category.isShared;
-    const updateData = category.isShared
-      ? { name: parsed.data.name.trim() }
-      : { name: parsed.data.name.trim(), isShared: effectiveShared };
+    const updateData: { name?: string; isShared?: boolean; tier?: string } = {};
+    if (parsed.data.name !== undefined) updateData.name = parsed.data.name.trim();
+    if (parsed.data.tier !== undefined) updateData.tier = parsed.data.tier;
+    if (parsed.data.isShared !== undefined && !category.isShared) {
+      updateData.isShared = hasPartner ? parsed.data.isShared : category.isShared;
+    }
     const updated = await prisma.category.update({
       where: { id },
       data: updateData,

@@ -15,6 +15,7 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
 import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoalModal";
+import { filterPrimaryCategories } from "@/lib/category-tier";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
@@ -36,6 +37,7 @@ export default function HomePageContent() {
   const { t } = useLanguage();
   const { dashboardData: data, user, categories, initialLoadDone, refetchDashboard, refetchGoals } = useData();
   const [realizeGoal, setRealizeGoal] = useState<RealizeGoalInfo | null>(null);
+  const primaryCategories = filterPrimaryCategories(categories);
 
   async function confirmRealizeGoal(goalId: string, sourceCategoryId: string): Promise<boolean> {
     const res = await fetch(`/api/goals/${goalId}`, {
@@ -338,8 +340,8 @@ export default function HomePageContent() {
           goal={realizeGoal}
           categories={
             realizeGoal.sourceCategories && realizeGoal.sourceCategories.length > 0
-              ? categories.filter((c) => realizeGoal.sourceCategories!.some((s) => s.id === c.id))
-              : categories
+              ? primaryCategories.filter((c) => realizeGoal.sourceCategories!.some((s) => s.id === c.id))
+              : primaryCategories
           }
           onClose={() => setRealizeGoal(null)}
           onConfirm={(sourceCategoryId) => confirmRealizeGoal(realizeGoal.id, sourceCategoryId)}

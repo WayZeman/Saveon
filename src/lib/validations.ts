@@ -53,7 +53,18 @@ export const addPartnerSchema = z.object({
 export const categorySchema = z.object({
   name: z.string().min(1).max(100),
   isShared: z.boolean().optional().default(false),
+  tier: z.enum(["primary", "secondary"]).optional().default("primary"),
 });
+
+export const categoryPatchSchema = z
+  .object({
+    name: z.string().min(1).max(100).optional(),
+    isShared: z.boolean().optional(),
+    tier: z.enum(["primary", "secondary"]).optional(),
+  })
+  .refine((data) => data.name !== undefined || data.isShared !== undefined || data.tier !== undefined, {
+    message: "Nothing to update",
+  });
 
 export const transactionSchema = z
   .object({

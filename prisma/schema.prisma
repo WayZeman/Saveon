@@ -52,6 +52,8 @@ model Category {
   // isSystem: службова категорія, назва не шифрується (пошук за фіксованою назвою)
   isSystem Boolean  @default(false)
   isShared Boolean  @default(false)
+  // primary = основна (для цілей), secondary = другорядна
+  tier     String   @default("primary")
   createdAt DateTime @default(now())
 
   user              User?         @relation("UserCategories", fields: [userId], references: [id], onDelete: SetNull)

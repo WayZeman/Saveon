@@ -67,6 +67,7 @@ export type Category = {
   id: string;
   name: string;
   isShared: boolean;
+  tier?: "primary" | "secondary";
   userId: string | null;
   _count?: { transactions: number };
 };
@@ -214,9 +215,9 @@ const DEV_PREVIEW_STATE: DataState = {
     },
   ],
   categories: [
-    { id: "cat-1", name: "Готівка", isShared: true, userId: null, _count: { transactions: 4 } },
-    { id: "cat-2", name: "Акції", isShared: true, userId: null, _count: { transactions: 2 } },
-    { id: "cat-3", name: "Крипта", isShared: false, userId: "preview-user", _count: { transactions: 1 } },
+    { id: "cat-1", name: "Готівка", isShared: true, tier: "primary", userId: null, _count: { transactions: 4 } },
+    { id: "cat-2", name: "Акції", isShared: true, tier: "primary", userId: null, _count: { transactions: 2 } },
+    { id: "cat-3", name: "Крипта", isShared: false, tier: "secondary", userId: "preview-user", _count: { transactions: 1 } },
   ],
   goals: [
     {

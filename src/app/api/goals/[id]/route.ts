@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
+import { isPrimaryCategory } from "@/lib/category-tier";
 import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalPatchSchema } from "@/lib/validations";
@@ -72,6 +73,9 @@ export async function PATCH(
         }
         if (!canUseCategory(session, sourceCategory)) {
           return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        if (!isPrimaryCategory(sourceCategory)) {
+          return NextResponse.json({ error: "Only primary categories can fund goals" }, { status: 400 });
         }
         const allowedIds = goal.sourceCategories.map((s) => s.categoryId);
         if (allowedIds.length > 0 && !allowedIds.includes(sourceCategory.id)) {

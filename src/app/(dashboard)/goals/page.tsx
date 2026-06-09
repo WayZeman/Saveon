@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Goal } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
 import { RealizeGoalModal } from "@/components/RealizeGoalModal";
+import { filterPrimaryCategories } from "@/lib/category-tier";
 
 export default function GoalsPage() {
   const { formatMoney } = useCurrency();
@@ -131,6 +132,7 @@ export default function GoalsPage() {
   }
 
   const hasPartner = !!user?.partnerId;
+  const primaryCategories = filterPrimaryCategories(categories);
 
   function openCreate() {
     setModal(true); setEditGoal(null); setError("");
@@ -316,13 +318,13 @@ export default function GoalsPage() {
                   )}
                 </div>
                 <p className="text-[12px] text-[var(--text-tertiary)] mb-2">{t("goals_sourceCategoriesHint")}</p>
-                {categories.length === 0 ? (
-                  <p className="text-[13px] text-[var(--text-secondary)] rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3">
-                    {t("goals_noCategoriesAvailable")}
-                  </p>
-                ) : (
-                  <div className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
-                    {categories.map((c) => (
+                  {primaryCategories.length === 0 ? (
+                    <p className="text-[13px] text-[var(--text-secondary)] rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3">
+                      {t("goals_noCategoriesAvailable")}
+                    </p>
+                  ) : (
+                    <div className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
+                      {primaryCategories.map((c) => (
                       <CheckboxField
                         key={c.id}
                         checked={form.sourceCategoryIds.includes(c.id)}
@@ -352,8 +354,8 @@ export default function GoalsPage() {
           goal={realizeGoal}
           categories={
             realizeGoal.sourceCategories.length > 0
-              ? categories.filter((c) => (realizeGoal.sourceCategories ?? []).some((s) => s.id === c.id))
-              : categories
+              ? primaryCategories.filter((c) => (realizeGoal.sourceCategories ?? []).some((s) => s.id === c.id))
+              : primaryCategories
           }
           onClose={() => setRealizeGoal(null)}
           onConfirm={(sourceCategoryId) => handleRealize(realizeGoal, true, sourceCategoryId)}
