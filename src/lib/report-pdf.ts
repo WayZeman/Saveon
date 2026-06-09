@@ -140,8 +140,9 @@ function drawCoverHeader(doc: Doc, fonts: ReportFonts, data: ReportData) {
   doc.y = metaY + metaH + 22;
 }
 
-function drawSectionHeader(doc: Doc, fonts: ReportFonts, title: string, subtitle?: string) {
-  ensureSpace(doc, subtitle ? 52 : 40);
+function drawSectionHeader(doc: Doc, fonts: ReportFonts, title: string, subtitle?: string, minFollowing = 0) {
+  const headerBlock = (subtitle ? 52 : 40) + minFollowing;
+  ensureSpace(doc, headerBlock);
   doc.moveDown(0.25);
 
   const y = doc.y;
@@ -183,11 +184,12 @@ function drawKpiCard(
 }
 
 function drawSummarySection(doc: Doc, fonts: ReportFonts, data: ReportData) {
-  drawSectionHeader(doc, fonts, "Підсумок за період", "Ключові показники руху коштів");
+  const cardH = 68;
+  drawSectionHeader(doc, fonts, "Підсумок за період", "Ключові показники руху коштів", cardH + 24);
 
   const gap = 10;
   const cardW = (CONTENT_W - gap * 2) / 3;
-  const cardH = 68;
+  ensureSpace(doc, cardH + 20);
   const y = doc.y;
 
   drawKpiCard(doc, fonts, MARGIN, y, cardW, cardH, "Доходи", formatUah(data.totalIncome), C.income, C.incomeBg);
@@ -221,6 +223,18 @@ function drawSummarySection(doc: Doc, fonts: ReportFonts, data: ReportData) {
 
 type TableColumn = { label: string; width: number; align?: "left" | "right" | "center" };
 
+type TableCell = { text: string; color?: string; bold?: boolean };
+
+function measureRowHeight(doc: Doc, fonts: ReportFonts, cols: TableColumn[], cells: TableCell[]): number {
+  let maxTextH = 10;
+  for (let i = 0; i < cols.length; i++) {
+    doc.font(cells[i].bold ? fonts.bold : fonts.regular).fontSize(8.5);
+    const h = doc.heightOfString(cells[i].text, { width: cols[i].width - 8 });
+    maxTextH = Math.max(maxTextH, h);
+  }
+  return Math.max(22, Math.ceil(maxTextH) + 14);
+}
+
 function drawTableHeader(doc: Doc, fonts: ReportFonts, x: number, y: number, w: number, cols: TableColumn[]) {
   doc.roundedRect(x, y, w, 22, 6).fill(C.surfaceAlt);
   let cx = x + 10;
@@ -238,28 +252,77 @@ function drawTableRow(
   y: number,
   w: number,
   cols: TableColumn[],
-  cells: { text: string; color?: string; bold?: boolean }[],
-  alt: boolean
+  cells: TableCell[],
+  alt: boolean,
+  rowH: number
 ) {
-  if (alt) doc.rect(x, y, w, 20).fill(C.surface);
+  if (alt) doc.rect(x, y, w, rowH).fill(C.surface);
   doc.save();
   doc.strokeColor(C.border).lineWidth(0.5);
-  doc.moveTo(x, y + 20).lineTo(x + w, y + 20).stroke();
+  doc.moveTo(x, y + rowH).lineTo(x + w, y + rowH).stroke();
   doc.restore();
 
+  const textY = y + 7;
   let cx = x + 10;
   for (let i = 0; i < cols.length; i++) {
     const cell = cells[i];
     doc.font(cell.bold ? fonts.bold : fonts.regular)
       .fontSize(8.5)
       .fillColor(cell.color ?? C.ink)
-      .text(cell.text, cx, y + 6, { width: cols[i].width - 8, align: cols[i].align ?? "left" });
+      .text(cell.text, cx, textY, { width: cols[i].width - 8, align: cols[i].align ?? "left" });
     cx += cols[i].width;
   }
 }
 
+function drawTableContinuationLabel(doc: Doc, fonts: ReportFonts, label: string, y: number): number {
+  doc.font(fonts.regular).fontSize(8).fillColor(C.inkMuted).text(label, MARGIN, y, { width: CONTENT_W });
+  return y + 16;
+}
+
+function renderPaginatedTable(
+  doc: Doc,
+  fonts: ReportFonts,
+  cols: TableColumn[],
+  rows: TableCell[][],
+  continuedLabel: string
+) {
+  const tableX = MARGIN;
+  const tableW = CONTENT_W;
+  const headerH = 22;
+  let y = doc.y;
+  let isContinued = false;
+
+  const startTableBlock = () => {
+    ensureSpace(doc, headerH + 28);
+    y = doc.y;
+    if (isContinued) {
+      y = drawTableContinuationLabel(doc, fonts, continuedLabel, y);
+    }
+    drawTableHeader(doc, fonts, tableX, y, tableW, cols);
+    y += headerH;
+    isContinued = true;
+    doc.y = y;
+  };
+
+  startTableBlock();
+
+  rows.forEach((cells, i) => {
+    const rowH = measureRowHeight(doc, fonts, cols, cells);
+    if (y + rowH > contentBottom(doc)) {
+      doc.addPage();
+      startContentPage(doc);
+      startTableBlock();
+    }
+    drawTableRow(doc, fonts, tableX, y, tableW, cols, cells, i % 2 === 1, rowH);
+    y += rowH;
+    doc.y = y;
+  });
+
+  doc.y = y + 12;
+}
+
 function drawCategoryTable(doc: Doc, fonts: ReportFonts, data: ReportData) {
-  drawSectionHeader(doc, fonts, "Рух по категоріях", "Доходи, витрати та нетто за обраний період");
+  drawSectionHeader(doc, fonts, "Рух по категоріях", "Доходи, витрати та нетто за обраний період", 50);
 
   const cols: TableColumn[] = [
     { label: "Категорія", width: 198 },
@@ -268,36 +331,14 @@ function drawCategoryTable(doc: Doc, fonts: ReportFonts, data: ReportData) {
     { label: "Нетто", width: 117, align: "right" },
   ];
 
-  const tableX = MARGIN;
-  const tableW = CONTENT_W;
-  let y = doc.y;
+  const rows = data.categoryRows.map((row) => [
+    { text: row.name, bold: true },
+    { text: row.income > 0 ? formatUah(row.income) : "—", color: C.inkSecondary },
+    { text: row.expense > 0 ? formatUah(row.expense) : "—", color: C.inkSecondary },
+    { text: formatUah(row.net), color: row.net >= 0 ? C.income : C.expense, bold: true },
+  ]);
 
-  ensureSpace(doc, 30);
-  drawTableHeader(doc, fonts, tableX, y, tableW, cols);
-  y += 22;
-
-  data.categoryRows.forEach((row, i) => {
-    ensureSpace(doc, 22);
-    if (doc.y > y) y = doc.y;
-    drawTableRow(
-      doc,
-      fonts,
-      tableX,
-      y,
-      tableW,
-      cols,
-      [
-        { text: row.name, bold: true },
-        { text: row.income > 0 ? formatUah(row.income) : "—", color: C.inkSecondary },
-        { text: row.expense > 0 ? formatUah(row.expense) : "—", color: C.inkSecondary },
-        { text: formatUah(row.net), color: row.net >= 0 ? C.income : C.expense, bold: true },
-      ],
-      i % 2 === 1
-    );
-    y += 20;
-  });
-
-  doc.y = y + 12;
+  renderPaginatedTable(doc, fonts, cols, rows, "Рух по категоріях · продовження");
 }
 
 function drawProgressBar(doc: Doc, x: number, y: number, w: number, percent: number) {
@@ -310,12 +351,15 @@ function drawProgressBar(doc: Doc, x: number, y: number, w: number, percent: num
 }
 
 function drawGoalsSection(doc: Doc, fonts: ReportFonts, data: ReportData) {
-  drawSectionHeader(doc, fonts, "Активні цілі", "Стан накопичень на момент формування звіту");
+  const boxH = 52;
+  drawSectionHeader(doc, fonts, "Активні цілі", "Стан накопичень на момент формування звіту", boxH + 16);
 
   for (const goal of data.goals) {
-    ensureSpace(doc, 58);
+    if (doc.y + boxH + 8 > contentBottom(doc)) {
+      doc.addPage();
+      startContentPage(doc);
+    }
     const y = doc.y;
-    const boxH = 52;
 
     doc.roundedRect(MARGIN, y, CONTENT_W, boxH, 10).fill(C.white);
     doc.roundedRect(MARGIN, y, CONTENT_W, boxH, 10).stroke(C.border);
@@ -345,7 +389,7 @@ function drawGoalsSection(doc: Doc, fonts: ReportFonts, data: ReportData) {
 }
 
 function drawTransactionsSection(doc: Doc, fonts: ReportFonts, data: ReportData) {
-  drawSectionHeader(doc, fonts, "Транзакції", "Деталізація операцій за період");
+  drawSectionHeader(doc, fonts, "Транзакції", "Деталізація операцій за період", 50);
 
   if (data.transactions.length === 0) {
     ensureSpace(doc, 40);
@@ -362,26 +406,12 @@ function drawTransactionsSection(doc: Doc, fonts: ReportFonts, data: ReportData)
   }
 
   const cols: TableColumn[] = [
-    { label: "Дата", width: 62 },
-    { label: "Тип", width: 52 },
-    { label: "Опис", width: 168 },
-    { label: "Хто", width: 72 },
+    { label: "Дата", width: 78 },
+    { label: "Категорія", width: 277 },
     { label: "Сума", width: 145, align: "right" },
   ];
 
-  const tableX = MARGIN;
-  const tableW = CONTENT_W;
-  let y = doc.y;
-
-  ensureSpace(doc, 30);
-  drawTableHeader(doc, fonts, tableX, y, tableW, cols);
-  y += 22;
-
-  data.transactions.forEach((tx, i) => {
-    ensureSpace(doc, 22);
-    if (doc.y > y) y = doc.y;
-
-    const typeLabel = tx.type === "income" ? "Дохід" : "Витрата";
+  const rows = data.transactions.map((tx) => {
     const desc =
       tx.type === "expense" && tx.sourceCategoryName
         ? `${tx.categoryName} ← ${tx.sourceCategoryName}`
@@ -389,26 +419,14 @@ function drawTransactionsSection(doc: Doc, fonts: ReportFonts, data: ReportData)
     const amountPrefix = tx.type === "income" ? "+" : "−";
     const amountColor = tx.type === "income" ? C.income : C.expense;
 
-    drawTableRow(
-      doc,
-      fonts,
-      tableX,
-      y,
-      tableW,
-      cols,
-      [
-        { text: formatDateShort(tx.date), color: C.inkSecondary },
-        { text: typeLabel, color: amountColor, bold: true },
-        { text: desc },
-        { text: tx.ownerLabel, color: C.inkSecondary },
-        { text: `${amountPrefix}${formatUah(tx.amount)}`, color: amountColor, bold: true },
-      ],
-      i % 2 === 1
-    );
-    y += 20;
+    return [
+      { text: formatDateShort(tx.date), color: C.inkSecondary },
+      { text: desc },
+      { text: `${amountPrefix}${formatUah(tx.amount)}`, color: amountColor, bold: true },
+    ];
   });
 
-  doc.y = y + 12;
+  renderPaginatedTable(doc, fonts, cols, rows, "Транзакції · продовження");
 }
 
 function drawFooters(doc: Doc, fonts: ReportFonts, generatedAt: Date) {
