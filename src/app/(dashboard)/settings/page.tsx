@@ -6,7 +6,15 @@ import {
   Settings, Sun, Moon, Monitor, ChevronRight, Palette,
   CircleDollarSign, LifeBuoy, Heart, LogOut, ExternalLink, Check,
   Users, UserPlus, UserMinus, Activity, Newspaper, LayoutGrid, ShieldCheck,
+  FileText, Download,
 } from "lucide-react";
+import {
+  toDateInputValue,
+  startOfMonth,
+  startOfPreviousMonth,
+  endOfPreviousMonth,
+  monthsAgoStart,
+} from "@/lib/report-period";
 import { RECOVERY_CODE_LENGTH, recoveryCodeNewSchema } from "@/lib/recovery-code";
 import { AppleSwitch } from "@/components/AppleSwitch";
 import { useHomeSections } from "@/contexts/HomeSectionsContext";
@@ -45,6 +53,11 @@ export default function SettingsPage() {
   const [recoveryError, setRecoveryError] = useState("");
   const [recoverySuccess, setRecoverySuccess] = useState("");
   const [recoverySaving, setRecoverySaving] = useState(false);
+  const now = new Date();
+  const [reportFrom, setReportFrom] = useState(() => toDateInputValue(startOfMonth(now)));
+  const [reportTo, setReportTo] = useState(() => toDateInputValue(now));
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState("");
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const themes = [
@@ -65,6 +78,52 @@ export default function SettingsPage() {
 
   function toggle(section: string) {
     setExpandedSection(expandedSection === section ? null : section);
+  }
+
+  function applyReportPreset(preset: "month" | "lastMonth" | "threeMonths") {
+    setReportError("");
+    const today = new Date();
+    if (preset === "month") {
+      setReportFrom(toDateInputValue(startOfMonth(today)));
+      setReportTo(toDateInputValue(today));
+    } else if (preset === "lastMonth") {
+      setReportFrom(toDateInputValue(startOfPreviousMonth()));
+      setReportTo(toDateInputValue(endOfPreviousMonth()));
+    } else {
+      setReportFrom(toDateInputValue(monthsAgoStart(3)));
+      setReportTo(toDateInputValue(today));
+    }
+  }
+
+  async function downloadReport() {
+    setReportError("");
+    if (!reportFrom || !reportTo || reportFrom > reportTo) {
+      setReportError(t("settings_reportErrorDates"));
+      return;
+    }
+    setReportLoading(true);
+    try {
+      const params = new URLSearchParams({ from: reportFrom, to: reportTo });
+      const res = await fetch(`/api/report/pdf?${params.toString()}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setReportError(typeof data.error === "string" ? data.error : t("settings_reportError"));
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `saveon-zvit-${reportFrom}_${reportTo}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setReportError(t("settings_reportError"));
+    } finally {
+      setReportLoading(false);
+    }
   }
 
   async function handleAddPartner(e: React.FormEvent) {
@@ -410,8 +469,79 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Support */}
+      {/* PDF Report */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-6">
+        <button type="button" onClick={() => toggle("report")} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-green)] flex items-center justify-center">
+            <FileText className="w-4 h-4 text-white" strokeWidth={2} />
+          </span>
+          <div className="flex-1 text-left">
+            <p className="text-[14px] font-medium">{t("settings_report")}</p>
+            <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_reportHint")}</p>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-[var(--text-tertiary)] transition-transform duration-200 ${expandedSection === "report" ? "rotate-90" : ""}`} />
+        </button>
+        {expandedSection === "report" && (
+          <div className="px-5 pb-5 space-y-4 animate-slide-up border-t border-[var(--border)] pt-4">
+            <div className="flex flex-wrap gap-2">
+              {([
+                { id: "month" as const, label: t("settings_reportPresetMonth") },
+                { id: "lastMonth" as const, label: t("settings_reportPresetLastMonth") },
+                { id: "threeMonths" as const, label: t("settings_reportPreset3Months") },
+              ]).map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => applyReportPreset(id)}
+                  className="rounded-full px-3 py-1.5 text-[12px] font-semibold border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text)] transition"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel>{t("settings_reportFrom")}</FieldLabel>
+                <input
+                  type="date"
+                  value={reportFrom}
+                  max={reportTo || undefined}
+                  onChange={(e) => { setReportFrom(e.target.value); setReportError(""); }}
+                />
+              </div>
+              <div>
+                <FieldLabel>{t("settings_reportTo")}</FieldLabel>
+                <input
+                  type="date"
+                  value={reportTo}
+                  min={reportFrom || undefined}
+                  max={toDateInputValue(new Date())}
+                  onChange={(e) => { setReportTo(e.target.value); setReportError(""); }}
+                />
+              </div>
+            </div>
+            {reportError && <FieldError message={reportError} />}
+            <button
+              type="button"
+              onClick={downloadReport}
+              disabled={reportLoading}
+              className="w-full rounded-xl py-3 text-[14px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 disabled:opacity-60 transition inline-flex items-center justify-center gap-2"
+            >
+              {reportLoading ? (
+                t("settings_reportDownloading")
+              ) : (
+                <>
+                  <Download className="w-4 h-4" strokeWidth={2} />
+                  {t("settings_reportDownload")}
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Support */}
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-7">
         <a href="https://t.me/familefinance" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
           <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-teal)] flex items-center justify-center"><LifeBuoy className="w-4 h-4 text-white" strokeWidth={2} /></span>
           <div className="flex-1 text-left"><p className="text-[14px] font-medium">{t("settings_support")}</p><p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_supportTelegram")}</p></div>
@@ -426,7 +556,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Logout */}
-      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-7">
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-8">
         <button type="button" onClick={logout} className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
           <span className="w-8 h-8 rounded-lg bg-[var(--accent-red)]/10 flex items-center justify-center"><LogOut className="w-4 h-4 text-[var(--accent-red)]" strokeWidth={2} /></span>
           <span className="text-[14px] font-medium text-[var(--accent-red)]">{t("settings_logout")}</span>

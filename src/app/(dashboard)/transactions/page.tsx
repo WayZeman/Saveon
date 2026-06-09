@@ -125,18 +125,20 @@ export default function TransactionsPage() {
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
-      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
-        <div>
+      <div className="page-header opacity-0 animate-slide-up">
+        <div className="page-header__intro">
           <h1 className="page-title flex items-center gap-2">
-            <Wallet className="w-7 h-7 text-[var(--accent-blue)]" strokeWidth={1.5} />
+            <Wallet className="text-[var(--accent-blue)]" strokeWidth={1.5} />
             {t("transactions_title")}
           </h1>
           <p className="text-[14px] text-[var(--text-secondary)] mt-1">{t("transactions_subtitle")}</p>
         </div>
-        <button type="button" onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" strokeWidth={2.5} />
-          {t("transactions_add")}
-        </button>
+        <div className="page-header__actions">
+          <button type="button" onClick={openCreate} className="btn-primary">
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            {t("transactions_add")}
+          </button>
+        </div>
       </div>
 
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-1">
@@ -144,12 +146,12 @@ export default function TransactionsPage() {
           {transactions.length === 0 ? (
             <li className="p-10 text-center text-[var(--text-secondary)] text-[14px]">{t("transactions_none")}</li>
           ) : transactions.map((tx, i) => (
-            <li key={tx.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-5 py-4 hover:bg-[var(--input-bg)] group transition-colors opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
+            <li key={tx.id} className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:justify-between sm:items-center sm:px-5 sm:py-4 hover:bg-[var(--input-bg)] group transition-colors opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
               <div className="min-w-0 flex items-center gap-3">
-                <span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${tx.type === "income" ? "bg-[var(--accent-green)]/10 text-[var(--accent-green)]" : "bg-[var(--accent-red)]/10 text-[var(--accent-red)]"}`}>
+                <span className={`shrink-0 w-9 h-9 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center ${tx.type === "income" ? "bg-[var(--accent-green)]/10 text-[var(--accent-green)]" : "bg-[var(--accent-red)]/10 text-[var(--accent-red)]"}`}>
                   {tx.type === "income" ? <ArrowUpRight className="w-4 h-4" strokeWidth={2} /> : <ArrowDownLeft className="w-4 h-4" strokeWidth={2} />}
                 </span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[14px] font-medium truncate">
                     {tx.type === "expense" && tx.sourceCategory
                       ? `${tx.category.name} · ${t("transactions_fromCategory", tx.sourceCategory.name)}`
@@ -160,16 +162,16 @@ export default function TransactionsPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-between sm:justify-end gap-2 min-w-0">
-                <span className={`shrink-0 text-[15px] font-semibold ${tx.type === "income" ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
+              <div className="flex items-center justify-between sm:justify-end gap-2 pl-12 sm:pl-0">
+                <span className={`shrink-0 text-[16px] sm:text-[15px] font-semibold tabular-nums ${tx.type === "income" ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
                   {tx.type === "income" ? "+" : "−"}{formatMoney(tx.amount)}
                 </span>
-                <span className="flex items-center gap-1">
-                  <button type="button" onClick={() => openEdit(tx)} className="icon-btn icon-btn-edit sm:opacity-0 sm:group-hover:opacity-100">
-                    <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                <span className="flex items-center gap-0.5 sm:gap-1">
+                  <button type="button" onClick={() => openEdit(tx)} className="icon-btn icon-btn-edit sm:opacity-0 sm:group-hover:opacity-100" aria-label={t("transactions_edit")}>
+                    <Pencil className="w-4 h-4 sm:w-3.5 sm:h-3.5" strokeWidth={2} />
                   </button>
-                  <button type="button" onClick={() => handleDelete(tx)} className="icon-btn icon-btn-delete sm:opacity-0 sm:group-hover:opacity-100">
-                    <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+                  <button type="button" onClick={() => handleDelete(tx)} className="icon-btn icon-btn-delete sm:opacity-0 sm:group-hover:opacity-100" aria-label={t("modal_delete")}>
+                    <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" strokeWidth={2} />
                   </button>
                 </span>
               </div>

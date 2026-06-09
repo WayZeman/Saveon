@@ -39,10 +39,10 @@ export function ModalOverlay({ children, onClose }: { children: ReactNode; onClo
 
   const overlay = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-sm animate-in overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+      className="modal-overlay-mobile fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-sm animate-in overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
       onClick={onClose}
     >
-      <div className="min-h-full w-full flex items-center justify-center p-4 py-8 sm:p-6">
+      <div className="modal-overlay-inner min-h-full w-full flex items-center justify-center p-4 py-8 sm:p-6 md:min-h-full">
         {children}
       </div>
     </div>
@@ -55,20 +55,24 @@ export function ModalOverlay({ children, onClose }: { children: ReactNode; onClo
 export function ModalPanel({ children, title, onClose }: { children: ReactNode; title: string; onClose: () => void }) {
   return (
     <div
-      className="glass-modal rounded-[1.35rem] w-full max-w-[460px] max-h-[82dvh] sm:max-h-[90dvh] shadow-modal animate-in flex flex-col"
+      className="modal-panel-mobile glass-modal rounded-[1.35rem] w-full max-w-[460px] max-h-[82dvh] sm:max-h-[90dvh] shadow-modal animate-in flex flex-col"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="flex items-center justify-between px-5 pt-5 pb-0 sm:px-7 sm:pt-7 sticky top-0 z-10 shrink-0">
-        <h2 className="text-[19px] font-semibold tracking-tight">{title}</h2>
+      <div className="px-5 pt-3 sm:pt-5 shrink-0">
+        <div className="modal-panel-handle" aria-hidden="true" />
+      </div>
+      <div className="flex items-center justify-between px-5 pb-0 sm:px-7 sticky top-0 z-10 shrink-0 -mt-1">
+        <h2 className="text-[18px] sm:text-[19px] font-semibold tracking-tight pr-3">{title}</h2>
         <button
           type="button"
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--input-bg)] hover:bg-[var(--input-bg-focus)] text-[var(--text-secondary)] transition-colors -mr-1"
+          className="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-[var(--input-bg)] hover:bg-[var(--input-bg-focus)] text-[var(--text-secondary)] transition-colors shrink-0"
+          aria-label="Close"
         >
           <X className="w-4 h-4" strokeWidth={2} />
         </button>
       </div>
-      <div className="px-5 pt-5 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-7 sm:pb-7 overflow-y-auto flex-1 min-h-0">
+      <div className="px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-7 sm:pt-5 sm:pb-7 overflow-y-auto flex-1 min-h-0 overscroll-contain">
         {children}
       </div>
     </div>

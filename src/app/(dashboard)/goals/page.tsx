@@ -168,10 +168,10 @@ export default function GoalsPage() {
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
-      <div className="flex flex-wrap justify-between items-start gap-4 opacity-0 animate-slide-up">
-        <div>
+      <div className="page-header opacity-0 animate-slide-up">
+        <div className="page-header__intro">
           <h1 className="page-title flex items-center gap-2">
-            <Target className="w-7 h-7 text-[var(--accent-purple)]" strokeWidth={1.5} />
+            <Target className="text-[var(--accent-purple)]" strokeWidth={1.5} />
             {t("goals_title")}
           </h1>
           <div className="text-[14px] text-[var(--text-secondary)] mt-1">
@@ -179,10 +179,12 @@ export default function GoalsPage() {
             {!hasPartner && <p className="mt-0.5">{t("goals_addPartnerHint").trim()}</p>}
           </div>
         </div>
-        <button type="button" onClick={openCreate} className="btn-primary">
-          <Plus className="w-4 h-4" strokeWidth={2.5} />
-          {t("goals_newGoal")}
-        </button>
+        <div className="page-header__actions">
+          <button type="button" onClick={openCreate} className="btn-primary">
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            {t("goals_newGoal")}
+          </button>
+        </div>
       </div>
 
       {(() => {
@@ -198,8 +200,8 @@ export default function GoalsPage() {
                 const hasEnough = remainingNeeded <= 0;
                 return (
                   <div key={goal.id} className="card opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.06}s` }}>
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="font-semibold text-[17px]">{goal.title}</h2>
                           {hasEnough && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">Достатньо</span>}
@@ -214,9 +216,9 @@ export default function GoalsPage() {
                           </span>
                         </p>
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="sm:text-right shrink-0">
                         <p className="text-[12px] text-[var(--text-tertiary)]">Залишилось зібрати</p>
-                        <p className="text-[18px] font-semibold text-[var(--accent-blue)]">{formatMoney(remainingNeeded)}</p>
+                        <p className="text-[18px] font-semibold text-[var(--accent-blue)] tabular-nums">{formatMoney(remainingNeeded)}</p>
                       </div>
                     </div>
                     <div className="mt-4 flex items-center gap-3">
