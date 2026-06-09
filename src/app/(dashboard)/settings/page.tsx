@@ -104,10 +104,17 @@ export default function SettingsPage() {
     setReportLoading(true);
     try {
       const params = new URLSearchParams({ from: reportFrom, to: reportTo });
-      const res = await fetch(`/api/report/pdf?${params.toString()}`);
+      const res = await fetch(`/api/report/pdf?${params.toString()}`, { credentials: "include" });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setReportError(typeof data.error === "string" ? data.error : t("settings_reportError"));
+        const contentType = res.headers.get("content-type") ?? "";
+        if (contentType.includes("application/json")) {
+          const data = await res.json().catch(() => ({}));
+          setReportError(typeof data.error === "string" ? data.error : t("settings_reportError"));
+        } else if (res.status === 404) {
+          setReportError("Звіт недоступний — оновіть застосунок на сервері.");
+        } else {
+          setReportError(t("settings_reportError"));
+        }
         return;
       }
       const blob = await res.blob();

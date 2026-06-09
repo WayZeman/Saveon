@@ -31,7 +31,12 @@ export async function GET(request: Request) {
       },
     });
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     console.error("[report/pdf]", e);
-    return NextResponse.json({ error: "Не вдалося згенерувати звіт" }, { status: 500 });
+    const isDev = process.env.NODE_ENV === "development";
+    return NextResponse.json(
+      { error: isDev ? `Не вдалося згенерувати звіт: ${message}` : "Не вдалося згенерувати звіт" },
+      { status: 500 }
+    );
   }
 }

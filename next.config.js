@@ -2,6 +2,16 @@
 const nextConfig = {
   // Для деплою на VPS: next start використовує .next/standalone (менший розмір)
   output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
+  experimental: {
+    serverComponentsExternalPackages: ["pdfkit"],
+    outputFileTracingIncludes: {
+      "/api/report/pdf": [
+        "./node_modules/pdfkit/js/data/*.afm",
+        "./public/fonts/DejaVuSans.ttf",
+        "./public/fonts/DejaVuSans-Bold.ttf",
+      ],
+    },
+  },
   async headers() {
     const common = [
       { key: "X-Content-Type-Options", value: "nosniff" },
