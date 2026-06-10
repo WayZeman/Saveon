@@ -30,10 +30,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  interactiveWidget: "overlays-content",
+  interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fbff" },
-    { media: "(prefers-color-scheme: dark)", color: "#050507" },
+    { media: "(prefers-color-scheme: light)", color: "#007aff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a84ff" },
   ],
 };
 
@@ -57,11 +57,11 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var el=document.documentElement;var t=localStorage.getItem('family-fin-theme');var light=false;if(t==='light'){light=true}else if(t!=='dark'){light=window.matchMedia('(prefers-color-scheme:light)').matches}el.classList.remove('theme-dark','theme-light');el.classList.add(light?'theme-light':'theme-dark');el.style.colorScheme=light?'light':'dark';var st=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');if(st)st.setAttribute('content',light?'default':'black-translucent');var tc=document.querySelector('meta[name="theme-color"][data-app-theme]')||function(){var m=document.createElement('meta');m.setAttribute('name','theme-color');m.setAttribute('data-app-theme','true');document.head.appendChild(m);return m}();tc.setAttribute('content',light?'#f8fbff':'#050507');if(window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone===true){el.classList.add('pwa-standalone');el.style.setProperty('--app-height','100vh')}}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('family-fin-theme');var el=document.documentElement;el.classList.remove('theme-dark','theme-light');if(t==='light'){el.classList.add('theme-light');el.style.colorScheme='light'}else if(t==='dark'){el.classList.add('theme-dark');el.style.colorScheme='dark'}else{var light=window.matchMedia('(prefers-color-scheme:light)').matches;el.classList.add(light?'theme-light':'theme-dark');el.style.colorScheme=light?'light':'dark'}}catch(e){}})()`,
           }}
         />
       </head>
-      <body className={`${inter.className} antialiased bg-[var(--bg)] text-[var(--text)]`}>
+      <body className={`${inter.className} antialiased min-h-screen bg-[var(--bg)] text-[var(--text)]`}>
         <Providers>{children}</Providers>
       </body>
     </html>

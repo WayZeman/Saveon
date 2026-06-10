@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { applyPwaChrome } from "@/lib/pwa-chrome";
 
 export type Theme = "dark" | "light" | "system";
 
@@ -33,7 +32,6 @@ function applyTheme(resolved: "dark" | "light") {
   root.classList.remove("theme-dark", "theme-light");
   root.classList.add(`theme-${resolved}`);
   root.style.colorScheme = resolved === "light" ? "light" : "dark";
-  applyPwaChrome(resolved);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

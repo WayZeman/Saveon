@@ -215,16 +215,9 @@ export default function GoalsPage() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-[12px] text-[var(--text-tertiary)]">{t("goals_onBalance")}</p>
-                        <p className="text-[15px] font-semibold tabular-nums">
-                          {formatMoney(balanceUsed)}
-                          <span className="text-[13px] font-normal text-[var(--text-tertiary)]"> / {formatMoney(goal.targetAmount)}</span>
-                        </p>
+                        <p className="text-[12px] text-[var(--text-tertiary)]">Залишилось зібрати</p>
+                        <p className="text-[18px] font-semibold text-[var(--accent-blue)]">{formatMoney(remainingNeeded)}</p>
                       </div>
-                    </div>
-                    <div className="mt-3">
-                      <p className="text-[12px] text-[var(--text-tertiary)]">{t("goals_remainingToCollect")}</p>
-                      <p className="text-[18px] font-semibold text-[var(--accent-blue)] tabular-nums">{formatMoney(remainingNeeded)}</p>
                     </div>
                     <div className="mt-4 flex items-center gap-3">
                       <div className="flex-1 h-2 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
@@ -232,6 +225,7 @@ export default function GoalsPage() {
                       </div>
                       <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium">{progressPercent.toFixed(0)}%</span>
                     </div>
+                    <p className="text-[12px] text-[var(--text-tertiary)] mt-2">На балансі {formatMoney(balanceUsed)} з {formatMoney(goal.targetAmount)}</p>
                     <div className="relative z-[1] flex flex-col gap-2 mt-4 pt-3 border-t border-[var(--border)] sm:flex-row sm:flex-wrap sm:items-center">
                       {hasEnough && (
                         <button type="button" onClick={() => setRealizeGoal(goal)} className="rounded-lg px-3 py-2.5 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 w-full sm:w-auto">
