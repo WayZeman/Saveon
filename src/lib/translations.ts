@@ -180,6 +180,17 @@ export const translations: Record<Lang, Record<string, string>> = {
     goals_selectedCategories: "Обрано: {0}",
     goals_noCategoriesAvailable: "Додайте основні категорії на сторінці «Категорії»",
     goals_allCategoriesFallback: "Усі категорії",
+    goals_description: "Опис",
+    goals_descriptionPlaceholder: "Навіщо ця ціль, що плануєте…",
+    goals_noDescription: "Опис ще не додано",
+    goals_deadline: "Термін виконання",
+    goals_noDeadline: "Термін не встановлено",
+    goals_clearDeadline: "Прибрати",
+    goals_daysLeft: "ще {0} дн.",
+    goals_today: "сьогодні",
+    goals_overdue: "прострочено",
+    goals_saving: "Збереження…",
+    goals_realize: "Реалізувати",
 
     // Categories
     categories_title: "Категорії",

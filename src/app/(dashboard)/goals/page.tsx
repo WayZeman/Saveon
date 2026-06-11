@@ -1,27 +1,49 @@
 "use client";
 
 import { useState } from "react";
-import { Target, Plus, CheckCircle, Pencil, Trash2, XCircle } from "lucide-react";
+import { Target, Plus, Pencil, Trash2, XCircle } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Goal } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
 import { RealizeGoalModal } from "@/components/RealizeGoalModal";
+import { GoalCard } from "@/components/GoalCard";
 import { filterPrimaryCategories } from "@/lib/category-tier";
+import { formatGoalDeadlineInput } from "@/lib/goal-api";
+
+type GoalForm = {
+  title: string;
+  targetAmount: string;
+  description: string;
+  deadline: string;
+  isShared: boolean;
+  sourceCategoryIds: string[];
+};
+
+const emptyForm = (isShared: boolean): GoalForm => ({
+  title: "",
+  targetAmount: "",
+  description: "",
+  deadline: "",
+  isShared,
+  sourceCategoryIds: [],
+});
 
 export default function GoalsPage() {
   const { formatMoney } = useCurrency();
   const { t } = useLanguage();
   const { goals, dashboardData, user, categories, initialLoadDone, invalidateAfterMutation } = useData();
   const [modal, setModal] = useState(false);
+  const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
   const [realizeGoal, setRealizeGoal] = useState<Goal | null>(null);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
-  const [form, setForm] = useState({ title: "", targetAmount: "", isShared: true, sourceCategoryIds: [] as string[] });
+  const [form, setForm] = useState<GoalForm>(emptyForm(true));
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const MAX_AMOUNT = 999_999_999.99;
+
   function getGoalDisplay(goal: Goal) {
     const dashGoal = dashboardData?.goals.find((g) => g.id === goal.id);
     if (dashGoal) {
@@ -53,28 +75,40 @@ export default function GoalsPage() {
     await invalidateAfterMutation("goal");
   }
 
+  function goalPayloadFromForm() {
+    const target = parseFloat(form.targetAmount.replace(",", "."));
+    return {
+      title: form.title.trim(),
+      targetAmount: target,
+      description: form.description.trim() || undefined,
+      deadline: form.deadline || null,
+      isShared: form.isShared,
+      sourceCategoryIds: form.sourceCategoryIds,
+    };
+  }
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const target = parseFloat(form.targetAmount.replace(",", "."));
-    if (!form.title.trim() || !Number.isFinite(target) || target <= 0) { setError(t("goals_errorFill")); return; }
-    if (target > MAX_AMOUNT) { setError(t("goals_errorAmountBig")); return; }
+    const payload = goalPayloadFromForm();
+    if (!payload.title || !Number.isFinite(payload.targetAmount) || payload.targetAmount <= 0) {
+      setError(t("goals_errorFill"));
+      return;
+    }
+    if (payload.targetAmount > MAX_AMOUNT) { setError(t("goals_errorAmountBig")); return; }
     if (form.sourceCategoryIds.length === 0) { setError(t("goals_errorSourceCategories")); return; }
     setSubmitting(true);
     try {
       const res = await fetch("/api/goals", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title.trim(),
-          targetAmount: target,
-          isShared: form.isShared,
-          sourceCategoryIds: form.sourceCategoryIds,
-        }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("goals_errorGeneric")); return; }
       closeModal();
       await refreshAfterGoalAction();
+      if (data.id) setExpandedGoalId(data.id);
     } catch { setError(t("goals_errorConnection")); }
     finally { setSubmitting(false); }
   }
@@ -83,27 +117,39 @@ export default function GoalsPage() {
     e.preventDefault();
     if (!editGoal) return;
     setError("");
-    const target = parseFloat(form.targetAmount.replace(",", "."));
-    if (!form.title.trim() || !Number.isFinite(target) || target <= 0) { setError(t("goals_errorFill")); return; }
-    if (target > MAX_AMOUNT) { setError(t("goals_errorAmountBig")); return; }
+    const payload = goalPayloadFromForm();
+    if (!payload.title || !Number.isFinite(payload.targetAmount) || payload.targetAmount <= 0) {
+      setError(t("goals_errorFill"));
+      return;
+    }
+    if (payload.targetAmount > MAX_AMOUNT) { setError(t("goals_errorAmountBig")); return; }
     if (form.sourceCategoryIds.length === 0) { setError(t("goals_errorSourceCategories")); return; }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/goals/${editGoal.id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title.trim(),
-          targetAmount: target,
-          isShared: form.isShared,
-          sourceCategoryIds: form.sourceCategoryIds,
-        }),
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("goals_errorGeneric")); return; }
       closeModal();
       await refreshAfterGoalAction();
+      setExpandedGoalId(editGoal.id);
     } catch { setError(t("goals_errorConnection")); }
     finally { setSubmitting(false); }
+  }
+
+  async function handleSaveDetails(
+    goalId: string,
+    data: { description?: string | null; deadline?: string | null }
+  ) {
+    const res = await fetch(`/api/goals/${goalId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) await refreshAfterGoalAction();
   }
 
   async function handleDelete(goal: Goal) {
@@ -111,7 +157,10 @@ export default function GoalsPage() {
     if (!ok) return;
     try {
       const res = await fetch(`/api/goals/${goal.id}`, { method: "DELETE" });
-      if (res.ok) await refreshAfterGoalAction();
+      if (res.ok) {
+        if (expandedGoalId === goal.id) setExpandedGoalId(null);
+        await refreshAfterGoalAction();
+      }
     } catch { /* ignore */ }
   }
 
@@ -135,14 +184,20 @@ export default function GoalsPage() {
   const primaryCategories = filterPrimaryCategories(categories);
 
   function openCreate() {
-    setModal(true); setEditGoal(null); setError("");
-    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: [] });
+    setModal(true);
+    setEditGoal(null);
+    setError("");
+    setForm(emptyForm(hasPartner));
   }
+
   async function openEdit(g: Goal) {
-    setEditGoal(g); setError("");
+    setEditGoal(g);
+    setError("");
     let sourceCategoryIds = goalSourceCategoryIds(g);
     let title = g.title;
     let targetAmount = String(g.targetAmount);
+    let description = g.description ?? "";
+    let deadline = formatGoalDeadlineInput(g.deadline);
     let isShared = hasPartner ? g.isShared : false;
     try {
       const res = await fetch(`/api/goals/${g.id}`);
@@ -151,20 +206,27 @@ export default function GoalsPage() {
         sourceCategoryIds = goalSourceCategoryIds({ ...fresh, sourceCategories: fresh.sourceCategories ?? [] });
         title = fresh.title;
         targetAmount = String(fresh.targetAmount);
+        description = fresh.description ?? "";
+        deadline = formatGoalDeadlineInput(fresh.deadline);
         isShared = hasPartner ? fresh.isShared : false;
         setEditGoal({ ...fresh, sourceCategories: fresh.sourceCategories ?? [] });
       }
     } catch { /* use list data */ }
-    setForm({ title, targetAmount, isShared, sourceCategoryIds });
+    setForm({ title, targetAmount, description, deadline, isShared, sourceCategoryIds });
   }
+
   function closeModal() {
-    setModal(false); setEditGoal(null); setError("");
-    setForm({ title: "", targetAmount: "", isShared: hasPartner, sourceCategoryIds: [] });
+    setModal(false);
+    setEditGoal(null);
+    setError("");
+    setForm(emptyForm(hasPartner));
   }
 
   if (!initialLoadDone) return <Loader />;
 
   const showModal = modal || !!editGoal;
+  const activeGoals = goals.filter((g) => !g.realizedAt);
+  const realizedGoals = goals.filter((g) => !!g.realizedAt);
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
@@ -185,133 +247,93 @@ export default function GoalsPage() {
         </button>
       </div>
 
-      {(() => {
-        const activeGoals = goals.filter((g) => !g.realizedAt);
-        const realizedGoals = goals.filter((g) => !!g.realizedAt);
+      {activeGoals.length > 0 && (
+        <div
+          className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden opacity-0 animate-slide-up"
+          style={{ animationDelay: "0.05s" }}
+        >
+          {activeGoals.map((goal) => {
+            const canEdit = !!(user && (goal.createdBy === user.id || goal.isShared));
+            return (
+              <GoalCard
+                key={goal.id}
+                goal={goal}
+                display={getGoalDisplay(goal)}
+                expanded={expandedGoalId === goal.id}
+                onToggle={() => setExpandedGoalId((id) => (id === goal.id ? null : goal.id))}
+                canEdit={canEdit}
+                formatMoney={formatMoney}
+                t={t}
+                onEdit={() => void openEdit(goal)}
+                onDelete={() => void handleDelete(goal)}
+                onRealize={() => setRealizeGoal(goal)}
+                onSaveDetails={(data) => handleSaveDetails(goal.id, data)}
+              />
+            );
+          })}
+        </div>
+      )}
 
-        return (
-          <>
-            <div className="space-y-4">
-              {activeGoals.map((goal, i) => {
-                const { balanceUsed, remainingNeeded, progressPercent } = getGoalDisplay(goal);
-                const canEditDelete = user && (goal.createdBy === user.id || goal.isShared);
-                const hasEnough = remainingNeeded <= 0;
-                return (
-                  <div key={goal.id} className="card opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.06}s` }}>
+      {realizedGoals.length > 0 && (
+        <div className="mt-10 opacity-0 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <h2 className="text-[15px] font-semibold text-[var(--text-secondary)] mb-3">{t("goals_realizedTitle")}</h2>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden divide-y divide-[var(--border)]">
+            {realizedGoals.map((goal) => {
+              const canEditDelete = user && (goal.createdBy === user.id || goal.isShared);
+              return (
+                <div key={goal.id} className="px-4 py-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-semibold text-[17px] leading-snug">{goal.title}</h2>
-                        {hasEnough && (
-                          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
-                            {t("goals_enough")}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[13px] text-[var(--text-secondary)] mt-1">
+                      <h3 className="font-medium text-[15px] truncate">{goal.title}</h3>
+                      <p className="text-[12px] text-[var(--text-tertiary)]">
                         {formatMoney(goal.targetAmount)} · {goal.isShared ? t("goals_sharedShort") : t("goals_personal")}
                       </p>
-                      <p className="mt-0.5 text-[12px] text-[var(--text-tertiary)] leading-relaxed">
-                        {t("goals_categoriesLabel")}:{" "}
-                        {(goal.sourceCategories ?? []).length > 0
-                          ? goal.sourceCategories.map((c) => c.name).join(", ")
-                          : t("goals_allCategoriesFallback")}
-                      </p>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 gap-0 rounded-2xl border border-[var(--border)] bg-[var(--input-bg)]/50 overflow-hidden">
-                      <div className="min-w-0 p-3.5 border-r border-[var(--border)]">
-                        <p className="text-[12px] text-[var(--text-tertiary)] leading-snug">
-                          {t("goals_onBalance")}
-                        </p>
-                        <p className="mt-1.5 text-[17px] font-semibold text-[var(--accent-green)] tabular-nums leading-none">
-                          {formatMoney(balanceUsed)}
-                        </p>
-                        <p className="mt-1 text-[11px] text-[var(--text-tertiary)] tabular-nums">
-                          з {formatMoney(goal.targetAmount)}
-                        </p>
-                      </div>
-                      <div className="min-w-0 p-3.5">
-                        <p className="text-[12px] text-[var(--text-tertiary)] leading-snug">
-                          {t("goals_remainingToCollect")}
-                        </p>
-                        <p className="mt-1.5 text-[17px] font-semibold text-[var(--accent-blue)] tabular-nums leading-none">
-                          {formatMoney(remainingNeeded)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
-                        <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-green)] rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
-                      </div>
-                      <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium tabular-nums">{progressPercent.toFixed(0)}%</span>
-                    </div>
-                    <div className="relative z-[1] flex flex-col gap-2 mt-4 pt-3 border-t border-[var(--border)] sm:flex-row sm:flex-wrap sm:items-center">
-                      {hasEnough && (
-                        <button type="button" onClick={() => setRealizeGoal(goal)} className="rounded-lg px-3 py-2.5 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 w-full sm:w-auto">
-                          <CheckCircle className="w-4 h-4" strokeWidth={2} /> Реалізувати
+                    <div className="relative z-[1] flex flex-col gap-2 w-full sm:w-auto sm:min-w-0">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)] self-start">
+                        {t("goals_realized")}
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleRealize(goal, false)}
+                          className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition inline-flex items-center justify-center gap-1.5 min-h-[44px]"
+                          title={t("goals_undo")}
+                        >
+                          <XCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
+                          <span className="text-[12px] font-medium">{t("goals_undo")}</span>
                         </button>
-                      )}
-                      {canEditDelete && (
-                        <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
-                          <button type="button" onClick={() => openEdit(goal)} className="flex-1 sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_edit")}>
-                            <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
-                            <span className="text-[13px] font-medium">{t("goals_edit")}</span>
-                          </button>
-                          <button type="button" onClick={() => handleDelete(goal)} className="flex-1 sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_delete")}>
-                            <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
-                            <span className="text-[13px] font-medium">{t("goals_delete")}</span>
-                          </button>
-                        </div>
-                      )}
+                        {canEditDelete && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void openEdit(goal)}
+                              className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]"
+                              title={t("goals_edit")}
+                            >
+                              <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
+                              <span className="text-[12px] font-medium">{t("goals_edit")}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleDelete(goal)}
+                              className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]"
+                              title={t("goals_delete")}
+                            >
+                              <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
+                              <span className="text-[12px] font-medium">{t("goals_delete")}</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-
-            {realizedGoals.length > 0 && (
-              <div className="mt-10 opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + activeGoals.length * 0.06}s` }}>
-                <h2 className="text-[15px] font-semibold text-[var(--text-secondary)] mb-3">Реалізовані</h2>
-                <div className="flex flex-col gap-2">
-                  {realizedGoals.map((goal) => {
-                    const canEditDelete = user && (goal.createdBy === user.id || goal.isShared);
-                    return (
-                      <div key={goal.id} className="card py-3 border-[var(--accent-green)]/20">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0">
-                            <h3 className="font-medium text-[15px] truncate">{goal.title}</h3>
-                            <p className="text-[12px] text-[var(--text-tertiary)]">{formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}</p>
-                          </div>
-                          <div className="relative z-[1] flex flex-col gap-2 w-full sm:w-auto sm:min-w-0">
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)] self-start">Реалізовано</span>
-                            <div className="flex flex-wrap gap-2">
-                              <button type="button" onClick={() => handleRealize(goal, false)} className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--text-secondary)] hover:bg-[var(--input-bg)] transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_undo")}>
-                                <XCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
-                                <span className="text-[12px] font-medium">{t("goals_undo")}</span>
-                              </button>
-                              {canEditDelete && (
-                                <>
-                                  <button type="button" onClick={() => openEdit(goal)} className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_edit")}>
-                                    <Pencil className="w-4 h-4 shrink-0" strokeWidth={2} />
-                                    <span className="text-[12px] font-medium">{t("goals_edit")}</span>
-                                  </button>
-                                  <button type="button" onClick={() => handleDelete(goal)} className="flex-1 min-w-[calc(50%-0.25rem)] sm:flex-none rounded-lg px-3 py-2.5 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center justify-center gap-1.5 min-h-[44px]" title={t("goals_delete")}>
-                                    <Trash2 className="w-4 h-4 shrink-0" strokeWidth={2} />
-                                    <span className="text-[12px] font-medium">{t("goals_delete")}</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
-              </div>
-            )}
-          </>
-        );
-      })()}
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {confirmDialog}
       {showModal && (
@@ -320,11 +342,42 @@ export default function GoalsPage() {
             <form onSubmit={editGoal ? handleEdit : handleAdd} className="space-y-5">
               <div>
                 <FieldLabel>{t("goals_name")}</FieldLabel>
-                <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder={t("goals_namePlaceholder")} required />
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder={t("goals_namePlaceholder")}
+                  required
+                />
               </div>
               <div>
                 <FieldLabel>{t("goals_targetAmount")}</FieldLabel>
-                <input type="text" inputMode="decimal" value={form.targetAmount} onChange={(e) => setForm((f) => ({ ...f, targetAmount: e.target.value }))} placeholder="0.00" required />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={form.targetAmount}
+                  onChange={(e) => setForm((f) => ({ ...f, targetAmount: e.target.value }))}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div>
+                <FieldLabel>{t("goals_description")}</FieldLabel>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder={t("goals_descriptionPlaceholder")}
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-[14px]"
+                />
+              </div>
+              <div>
+                <FieldLabel>{t("goals_deadline")}</FieldLabel>
+                <input
+                  type="date"
+                  value={form.deadline}
+                  onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
+                />
               </div>
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -336,13 +389,13 @@ export default function GoalsPage() {
                   )}
                 </div>
                 <p className="text-[12px] text-[var(--text-tertiary)] mb-2">{t("goals_sourceCategoriesHint")}</p>
-                  {primaryCategories.length === 0 ? (
-                    <p className="text-[13px] text-[var(--text-secondary)] rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3">
-                      {t("goals_noCategoriesAvailable")}
-                    </p>
-                  ) : (
-                    <div className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
-                      {primaryCategories.map((c) => (
+                {primaryCategories.length === 0 ? (
+                  <p className="text-[13px] text-[var(--text-secondary)] rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3">
+                    {t("goals_noCategoriesAvailable")}
+                  </p>
+                ) : (
+                  <div className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-3">
+                    {primaryCategories.map((c) => (
                       <CheckboxField
                         key={c.id}
                         checked={form.sourceCategoryIds.includes(c.id)}
@@ -361,7 +414,11 @@ export default function GoalsPage() {
                 />
               )}
               {error && <FieldError message={error} />}
-              <ModalActions onCancel={closeModal} submitLabel={editGoal ? t("modal_save") : t("modal_create")} submitDisabled={submitting} />
+              <ModalActions
+                onCancel={closeModal}
+                submitLabel={editGoal ? t("modal_save") : t("modal_create")}
+                submitDisabled={submitting}
+              />
             </form>
           </ModalPanel>
         </ModalOverlay>

@@ -3,7 +3,7 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
 import { isPrimaryCategory } from "@/lib/category-tier";
-import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds, getOrCreateGoalExpenseCategory, removeGoalExpenseCategory } from "@/lib/goal-api";
+import { goalListInclude, parseGoalDeadline, syncGoalSourceCategories, validateGoalSourceCategoryIds, getOrCreateGoalExpenseCategory, removeGoalExpenseCategory } from "@/lib/goal-api";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalPatchSchema } from "@/lib/validations";
 
@@ -115,10 +115,22 @@ export async function PATCH(
       return NextResponse.json(mapGoalSourceCategories(updated));
     }
     const hasPartner = !!session.partnerId;
-    const updateData: { title?: string; targetAmount?: number; isShared?: boolean } = {};
+    const updateData: {
+      title?: string;
+      targetAmount?: number;
+      isShared?: boolean;
+      description?: string | null;
+      deadline?: Date | null;
+    } = {};
     if (parsed.data.title !== undefined) updateData.title = parsed.data.title.trim();
     if (parsed.data.targetAmount !== undefined) updateData.targetAmount = parsed.data.targetAmount;
     if (parsed.data.isShared !== undefined) updateData.isShared = hasPartner ? parsed.data.isShared : false;
+    if (parsed.data.description !== undefined) {
+      updateData.description = parsed.data.description?.trim() || null;
+    }
+    if (parsed.data.deadline !== undefined) {
+      updateData.deadline = parsed.data.deadline ? parseGoalDeadline(parsed.data.deadline) : null;
+    }
 
     let resolvedSourceIds: string[] | null = null;
     if (parsed.data.sourceCategoryIds !== undefined) {

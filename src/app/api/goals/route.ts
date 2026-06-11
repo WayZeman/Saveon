@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { goalsVisibleWhere } from "@/lib/data-scope";
-import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
+import { goalListInclude, parseGoalDeadline, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalSchema } from "@/lib/validations";
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { title, targetAmount, isShared, sourceCategoryIds } = parsed.data;
+    const { title, targetAmount, isShared, sourceCategoryIds, description, deadline } = parsed.data;
     const resolvedIds = await validateGoalSourceCategoryIds(session, sourceCategoryIds);
     if (!resolvedIds) {
       return NextResponse.json({ error: "Invalid source categories" }, { status: 400 });
@@ -38,8 +38,10 @@ export async function POST(request: Request) {
     const goal = await prisma.goal.create({
       data: {
         title,
+        description: description?.trim() || null,
         targetAmount,
         currentAmount: 0,
+        deadline: deadline ? parseGoalDeadline(deadline) : null,
         createdBy: session.id,
         isShared: effectiveShared,
       },

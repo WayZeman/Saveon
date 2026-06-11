@@ -84,8 +84,10 @@ model Transaction {
 model Goal {
   id           String    @id @default(cuid())
   title        String
+  description  String?
   targetAmount Float
   currentAmount Float    @default(0)
+  deadline     DateTime?
   createdBy    String
   isShared     Boolean   @default(true)
   createdAt    DateTime  @default(now())

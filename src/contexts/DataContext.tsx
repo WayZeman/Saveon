@@ -81,7 +81,9 @@ export type Category = {
 export type Goal = {
   id: string;
   title: string;
+  description: string | null;
   targetAmount: number;
+  deadline: string | null;
   isShared: boolean;
   createdBy: string;
   realizedAt: string | null;
@@ -235,7 +237,9 @@ const DEV_PREVIEW_STATE: DataState = {
     {
       id: "goal-1",
       title: "Прибудова",
+      description: null,
       targetAmount: 19000,
+      deadline: null,
       isShared: true,
       createdBy: "preview-user",
       realizedAt: null,
@@ -249,7 +253,9 @@ const DEV_PREVIEW_STATE: DataState = {
     {
       id: "goal-2",
       title: "Авто",
+      description: null,
       targetAmount: 12000,
+      deadline: null,
       isShared: true,
       createdBy: "preview-user",
       realizedAt: null,
