@@ -37,6 +37,12 @@ export type DashboardData = {
     sourceCategories: { id: string; name: string; isShared: boolean }[];
     createdByUser: { id: string; email: string; role: string };
   }>;
+  goalsSummary: {
+    totalTarget: number;
+    totalCollected: number;
+    totalRemaining: number;
+    fillPercent: number;
+  };
   monthlyData: { month: string; income: number; expense: number }[];
   pieData: { name: string; value: number; chartValue: number }[];
   categoryBreakdown: { name: string; net: number }[];
@@ -175,6 +181,12 @@ const DEV_PREVIEW_STATE: DataState = {
         createdByUser: { id: "preview-user", email: "preview@local.dev", role: "husband" },
       },
     ],
+    goalsSummary: {
+      totalTarget: 31000,
+      totalCollected: 2712.84,
+      totalRemaining: 28287.16,
+      fillPercent: 8.75,
+    },
     monthlyData: [
       { month: "01", income: 23000, expense: 16500 },
       { month: "02", income: 18000, expense: 14900 },

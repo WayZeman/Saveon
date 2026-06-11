@@ -74,6 +74,50 @@ export function computeGoalProgress(
   return { balanceUsed, remainingNeeded, progressPercent };
 }
 
+type HomeGoalSummaryInput = GoalForBalance & { createdBy: string };
+
+/** Зведення для головної: без подвійного підрахунку категорій між цілями, з обмеженням балансом. */
+export function computeHomeGoalsSummary(
+  goals: HomeGoalSummaryInput[],
+  categoryNetsByUser: Record<string, Record<string, number>>,
+  sessionId: string,
+  partnerId: string | null,
+  balanceCap: number
+) {
+  const totalTarget = goals.reduce((s, g) => s + g.targetAmount, 0);
+  if (goals.length === 0 || totalTarget <= 0) {
+    return { totalTarget: 0, totalCollected: 0, totalRemaining: 0, fillPercent: 0 };
+  }
+
+  const hasOpenGoal = goals.some((g) => g.sourceCategories.length === 0);
+  let poolCollected = 0;
+
+  if (hasOpenGoal) {
+    poolCollected = balanceCap;
+  } else {
+    const counted = new Set<string>();
+    for (const goal of goals) {
+      const userIds =
+        goal.isShared && partnerId ? [sessionId, partnerId] : [goal.createdBy];
+      for (const uid of userIds) {
+        const nets = categoryNetsByUser[uid] ?? {};
+        for (const { categoryId } of goal.sourceCategories) {
+          const key = `${uid}:${categoryId}`;
+          if (counted.has(key)) continue;
+          counted.add(key);
+          poolCollected += nets[categoryId] ?? 0;
+        }
+      }
+    }
+  }
+
+  const totalCollected = Math.min(balanceCap, Math.max(0, poolCollected), totalTarget);
+  const totalRemaining = Math.max(0, totalTarget - totalCollected);
+  const fillPercent = Math.min(100, (totalCollected / totalTarget) * 100);
+
+  return { totalTarget, totalCollected, totalRemaining, fillPercent };
+}
+
 export const goalSourceCategoriesInclude = {
   sourceCategories: {
     include: { category: { select: { id: true, name: true, isShared: true } } },

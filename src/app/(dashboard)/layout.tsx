@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DataProvider, useData } from "@/contexts/DataContext";
 import SwipeNavigation from "@/components/SwipeNavigation";
 import { PartnerInviteModal } from "@/components/PartnerInviteModal";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 const navItems = [
   { href: "/dashboard", labelKey: "nav_home" as const, Icon: Home },
@@ -68,7 +69,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </aside>
 
           {/* Main content */}
-          <main className="relative pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-7">
+          <main className="relative pb-[calc(58px+env(safe-area-inset-bottom,0px)+1.25rem)] md:pb-7">
             <div className="pointer-events-none absolute inset-0 -z-[1] hidden">
               <div className="absolute -top-24 -right-20 w-[32rem] h-[32rem] rounded-full blur-3xl opacity-25 bg-[var(--accent-blue)]" />
               <div className="absolute top-1/3 -left-32 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-20 bg-[var(--accent-purple)]" />
@@ -82,34 +83,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </SwipeNavigation>
           </main>
 
-          {/* Bottom nav for all screen sizes */}
-          <nav
-            className="mobile-bottom-nav glass-panel fixed bottom-0 left-0 right-0 border-t border-[var(--border)] z-20 md:hidden"
-            style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
-            aria-label={t("nav_aria")}
-          >
-            <div className="mx-auto w-full px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
-              <div className="flex justify-around items-center h-[58px]">
-              {nav.map(({ href, label, Icon }) => {
-                const active = pathname === href;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    aria-label={label}
-                    title={label}
-                    className={`flex-1 flex items-center justify-center py-1.5 transition-colors ${active
-                      ? "text-[var(--accent-blue)]"
-                      : "text-[var(--text-tertiary)] active:text-[var(--text-secondary)]"
-                      }`}
-                  >
-                    <Icon className="w-[24px] h-[24px]" strokeWidth={active ? 2 : 1.5} />
-                  </Link>
-                );
-              })}
-              </div>
-            </div>
-          </nav>
+          <MobileBottomNav />
         </div>
   );
 }

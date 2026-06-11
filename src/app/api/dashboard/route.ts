@@ -3,7 +3,12 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { goalsVisibleWhere } from "@/lib/data-scope";
 import { goalListInclude } from "@/lib/goal-api";
-import { buildCategoryNetsByUser, computeGoalProgress, mapGoalSourceCategories } from "@/lib/goal-balance";
+import {
+  buildCategoryNetsByUser,
+  computeGoalProgress,
+  computeHomeGoalsSummary,
+  mapGoalSourceCategories,
+} from "@/lib/goal-balance";
 type Agg = { userId: string; income: number; expense: number };
 
 export async function GET(request: Request) {
@@ -104,6 +109,13 @@ export async function GET(request: Request) {
     return { ...mapped, ...progress };
   });
   const goals = goalsMapped.filter((g) => !g.realizedAt);
+  const goalsSummary = computeHomeGoalsSummary(
+    goals,
+    categoryNetsByUser,
+    session.id,
+    partnerId,
+    totalBalance
+  );
 
   const monthlyData = await getMonthlyData(session.id, partnerId);
   const categoryBreakdown = Object.values(categoryTotals)
@@ -131,6 +143,7 @@ export async function GET(request: Request) {
     totalBalance,
     hasPartner,
     goals,
+    goalsSummary,
     monthlyData,
     pieData,
     categoryBreakdown,

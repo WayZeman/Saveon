@@ -113,12 +113,9 @@ export default function HomePageContent() {
         </section>
       )}
 
-      {/* Goals — тільки нереалізовані; "Залишилось" = загальна сума до збору мінус поточний баланс */}
+      {/* Goals — зведення без подвійного підрахунку одних категорій між цілями */}
       {data.goals.length > 0 && (() => {
-        const totalTarget = data.goals.reduce((s, g) => s + g.targetAmount, 0);
-        const totalRemaining = data.goals.reduce((s, g) => s + g.remainingNeeded, 0);
-        const totalCollected = data.goals.reduce((s, g) => s + Math.min(g.balanceUsed, g.targetAmount), 0);
-        const fillPercent = totalTarget > 0 ? Math.max(0, Math.min(100, (totalCollected / totalTarget) * 100)) : 0;
+        const { totalTarget, totalCollected, totalRemaining, fillPercent } = data.goalsSummary;
         return (
           <section className="card opacity-0 animate-slide-up animate-stagger-3">
             <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
