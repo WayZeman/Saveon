@@ -3,7 +3,8 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
 import { isPrimaryCategory } from "@/lib/category-tier";
-import { goalListInclude, parseGoalDeadline, syncGoalSourceCategories, validateGoalSourceCategoryIds, getOrCreateGoalExpenseCategory, removeGoalExpenseCategory } from "@/lib/goal-api";
+import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds, getOrCreateGoalExpenseCategory, removeGoalExpenseCategory } from "@/lib/goal-api";
+import { parseGoalDeadline } from "@/lib/goal-dates";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalPatchSchema } from "@/lib/validations";
 

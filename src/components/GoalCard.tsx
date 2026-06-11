@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle, ChevronDown, Pencil, Trash2 } from "lucide-react";
-import { formatGoalDeadlineInput } from "@/lib/goal-api";
+import { formatGoalDeadlineInput } from "@/lib/goal-dates";
 import type { Goal } from "@/contexts/DataContext";
 
 type GoalDisplay = {
@@ -118,7 +118,7 @@ export function GoalCard({
             )}
           </div>
           <span className="shrink-0 text-[13px] font-medium tabular-nums text-[var(--text-secondary)]">
-            {progressPercent.toFixed(0)}%
+            {(progressPercent ?? 0).toFixed(0)}%
           </span>
           <ChevronDown
             className={`w-4 h-4 shrink-0 text-[var(--text-tertiary)] transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
@@ -128,7 +128,7 @@ export function GoalCard({
         <div className="mt-2.5 h-1 bg-[var(--input-bg)] rounded-full overflow-hidden">
           <div
             className="h-full bg-[var(--accent-blue)] rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent}%` }}
+            style={{ width: `${progressPercent ?? 0}%` }}
           />
         </div>
       </button>

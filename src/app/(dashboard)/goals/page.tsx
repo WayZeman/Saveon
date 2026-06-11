@@ -9,7 +9,7 @@ import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, Checkbo
 import { RealizeGoalModal } from "@/components/RealizeGoalModal";
 import { GoalCard } from "@/components/GoalCard";
 import { filterPrimaryCategories } from "@/lib/category-tier";
-import { formatGoalDeadlineInput } from "@/lib/goal-api";
+import { formatGoalDeadlineInput } from "@/lib/goal-dates";
 
 type GoalForm = {
   title: string;
@@ -428,7 +428,7 @@ export default function GoalsPage() {
         <RealizeGoalModal
           goal={realizeGoal}
           categories={
-            realizeGoal.sourceCategories.length > 0
+            (realizeGoal.sourceCategories ?? []).length > 0
               ? primaryCategories.filter((c) => (realizeGoal.sourceCategories ?? []).some((s) => s.id === c.id))
               : primaryCategories
           }

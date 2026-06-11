@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { goalsVisibleWhere } from "@/lib/data-scope";
-import { goalListInclude, parseGoalDeadline, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
+import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds } from "@/lib/goal-api";
+import { parseGoalDeadline } from "@/lib/goal-dates";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalSchema } from "@/lib/validations";
 
