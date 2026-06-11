@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Calendar, CheckCircle, ChevronDown, Pencil, Trash2 } from "lucide-react";
-import { formatGoalDeadlineInput } from "@/lib/goal-dates";
 import { GoalProgressRing } from "@/components/GoalProgressRing";
 import type { Goal } from "@/contexts/DataContext";
 
@@ -24,7 +22,6 @@ type GoalCardProps = {
   onEdit: () => void;
   onDelete: () => void;
   onRealize: () => void;
-  onSaveDetails: (data: { description?: string | null; deadline?: string | null }) => Promise<void>;
 };
 
 function formatDeadlineLabel(deadline: string | null, t: GoalCardProps["t"]): string | null {
@@ -60,19 +57,10 @@ export function GoalCard({
   onEdit,
   onDelete,
   onRealize,
-  onSaveDetails,
 }: GoalCardProps) {
   const { balanceUsed, remainingNeeded, progressPercent } = display;
   const pct = progressPercent ?? 0;
   const hasEnough = remainingNeeded <= 0;
-  const [description, setDescription] = useState(goal.description ?? "");
-  const [deadline, setDeadline] = useState(formatGoalDeadlineInput(goal.deadline));
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setDescription(goal.description ?? "");
-    setDeadline(formatGoalDeadlineInput(goal.deadline));
-  }, [goal.id, goal.description, goal.deadline]);
 
   const deadlineShort = formatDeadlineLabel(goal.deadline, t);
   const deadlineLong = formatDeadlineLong(goal.deadline);
@@ -82,30 +70,7 @@ export function GoalCard({
     new Date(goal.deadline).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
 
   const categories = goal.sourceCategories ?? [];
-
-  async function saveDescription() {
-    const next = description.trim() || null;
-    const current = goal.description?.trim() || null;
-    if (next === current) return;
-    setSaving(true);
-    try {
-      await onSaveDetails({ description: next });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function saveDeadline(next: string) {
-    const normalized = next || null;
-    const current = formatGoalDeadlineInput(goal.deadline) || null;
-    if (normalized === current) return;
-    setSaving(true);
-    try {
-      await onSaveDetails({ deadline: normalized });
-    } finally {
-      setSaving(false);
-    }
-  }
+  const description = goal.description?.trim();
 
   return (
     <article
@@ -161,64 +126,25 @@ export function GoalCard({
             )}
           </div>
 
-          <div className="goal-detail-block mt-4">
-            <p className="goal-detail-label mb-2">{t("goals_description")}</p>
-            {canEdit ? (
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                onBlur={() => void saveDescription()}
-                placeholder={t("goals_descriptionPlaceholder")}
-                rows={3}
-                className="goal-detail-textarea"
-              />
-            ) : (
-              <p className="goal-detail-text">
-                {goal.description?.trim() || t("goals_noDescription")}
-              </p>
-            )}
-          </div>
-
-          <div className="goal-detail-block mt-3">
-            <p className="goal-detail-label mb-2 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
-              {t("goals_deadline")}
+          {description ? (
+            <p className="mt-4 text-[14px] leading-relaxed text-[var(--text-secondary)] whitespace-pre-wrap">
+              {description}
             </p>
-            {canEdit ? (
-              <div className="goal-date-row">
-                <input
-                  id={`goal-deadline-${goal.id}`}
-                  type="date"
-                  value={deadline}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setDeadline(next);
-                    void saveDeadline(next);
-                  }}
-                  className="goal-date-input"
-                />
-                {deadline && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDeadline("");
-                      void saveDeadline("");
-                    }}
-                    className="goal-date-clear"
-                  >
-                    {t("goals_clearDeadline")}
-                  </button>
+          ) : (
+            <p className="mt-4 text-[14px] text-[var(--text-tertiary)]">{t("goals_noDescription")}</p>
+          )}
+
+          <div className="mt-4 flex items-start gap-2 text-[13px]">
+            <Calendar className="w-4 h-4 shrink-0 mt-0.5 text-[var(--text-tertiary)]" strokeWidth={2} />
+            {deadlineLong ? (
+              <div className={isOverdue ? "text-[var(--accent-red)]" : "text-[var(--text-secondary)]"}>
+                <p>{deadlineLong}</p>
+                {deadlineShort && (
+                  <p className="mt-0.5 text-[12px] text-[var(--text-tertiary)]">{deadlineShort}</p>
                 )}
               </div>
-            ) : deadlineLong ? (
-              <p className={`goal-detail-text ${isOverdue ? "text-[var(--accent-red)]" : ""}`}>
-                {deadlineLong}
-                {deadlineShort && (
-                  <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5">{deadlineShort}</span>
-                )}
-              </p>
             ) : (
-              <p className="goal-detail-text text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
+              <p className="text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
             )}
           </div>
 
@@ -241,7 +167,6 @@ export function GoalCard({
                 </button>
               </>
             )}
-            {saving && <span className="text-[11px] text-[var(--text-tertiary)] self-center px-2">{t("goals_saving")}</span>}
           </div>
         </div>
       )}

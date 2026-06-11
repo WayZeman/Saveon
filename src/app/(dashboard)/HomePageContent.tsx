@@ -15,7 +15,6 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
 import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoalModal";
-import { GoalProgressRing } from "@/components/GoalProgressRing";
 import { filterPrimaryCategories } from "@/lib/category-tier";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
@@ -128,25 +127,20 @@ export default function HomePageContent() {
               <span className="text-[var(--text-secondary)]">{t("home_needed")} <span className="text-[var(--text)] font-medium">{formatMoney(totalTarget)}</span></span>
               <span className="text-[var(--text-secondary)]">{t("home_collected")} <span className="text-[var(--accent-green)] font-medium">{formatMoney(totalCollected)}</span></span>
             </div>
-            <div className="flex items-center gap-4 mb-1">
-              <div className="min-w-0 flex-1">
-                <div className="h-2.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
-                  <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
-                </div>
-                <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">{t("home_remaining")} {formatMoney(totalRemaining)}</p>
-              </div>
-              <GoalProgressRing percent={fillPercent} accent="purple" size={64} stroke={4} />
+            <div className="h-2.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
+              <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
             </div>
+            <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">{t("home_remaining")} {formatMoney(totalRemaining)}</p>
             <ul className="mt-5 space-y-2">
-              {data.goals.map((goal, i) => {
+              {data.goals.map((goal) => {
                 const hasEnough = goal.remainingNeeded <= 0;
-                const accents = ["blue", "purple", "teal"] as const;
-                const pct = Math.min(100, Math.max(0, goal.progressPercent ?? 0));
                 return (
-                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-3 py-3 border border-[var(--border)]">
-                    <GoalProgressRing percent={pct} accent={accents[i % accents.length]} size={42} stroke={3} />
-                    <Link href="/goals" className="flex-1 min-w-0">
-                      <span className="text-[14px] font-medium truncate block">{goal.title}</span>
+                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
+                    <Link href="/goals" className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                      <span className="text-[14px] font-medium truncate">{goal.title}</span>
+                      <span className="text-[13px] font-semibold text-[var(--accent-blue)] shrink-0 tabular-nums">
+                        {Math.min(100, Math.max(0, goal.progressPercent)).toFixed(0)}%
+                      </span>
                     </Link>
                     {hasEnough && (
                       <button

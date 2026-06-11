@@ -141,18 +141,6 @@ export default function GoalsPage() {
     finally { setSubmitting(false); }
   }
 
-  async function handleSaveDetails(
-    goalId: string,
-    data: { description?: string | null; deadline?: string | null }
-  ) {
-    const res = await fetch(`/api/goals/${goalId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) await refreshAfterGoalAction();
-  }
-
   async function handleDelete(goal: Goal) {
     const ok = await confirm(t("goals_confirmDelete", goal.title));
     if (!ok) return;
@@ -280,7 +268,6 @@ export default function GoalsPage() {
                 onEdit={() => void openEdit(goal)}
                 onDelete={() => void handleDelete(goal)}
                 onRealize={() => setRealizeGoal(goal)}
-                onSaveDetails={(data) => handleSaveDetails(goal.id, data)}
               />
             );
           })}
