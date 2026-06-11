@@ -198,34 +198,52 @@ export default function GoalsPage() {
                 const hasEnough = remainingNeeded <= 0;
                 return (
                   <div key={goal.id} className="card opacity-0 animate-slide-up" style={{ animationDelay: `${0.05 + i * 0.06}s` }}>
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="font-semibold text-[17px]">{goal.title}</h2>
-                          {hasEnough && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">Достатньо</span>}
-                        </div>
-                        <p className="text-[13px] text-[var(--text-secondary)] mt-1">
-                          {formatMoney(goal.targetAmount)} · {goal.isShared ? "спільна" : "особиста"}
-                          <span className="block mt-0.5 text-[12px] text-[var(--text-tertiary)]">
-                            {t("goals_categoriesLabel")}:{" "}
-                            {(goal.sourceCategories ?? []).length > 0
-                              ? goal.sourceCategories.map((c) => c.name).join(", ")
-                              : t("goals_allCategoriesFallback")}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="font-semibold text-[17px] leading-snug">{goal.title}</h2>
+                        {hasEnough && (
+                          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
+                            {t("goals_enough")}
                           </span>
+                        )}
+                      </div>
+                      <p className="text-[13px] text-[var(--text-secondary)] mt-1">
+                        {formatMoney(goal.targetAmount)} · {goal.isShared ? t("goals_sharedShort") : t("goals_personal")}
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-[var(--text-tertiary)] leading-relaxed">
+                        {t("goals_categoriesLabel")}:{" "}
+                        {(goal.sourceCategories ?? []).length > 0
+                          ? goal.sourceCategories.map((c) => c.name).join(", ")
+                          : t("goals_allCategoriesFallback")}
+                      </p>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-0 rounded-2xl border border-[var(--border)] bg-[var(--input-bg)]/50 overflow-hidden">
+                      <div className="min-w-0 p-3.5 border-r border-[var(--border)]">
+                        <p className="text-[12px] text-[var(--text-tertiary)] leading-snug">
+                          {t("goals_onBalance")}
+                        </p>
+                        <p className="mt-1.5 text-[17px] font-semibold text-[var(--accent-green)] tabular-nums leading-none">
+                          {formatMoney(balanceUsed)}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[var(--text-tertiary)] tabular-nums">
+                          з {formatMoney(goal.targetAmount)}
                         </p>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[12px] text-[var(--text-tertiary)]">Залишилось зібрати</p>
-                        <p className="text-[18px] font-semibold text-[var(--accent-blue)]">{formatMoney(remainingNeeded)}</p>
+                      <div className="min-w-0 p-3.5">
+                        <p className="text-[12px] text-[var(--text-tertiary)] leading-snug">
+                          {t("goals_remainingToCollect")}
+                        </p>
+                        <p className="mt-1.5 text-[17px] font-semibold text-[var(--accent-blue)] tabular-nums leading-none">
+                          {formatMoney(remainingNeeded)}
+                        </p>
                       </div>
                     </div>
                     <div className="mt-4 flex items-center gap-3">
                       <div className="flex-1 h-2 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
                         <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-green)] rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
                       </div>
-                      <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium">{progressPercent.toFixed(0)}%</span>
+                      <span className="text-[12px] text-[var(--text-tertiary)] shrink-0 font-medium tabular-nums">{progressPercent.toFixed(0)}%</span>
                     </div>
-                    <p className="text-[12px] text-[var(--text-tertiary)] mt-2">На балансі {formatMoney(balanceUsed)} з {formatMoney(goal.targetAmount)}</p>
                     <div className="relative z-[1] flex flex-col gap-2 mt-4 pt-3 border-t border-[var(--border)] sm:flex-row sm:flex-wrap sm:items-center">
                       {hasEnough && (
                         <button type="button" onClick={() => setRealizeGoal(goal)} className="rounded-lg px-3 py-2.5 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center justify-center gap-1.5 w-full sm:w-auto">
