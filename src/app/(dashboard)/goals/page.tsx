@@ -8,6 +8,7 @@ import { useData, type Goal } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
 import { RealizeGoalModal } from "@/components/RealizeGoalModal";
 import { GoalCard } from "@/components/GoalCard";
+import { GoalsSummary } from "@/components/GoalsSummary";
 import { filterPrimaryCategories } from "@/lib/category-tier";
 import { formatGoalDeadlineInput } from "@/lib/goal-dates";
 
@@ -227,6 +228,8 @@ export default function GoalsPage() {
   const showModal = modal || !!editGoal;
   const activeGoals = goals.filter((g) => !g.realizedAt);
   const realizedGoals = goals.filter((g) => !!g.realizedAt);
+  const summary = dashboardData?.goalsSummary;
+  const accents = ["blue", "purple", "teal"] as const;
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
@@ -241,24 +244,34 @@ export default function GoalsPage() {
             {!hasPartner && <p className="mt-0.5">{t("goals_addPartnerHint").trim()}</p>}
           </div>
         </div>
-        <button type="button" onClick={openCreate} className="btn-primary">
+        <button type="button" onClick={openCreate} className="btn-primary shrink-0">
           <Plus className="w-4 h-4" strokeWidth={2.5} />
           {t("goals_newGoal")}
         </button>
       </div>
 
-      {activeGoals.length > 0 && (
-        <div
-          className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden opacity-0 animate-slide-up"
-          style={{ animationDelay: "0.05s" }}
-        >
-          {activeGoals.map((goal) => {
+      {activeGoals.length > 0 && summary && (
+        <GoalsSummary
+          totalTarget={summary.totalTarget}
+          totalCollected={summary.totalCollected}
+          totalRemaining={summary.totalRemaining}
+          fillPercent={summary.fillPercent}
+          activeCount={activeGoals.length}
+          formatMoney={formatMoney}
+          t={t}
+        />
+      )}
+
+      {activeGoals.length > 0 ? (
+        <div className="space-y-3 opacity-0 animate-slide-up" style={{ animationDelay: "0.08s" }}>
+          {activeGoals.map((goal, i) => {
             const canEdit = !!(user && (goal.createdBy === user.id || goal.isShared));
             return (
               <GoalCard
                 key={goal.id}
                 goal={goal}
                 display={getGoalDisplay(goal)}
+                accent={accents[i % accents.length]}
                 expanded={expandedGoalId === goal.id}
                 onToggle={() => setExpandedGoalId((id) => (id === goal.id ? null : goal.id))}
                 canEdit={canEdit}
@@ -272,6 +285,18 @@ export default function GoalsPage() {
             );
           })}
         </div>
+      ) : (
+        <section className="card text-center py-14 opacity-0 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--input-bg)] border border-[var(--border)]">
+            <Target className="w-7 h-7 text-[var(--accent-purple)]" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-lg font-semibold">{t("home_noGoals")}</h2>
+          <p className="mt-1.5 text-[14px] text-[var(--text-secondary)] max-w-sm mx-auto">{t("home_noGoalsHint")}</p>
+          <button type="button" onClick={openCreate} className="btn-primary mt-6 mx-auto">
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            {t("goals_newGoal")}
+          </button>
+        </section>
       )}
 
       {realizedGoals.length > 0 && (

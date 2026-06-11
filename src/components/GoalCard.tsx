@@ -1,8 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, ChevronDown, Pencil, Trash2 } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  ChevronDown,
+  Layers,
+  Pencil,
+  Trash2,
+  Wallet,
+} from "lucide-react";
 import { formatGoalDeadlineInput } from "@/lib/goal-dates";
+import { GoalProgressRing } from "@/components/GoalProgressRing";
 import type { Goal } from "@/contexts/DataContext";
 
 type GoalDisplay = {
@@ -15,6 +24,7 @@ type GoalCardProps = {
   goal: Goal;
   display: GoalDisplay;
   expanded: boolean;
+  accent: "blue" | "purple" | "teal";
   onToggle: () => void;
   canEdit: boolean;
   formatMoney: (n: number) => string;
@@ -33,16 +43,24 @@ function formatDeadlineLabel(deadline: string | null, t: GoalCardProps["t"]): st
   today.setHours(0, 0, 0, 0);
   end.setHours(0, 0, 0, 0);
   const days = Math.ceil((end.getTime() - today.getTime()) / 86400000);
-  const dateLabel = end.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" });
+  const dateLabel = end.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
   if (days < 0) return `${dateLabel} · ${t("goals_overdue")}`;
   if (days === 0) return `${dateLabel} · ${t("goals_today")}`;
   return `${dateLabel} · ${t("goals_daysLeft", String(days))}`;
+}
+
+function formatDeadlineLong(deadline: string | null): string | null {
+  if (!deadline) return null;
+  const end = new Date(deadline);
+  if (Number.isNaN(end.getTime())) return null;
+  return end.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" });
 }
 
 export function GoalCard({
   goal,
   display,
   expanded,
+  accent,
   onToggle,
   canEdit,
   formatMoney,
@@ -53,6 +71,7 @@ export function GoalCard({
   onSaveDetails,
 }: GoalCardProps) {
   const { balanceUsed, remainingNeeded, progressPercent } = display;
+  const pct = progressPercent ?? 0;
   const hasEnough = remainingNeeded <= 0;
   const [description, setDescription] = useState(goal.description ?? "");
   const [deadline, setDeadline] = useState(formatGoalDeadlineInput(goal.deadline));
@@ -63,11 +82,14 @@ export function GoalCard({
     setDeadline(formatGoalDeadlineInput(goal.deadline));
   }, [goal.id, goal.description, goal.deadline]);
 
-  const deadlineLabel = formatDeadlineLabel(goal.deadline, t);
+  const deadlineShort = formatDeadlineLabel(goal.deadline, t);
+  const deadlineLong = formatDeadlineLong(goal.deadline);
   const isOverdue =
     goal.deadline &&
     !Number.isNaN(new Date(goal.deadline).getTime()) &&
     new Date(goal.deadline).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+
+  const categories = goal.sourceCategories ?? [];
 
   async function saveDescription() {
     const next = description.trim() || null;
@@ -94,71 +116,78 @@ export function GoalCard({
   }
 
   return (
-    <div className="border-b border-[var(--border)] last:border-b-0">
+    <article
+      className={`goal-card card !p-0 overflow-hidden transition-all duration-300 ${expanded ? "goal-card--expanded" : ""}`}
+      data-accent={accent}
+    >
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left px-4 py-3.5 transition-colors hover:bg-[var(--input-bg)]/40"
+        className="goal-card-trigger w-full text-left px-4 py-4 sm:px-5"
         aria-expanded={expanded}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <GoalProgressRing percent={pct} accent={accent} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="font-medium text-[15px] truncate text-[var(--text)]">{goal.title}</h2>
-              {hasEnough && !expanded && (
-                <span className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
-                  {t("goals_enough")}
-                </span>
+              <h2 className="font-semibold text-[15px] sm:text-[16px] truncate text-[var(--text)] tracking-tight">
+                {goal.title}
+              </h2>
+              {hasEnough && (
+                <span className="goal-chip goal-chip--ready shrink-0">{t("goals_enough")}</span>
               )}
             </div>
-            {!expanded && deadlineLabel && (
-              <p className={`mt-0.5 text-[11px] truncate ${isOverdue ? "text-[var(--accent-red)]" : "text-[var(--text-tertiary)]"}`}>
-                {deadlineLabel}
+            <p className="mt-1 text-[13px] text-[var(--text-secondary)] tabular-nums">
+              {formatMoney(balanceUsed)}
+              <span className="text-[var(--text-tertiary)]"> / {formatMoney(goal.targetAmount)}</span>
+            </p>
+            {!expanded && deadlineShort && (
+              <p className={`mt-1.5 text-[11px] truncate ${isOverdue ? "text-[var(--accent-red)]" : "text-[var(--text-tertiary)]"}`}>
+                <Calendar className="inline w-3 h-3 -mt-0.5 mr-1 opacity-70" strokeWidth={2} />
+                {deadlineShort}
               </p>
             )}
           </div>
-          <span className="shrink-0 text-[13px] font-medium tabular-nums text-[var(--text-secondary)]">
-            {(progressPercent ?? 0).toFixed(0)}%
-          </span>
           <ChevronDown
-            className={`w-4 h-4 shrink-0 text-[var(--text-tertiary)] transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            className={`w-4 h-4 shrink-0 text-[var(--text-tertiary)] transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
             strokeWidth={2}
-          />
-        </div>
-        <div className="mt-2.5 h-1 bg-[var(--input-bg)] rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[var(--accent-blue)] rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent ?? 0}%` }}
           />
         </div>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 pt-0 space-y-4 animate-slide-up">
-          <div className="flex items-end justify-between gap-4 text-[13px]">
-            <div>
-              <p className="text-[11px] text-[var(--text-tertiary)]">{t("goals_onBalance")}</p>
-              <p className="mt-0.5 font-medium tabular-nums">{formatMoney(balanceUsed)}</p>
+        <div className="goal-card-details px-4 pb-5 sm:px-5 animate-slide-up">
+          <div className="goal-stat-grid">
+            <div className="goal-stat">
+              <Wallet className="w-3.5 h-3.5 text-[var(--accent-green)]" strokeWidth={2} />
+              <div>
+                <p className="goal-stat-label">{t("goals_onBalance")}</p>
+                <p className="goal-stat-value text-[var(--accent-green)]">{formatMoney(balanceUsed)}</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[11px] text-[var(--text-tertiary)]">{t("goals_remaining")}</p>
-              <p className="mt-0.5 font-medium tabular-nums">{formatMoney(remainingNeeded)}</p>
+            <div className="goal-stat">
+              <TargetIcon />
+              <div>
+                <p className="goal-stat-label">{t("goals_remaining")}</p>
+                <p className="goal-stat-value">{formatMoney(remainingNeeded)}</p>
+              </div>
             </div>
           </div>
 
-          <p className="text-[12px] text-[var(--text-secondary)]">
-            {formatMoney(goal.targetAmount)} · {goal.isShared ? t("goals_sharedShort") : t("goals_personal")}
-          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="goal-chip">{goal.isShared ? t("goals_sharedShort") : t("goals_personal")}</span>
+            {categories.map((c) => (
+              <span key={c.id} className="goal-chip goal-chip--muted">
+                {c.name}
+              </span>
+            ))}
+            {categories.length === 0 && (
+              <span className="goal-chip goal-chip--muted">{t("goals_allCategoriesFallback")}</span>
+            )}
+          </div>
 
-          <p className="text-[12px] text-[var(--text-tertiary)] leading-relaxed">
-            {t("goals_categoriesLabel")}:{" "}
-            {(goal.sourceCategories ?? []).length > 0
-              ? goal.sourceCategories.map((c) => c.name).join(", ")
-              : t("goals_allCategoriesFallback")}
-          </p>
-
-          <div>
-            <label className="block text-[11px] text-[var(--text-tertiary)] mb-1.5">{t("goals_description")}</label>
+          <div className="goal-detail-block mt-4">
+            <p className="goal-detail-label">{t("goals_description")}</p>
             {canEdit ? (
               <textarea
                 value={description}
@@ -166,21 +195,22 @@ export function GoalCard({
                 onBlur={() => void saveDescription()}
                 placeholder={t("goals_descriptionPlaceholder")}
                 rows={3}
-                className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2.5 text-[13px] text-[var(--text)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent-blue)]/50"
+                className="goal-detail-input"
               />
             ) : (
-              <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">
+              <p className="goal-detail-text">
                 {goal.description?.trim() || t("goals_noDescription")}
               </p>
             )}
           </div>
 
-          <div>
-            <label htmlFor={`goal-deadline-${goal.id}`} className="block text-[11px] text-[var(--text-tertiary)] mb-1.5">
+          <div className="goal-detail-block mt-3">
+            <p className="goal-detail-label flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
               {t("goals_deadline")}
-            </label>
+            </p>
             {canEdit ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2">
                 <input
                   id={`goal-deadline-${goal.id}`}
                   type="date"
@@ -199,56 +229,51 @@ export function GoalCard({
                       setDeadline("");
                       void saveDeadline("");
                     }}
-                    className="shrink-0 text-[12px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] px-2 py-1"
+                    className="shrink-0 text-[12px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] px-2 py-1.5 rounded-lg hover:bg-[var(--input-bg)]"
                   >
                     {t("goals_clearDeadline")}
                   </button>
                 )}
               </div>
-            ) : deadlineLabel ? (
-              <p className={`text-[13px] ${isOverdue ? "text-[var(--accent-red)]" : "text-[var(--text-secondary)]"}`}>
-                {deadlineLabel}
+            ) : deadlineLong ? (
+              <p className={`goal-detail-text mt-1 ${isOverdue ? "text-[var(--accent-red)]" : ""}`}>
+                {deadlineLong}
+                {deadlineShort && (
+                  <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5">{deadlineShort}</span>
+                )}
               </p>
             ) : (
-              <p className="text-[13px] text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
+              <p className="goal-detail-text mt-1 text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="mt-5 flex flex-wrap gap-2 pt-4 border-t border-[var(--border)]">
             {hasEnough && (
-              <button
-                type="button"
-                onClick={onRealize}
-                className="rounded-lg px-3 py-2 text-[13px] font-medium text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5"
-              >
+              <button type="button" onClick={onRealize} className="goal-action goal-action--primary">
                 <CheckCircle className="w-4 h-4" strokeWidth={2} />
                 {t("goals_realize")}
               </button>
             )}
             {canEdit && (
               <>
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  className="rounded-lg px-3 py-2 text-[var(--accent-green)] hover:bg-[var(--accent-green)]/10 transition inline-flex items-center gap-1.5 text-[13px] font-medium"
-                >
+                <button type="button" onClick={onEdit} className="goal-action">
                   <Pencil className="w-4 h-4" strokeWidth={2} />
                   {t("goals_edit")}
                 </button>
-                <button
-                  type="button"
-                  onClick={onDelete}
-                  className="rounded-lg px-3 py-2 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition inline-flex items-center gap-1.5 text-[13px] font-medium"
-                >
+                <button type="button" onClick={onDelete} className="goal-action goal-action--danger">
                   <Trash2 className="w-4 h-4" strokeWidth={2} />
                   {t("goals_delete")}
                 </button>
               </>
             )}
-            {saving && <span className="text-[11px] text-[var(--text-tertiary)] self-center">{t("goals_saving")}</span>}
+            {saving && <span className="text-[11px] text-[var(--text-tertiary)] self-center px-2">{t("goals_saving")}</span>}
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
+}
+
+function TargetIcon() {
+  return <Layers className="w-3.5 h-3.5 text-[var(--accent-blue)]" strokeWidth={2} />;
 }

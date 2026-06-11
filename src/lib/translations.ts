@@ -191,6 +191,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     goals_overdue: "прострочено",
     goals_saving: "Збереження…",
     goals_realize: "Реалізувати",
+    goals_summaryOf: "з {0} потрібно",
+    goals_activeCount: "{0} активних",
 
     // Categories
     categories_title: "Категорії",

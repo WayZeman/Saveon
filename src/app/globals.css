@@ -286,6 +286,207 @@ input[type="submit"] {
   box-shadow: 0 12px 28px rgba(17, 21, 31, 0.12), 0 22px 52px rgba(17, 21, 31, 0.1);
 }
 
+/* ── Goals tab ── */
+.goal-summary-glow {
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 140px;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--accent-purple) 22%, transparent),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.goal-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-purple) 10%, var(--input-bg));
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 18%, var(--border));
+}
+
+.goal-card {
+  transform: none !important;
+}
+
+.goal-card::before {
+  opacity: 0.35;
+}
+
+.goal-card:hover {
+  transform: none !important;
+  border-color: color-mix(in srgb, var(--accent-blue) 16%, var(--border));
+}
+
+.goal-card[data-accent="purple"]:hover,
+.goal-card--expanded[data-accent="purple"] {
+  border-color: color-mix(in srgb, var(--accent-purple) 24%, var(--border));
+}
+
+.goal-card[data-accent="teal"]:hover,
+.goal-card--expanded[data-accent="teal"] {
+  border-color: color-mix(in srgb, var(--accent-teal) 24%, var(--border));
+}
+
+.goal-card--expanded {
+  border-color: color-mix(in srgb, var(--accent-blue) 28%, var(--border));
+  box-shadow: var(--shadow-card), 0 0 0 1px color-mix(in srgb, var(--accent-blue) 8%, transparent);
+}
+
+.goal-card-trigger {
+  transition: background 0.2s ease;
+}
+
+.goal-card-trigger:hover {
+  background: color-mix(in srgb, var(--input-bg) 55%, transparent);
+}
+
+.goal-card-details {
+  border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--input-bg) 40%, transparent), transparent 48%);
+}
+
+.goal-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.goal-stat {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.9rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+}
+
+.goal-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+.goal-stat-value {
+  margin-top: 0.15rem;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent-blue);
+  background: color-mix(in srgb, var(--accent-blue) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 16%, var(--border));
+}
+
+.goal-chip--muted {
+  color: var(--text-secondary);
+  background: var(--input-bg);
+  border-color: var(--border);
+}
+
+.goal-chip--ready {
+  color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-green) 18%, var(--border));
+}
+
+.goal-detail-block {
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.95rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+}
+
+.goal-detail-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.goal-detail-text {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+.goal-detail-input {
+  width: 100%;
+  margin-top: 0.45rem;
+  resize: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.goal-detail-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.goal-detail-input:focus {
+  outline: none;
+}
+
+.goal-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.7rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.goal-action:hover {
+  background: color-mix(in srgb, var(--input-bg) 80%, white 5%);
+  color: var(--text);
+}
+
+.goal-action--primary {
+  color: var(--accent-green);
+  border-color: color-mix(in srgb, var(--accent-green) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent-green) 8%, transparent);
+}
+
+.goal-action--primary:hover {
+  background: color-mix(in srgb, var(--accent-green) 14%, transparent);
+}
+
+.goal-action--danger {
+  color: var(--accent-red);
+  border-color: color-mix(in srgb, var(--accent-red) 20%, var(--border));
+}
+
+.goal-action--danger:hover {
+  background: color-mix(in srgb, var(--accent-red) 8%, transparent);
+}
+
 .glass-modal {
   background: var(--modal-bg);
   backdrop-filter: blur(40px) saturate(180%);
