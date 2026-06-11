@@ -8,12 +8,20 @@ type TxForBalance = {
   sourceCategory?: { id: string } | null;
 };
 
+type GoalSourceCategoryRef = { categoryId?: string; id?: string };
+
 type GoalForBalance = {
   isShared: boolean;
   createdBy: string;
   targetAmount: number;
-  sourceCategories: { categoryId: string }[];
+  sourceCategories: GoalSourceCategoryRef[];
 };
+
+export function getGoalSourceCategoryIds(sourceCategories: GoalSourceCategoryRef[]): string[] {
+  return sourceCategories
+    .map((s) => s.categoryId ?? s.id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+}
 
 export function buildCategoryNetsByUser(
   transactions: TxForBalance[],
@@ -43,7 +51,7 @@ export function computeGoalBalanceUsed(
   partnerId: string | null,
   fallback: { myBalance: number; totalBalance: number }
 ): number {
-  const categoryIds = goal.sourceCategories.map((s) => s.categoryId);
+  const categoryIds = getGoalSourceCategoryIds(goal.sourceCategories);
   if (categoryIds.length === 0) {
     return goal.isShared ? fallback.totalBalance : fallback.myBalance;
   }
@@ -89,29 +97,32 @@ export function computeHomeGoalsSummary(
     return { totalTarget: 0, totalCollected: 0, totalRemaining: 0, fillPercent: 0 };
   }
 
-  const hasOpenGoal = goals.some((g) => g.sourceCategories.length === 0);
+  const allGoalsOpen = goals.every((g) => getGoalSourceCategoryIds(g.sourceCategories).length === 0);
   let poolCollected = 0;
 
-  if (hasOpenGoal) {
+  if (allGoalsOpen) {
     poolCollected = balanceCap;
   } else {
     const counted = new Set<string>();
     for (const goal of goals) {
+      const categoryIds = getGoalSourceCategoryIds(goal.sourceCategories);
+      if (categoryIds.length === 0) continue;
+
       const userIds =
         goal.isShared && partnerId ? [sessionId, partnerId] : [goal.createdBy];
       for (const uid of userIds) {
         const nets = categoryNetsByUser[uid] ?? {};
-        for (const { categoryId } of goal.sourceCategories) {
-          const key = `${uid}:${categoryId}`;
+        for (const catId of categoryIds) {
+          const key = `${uid}:${catId}`;
           if (counted.has(key)) continue;
           counted.add(key);
-          poolCollected += nets[categoryId] ?? 0;
+          poolCollected += nets[catId] ?? 0;
         }
       }
     }
   }
 
-  const totalCollected = Math.min(balanceCap, Math.max(0, poolCollected), totalTarget);
+  const totalCollected = Math.min(balanceCap, Math.max(0, poolCollected));
   const totalRemaining = Math.max(0, totalTarget - totalCollected);
   const fillPercent = Math.min(100, (totalCollected / totalTarget) * 100);
 
