@@ -353,37 +353,6 @@ input[type="submit"] {
   background: linear-gradient(180deg, color-mix(in srgb, var(--input-bg) 40%, transparent), transparent 48%);
 }
 
-.goal-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
-}
-
-.goal-stat {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
-  padding: 0.75rem 0.85rem;
-  border-radius: 0.9rem;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-}
-
-.goal-stat-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-tertiary);
-}
-
-.goal-stat-value {
-  margin-top: 0.15rem;
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
 .goal-chip {
   display: inline-flex;
   align-items: center;
@@ -429,24 +398,71 @@ input[type="submit"] {
   white-space: pre-wrap;
 }
 
-.goal-detail-input {
+.goal-detail-textarea {
   width: 100%;
-  margin-top: 0.45rem;
   resize: none;
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card-bg);
+  padding: 0.7rem 0.85rem;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.goal-detail-input::placeholder {
+.goal-detail-textarea::placeholder {
   color: var(--text-tertiary);
 }
 
-.goal-detail-input:focus {
+.goal-detail-textarea:focus {
   outline: none;
+  border-color: color-mix(in srgb, var(--accent-blue) 40%, var(--border));
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.goal-date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.goal-date-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 15px;
+  color-scheme: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.goal-date-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent-blue) 40%, var(--border));
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.goal-date-clear {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.goal-date-clear:hover {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--input-bg) 80%, white 5%);
 }
 
 .goal-action {
@@ -794,6 +810,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"],
+input[type="date"],
 select,
 textarea {
   background: var(--input-bg);
@@ -834,6 +851,7 @@ input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="number"]:focus,
+input[type="date"]:focus,
 select:focus,
 textarea:focus {
   outline: none;

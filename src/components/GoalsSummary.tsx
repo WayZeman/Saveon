@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { GoalProgressRing } from "@/components/GoalProgressRing";
 
 type GoalsSummaryProps = {
   totalTarget: number;
@@ -25,8 +26,8 @@ export function GoalsSummary({
     <section className="goal-summary card relative overflow-hidden opacity-0 animate-slide-up">
       <div className="goal-summary-glow" aria-hidden />
       <div className="relative z-[1]">
-        <div className="flex items-start justify-between gap-3 mb-5">
-          <div>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="min-w-0 flex-1">
             <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
               {t("goals_totalProgress")}
             </p>
@@ -36,18 +37,12 @@ export function GoalsSummary({
             <p className="mt-0.5 text-[13px] text-[var(--text-secondary)]">
               {t("goals_summaryOf", formatMoney(totalTarget))}
             </p>
+            <div className="goal-summary-badge mt-3 inline-flex">
+              <Sparkles className="w-3.5 h-3.5 text-[var(--accent-purple)]" strokeWidth={2} />
+              <span>{t("goals_activeCount", String(activeCount))}</span>
+            </div>
           </div>
-          <div className="goal-summary-badge">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--accent-purple)]" strokeWidth={2} />
-            <span>{t("goals_activeCount", String(activeCount))}</span>
-          </div>
-        </div>
-
-        <div className="h-2 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-strong)]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[var(--accent-blue)] via-[var(--accent-purple)] to-[var(--accent-teal)] transition-all duration-700 ease-out"
-            style={{ width: `${Math.min(100, Math.max(0, fillPercent))}%` }}
-          />
+          <GoalProgressRing percent={fillPercent} accent="purple" size={72} stroke={4} />
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-4 text-[13px]">

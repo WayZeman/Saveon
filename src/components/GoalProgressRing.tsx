@@ -57,7 +57,8 @@ export function GoalProgressRing({
         />
       </svg>
       <span
-        className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold tabular-nums text-[var(--text)]"
+        className="absolute inset-0 flex items-center justify-center font-semibold tabular-nums text-[var(--text)]"
+        style={{ fontSize: size >= 68 ? 15 : size >= 56 ? 13 : size >= 44 ? 11 : 10 }}
         aria-label={`${clamped.toFixed(0)}%`}
       >
         {clamped.toFixed(0)}

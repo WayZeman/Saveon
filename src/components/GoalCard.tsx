@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Calendar,
-  CheckCircle,
-  ChevronDown,
-  Layers,
-  Pencil,
-  Trash2,
-  Wallet,
-} from "lucide-react";
+import { Calendar, CheckCircle, ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { formatGoalDeadlineInput } from "@/lib/goal-dates";
 import { GoalProgressRing } from "@/components/GoalProgressRing";
 import type { Goal } from "@/contexts/DataContext";
@@ -123,7 +115,7 @@ export function GoalCard({
       <button
         type="button"
         onClick={onToggle}
-        className="goal-card-trigger w-full text-left px-4 py-4 sm:px-5"
+        className="goal-card-trigger relative z-[1] w-full text-left px-4 py-4 sm:px-5"
         aria-expanded={expanded}
       >
         <div className="flex items-center gap-3.5 sm:gap-4">
@@ -156,25 +148,8 @@ export function GoalCard({
       </button>
 
       {expanded && (
-        <div className="goal-card-details px-4 pb-5 sm:px-5 animate-slide-up">
-          <div className="goal-stat-grid">
-            <div className="goal-stat">
-              <Wallet className="w-3.5 h-3.5 text-[var(--accent-green)]" strokeWidth={2} />
-              <div>
-                <p className="goal-stat-label">{t("goals_onBalance")}</p>
-                <p className="goal-stat-value text-[var(--accent-green)]">{formatMoney(balanceUsed)}</p>
-              </div>
-            </div>
-            <div className="goal-stat">
-              <TargetIcon />
-              <div>
-                <p className="goal-stat-label">{t("goals_remaining")}</p>
-                <p className="goal-stat-value">{formatMoney(remainingNeeded)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="goal-card-details relative z-[1] px-4 pb-5 sm:px-5 animate-slide-up">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="goal-chip">{goal.isShared ? t("goals_sharedShort") : t("goals_personal")}</span>
             {categories.map((c) => (
               <span key={c.id} className="goal-chip goal-chip--muted">
@@ -187,7 +162,7 @@ export function GoalCard({
           </div>
 
           <div className="goal-detail-block mt-4">
-            <p className="goal-detail-label">{t("goals_description")}</p>
+            <p className="goal-detail-label mb-2">{t("goals_description")}</p>
             {canEdit ? (
               <textarea
                 value={description}
@@ -195,7 +170,7 @@ export function GoalCard({
                 onBlur={() => void saveDescription()}
                 placeholder={t("goals_descriptionPlaceholder")}
                 rows={3}
-                className="goal-detail-input"
+                className="goal-detail-textarea"
               />
             ) : (
               <p className="goal-detail-text">
@@ -205,12 +180,12 @@ export function GoalCard({
           </div>
 
           <div className="goal-detail-block mt-3">
-            <p className="goal-detail-label flex items-center gap-1.5">
+            <p className="goal-detail-label mb-2 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
               {t("goals_deadline")}
             </p>
             {canEdit ? (
-              <div className="flex items-center gap-2 mt-2">
+              <div className="goal-date-row">
                 <input
                   id={`goal-deadline-${goal.id}`}
                   type="date"
@@ -220,7 +195,7 @@ export function GoalCard({
                     setDeadline(next);
                     void saveDeadline(next);
                   }}
-                  className="flex-1 min-w-0"
+                  className="goal-date-input"
                 />
                 {deadline && (
                   <button
@@ -229,25 +204,25 @@ export function GoalCard({
                       setDeadline("");
                       void saveDeadline("");
                     }}
-                    className="shrink-0 text-[12px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] px-2 py-1.5 rounded-lg hover:bg-[var(--input-bg)]"
+                    className="goal-date-clear"
                   >
                     {t("goals_clearDeadline")}
                   </button>
                 )}
               </div>
             ) : deadlineLong ? (
-              <p className={`goal-detail-text mt-1 ${isOverdue ? "text-[var(--accent-red)]" : ""}`}>
+              <p className={`goal-detail-text ${isOverdue ? "text-[var(--accent-red)]" : ""}`}>
                 {deadlineLong}
                 {deadlineShort && (
                   <span className="block text-[12px] text-[var(--text-tertiary)] mt-0.5">{deadlineShort}</span>
                 )}
               </p>
             ) : (
-              <p className="goal-detail-text mt-1 text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
+              <p className="goal-detail-text text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
             )}
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-2 pt-4 border-t border-[var(--border)]">
+          <div className="mt-5 flex flex-wrap justify-center gap-2 pt-4 border-t border-[var(--border)]">
             {hasEnough && (
               <button type="button" onClick={onRealize} className="goal-action goal-action--primary">
                 <CheckCircle className="w-4 h-4" strokeWidth={2} />
@@ -272,8 +247,4 @@ export function GoalCard({
       )}
     </article>
   );
-}
-
-function TargetIcon() {
-  return <Layers className="w-3.5 h-3.5 text-[var(--accent-blue)]" strokeWidth={2} />;
 }

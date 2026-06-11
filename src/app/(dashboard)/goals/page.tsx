@@ -402,6 +402,7 @@ export default function GoalsPage() {
                   type="date"
                   value={form.deadline}
                   onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
+                  className="goal-date-input"
                 />
               </div>
               <div>
