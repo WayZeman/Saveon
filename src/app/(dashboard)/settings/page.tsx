@@ -23,6 +23,8 @@ import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, useConfirm } from "@/components/Modal";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { EmojiAvatarPicker } from "@/components/EmojiAvatarPicker";
 
 const currencySymbols: Record<Currency, string> = { UAH: "₴", USD: "$", EUR: "€" };
 
@@ -37,6 +39,7 @@ export default function SettingsPage() {
     partner,
     outgoingPartnerInvite,
     setPartner,
+    setUser,
     refetchUser,
     refetchPartner,
     refetchDashboard,
@@ -48,6 +51,8 @@ export default function SettingsPage() {
   const [partnerError, setPartnerError] = useState("");
   const [partnerSaving, setPartnerSaving] = useState(false);
   const [recoveryPassword, setRecoveryPassword] = useState("");
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [emojiSaving, setEmojiSaving] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState("");
   const [confirmRecoveryCode, setConfirmRecoveryCode] = useState("");
   const [recoveryError, setRecoveryError] = useState("");
@@ -217,8 +222,36 @@ export default function SettingsPage() {
     } catch { /* ignore */ }
   }
 
+  async function handleAvatarEmojiSelect(emoji: string | null) {
+    if (!user || emojiSaving) return;
+    if (emoji === (user.avatarEmoji ?? null)) {
+      setEmojiPickerOpen(false);
+      return;
+    }
+    setEmojiSaving(true);
+    const previous = user.avatarEmoji ?? null;
+    setUser((prev) => (prev ? { ...prev, avatarEmoji: emoji } : prev));
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarEmoji: emoji }),
+      });
+      if (!res.ok) {
+        setUser((prev) => (prev ? { ...prev, avatarEmoji: previous } : prev));
+        return;
+      }
+      const updated = await res.json();
+      setUser(updated);
+      setEmojiPickerOpen(false);
+    } catch {
+      setUser((prev) => (prev ? { ...prev, avatarEmoji: previous } : prev));
+    } finally {
+      setEmojiSaving(false);
+    }
+  }
+
   const roleLabel = (role: string) => role === "husband" ? t("settings_roleHusband") : role === "wife" ? t("settings_roleWife") : role === "friend" ? t("settings_roleFriend") : "User";
-  const roleInitial = (role: string) => role === "husband" ? "Ч" : role === "wife" ? "Д" : role === "friend" ? "Д" : "?";
 
   return (
     <div className="section-spacing max-w-2xl mx-auto">
@@ -231,19 +264,29 @@ export default function SettingsPage() {
       </div>
 
       {/* Profile */}
-      {user && (
-        <div className="card opacity-0 animate-slide-up animate-stagger-1">
+      {user ? (
+        <button
+          type="button"
+          onClick={() => setEmojiPickerOpen(true)}
+          className="card profile-card-btn opacity-0 animate-slide-up animate-stagger-1 w-full text-left cursor-pointer active:scale-[0.99] transition-transform"
+          aria-label={t("profileEmoji_change")}
+        >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] flex items-center justify-center text-[18px] font-bold text-white">
-              {user.name ? user.name[0].toUpperCase() : roleInitial(user.role)}
-            </div>
+            <ProfileAvatar
+              name={user.name}
+              role={user.role}
+              avatarEmoji={user.avatarEmoji}
+              size={48}
+              showEditHint
+              ariaLabel={t("profileEmoji_change")}
+            />
             <div className="flex-1 min-w-0">
               <p className="text-[16px] font-semibold truncate">{user.name || roleLabel(user.role)}</p>
               <p className="text-[13px] text-[var(--text-secondary)] truncate">{user.email}</p>
             </div>
           </div>
-        </div>
-      )}
+        </button>
+      ) : null}
 
       {/* Partner */}
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-2">
@@ -573,6 +616,18 @@ export default function SettingsPage() {
       <p className="text-center text-[12px] text-[var(--text-tertiary)] pb-4">Saveon v3.0</p>
 
       {confirmDialog}
+
+      {user ? (
+        <EmojiAvatarPicker
+          open={emojiPickerOpen}
+          onClose={() => !emojiSaving && setEmojiPickerOpen(false)}
+          name={user.name}
+          role={user.role}
+          currentEmoji={user.avatarEmoji}
+          onSelect={handleAvatarEmojiSelect}
+          saving={emojiSaving}
+        />
+      ) : null}
 
       {/* Add partner modal */}
       {addPartnerModal && (

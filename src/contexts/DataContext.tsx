@@ -18,6 +18,7 @@ export type User = {
   email: string;
   role: string;
   partnerId: string | null;
+  avatarEmoji?: string | null;
 } | null;
 
 export type DashboardData = {

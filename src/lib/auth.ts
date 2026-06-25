@@ -21,6 +21,7 @@ export type SessionUser = {
   email: string;
   role: string;
   partnerId: string | null;
+  avatarEmoji: string | null;
 };
 
 export async function createSession(userId: string): Promise<void> {
@@ -45,7 +46,7 @@ export async function getSession(): Promise<SessionUser | null> {
   if (!userId) return null;
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, role: true, partnerId: true },
+    select: { id: true, name: true, email: true, role: true, partnerId: true, avatarEmoji: true },
   });
   return user;
 }
