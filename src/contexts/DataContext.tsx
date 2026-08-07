@@ -440,7 +440,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       } else if (kind === "category") {
         await Promise.all([refetchCategories(), refetchDashboard()]);
       } else {
-        await Promise.all([refetchGoals(), refetchDashboard()]);
+        // Реалізація цілі створює витрату й категорію — оновлюємо все
+        await Promise.all([
+          refetchGoals(),
+          refetchDashboard(),
+          refetchTransactions(),
+          refetchCategories(),
+        ]);
       }
     },
     [refetchTransactions, refetchCategories, refetchGoals, refetchDashboard]
