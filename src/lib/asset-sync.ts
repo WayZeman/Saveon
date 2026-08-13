@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 import { inferAssetFromName, inferCategoryKind } from "./assets-catalog";
 import { snapshotAssetPurchase } from "./asset-prices";
 
-const PRICE_BACKFILL_LIMIT = 12;
+const PRICE_BACKFILL_LIMIT = 80;
 
 export async function syncCategoryKinds(categoryIds?: string[]): Promise<number> {
   const categories = await prisma.category.findMany({
@@ -51,47 +51,54 @@ export async function attachAssetsFromCategoryNames(userIds: string[]): Promise<
 }
 
 export async function fillMissingHistoricalPrices(userIds: string[]): Promise<number> {
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      userId: { in: userIds },
-      assetSymbol: { not: null },
-      OR: [{ unitPriceUsd: null }, { quantity: null }, { usdRateUah: null }],
-    },
-    select: {
-      id: true,
-      amount: true,
-      assetSymbol: true,
-      assetName: true,
-      assetClass: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: "asc" },
-    take: PRICE_BACKFILL_LIMIT,
-  });
-
   let updated = 0;
-  for (const tx of transactions) {
-    if (!tx.assetSymbol) continue;
-    const snapshot = await snapshotAssetPurchase({
-      symbol: tx.assetSymbol,
-      name: tx.assetName ?? undefined,
-      assetClass: tx.assetClass,
-      amountUah: tx.amount,
-      at: tx.createdAt,
-    });
-    if (!snapshot) continue;
-    await prisma.transaction.update({
-      where: { id: tx.id },
-      data: {
-        assetSymbol: snapshot.assetSymbol,
-        assetName: snapshot.assetName,
-        assetClass: snapshot.assetClass,
-        unitPriceUsd: snapshot.unitPriceUsd,
-        quantity: snapshot.quantity,
-        usdRateUah: snapshot.usdRateUah,
+  while (updated < PRICE_BACKFILL_LIMIT) {
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId: { in: userIds },
+        assetSymbol: { not: null },
+        OR: [{ unitPriceUsd: null }, { quantity: null }, { usdRateUah: null }],
       },
+      select: {
+        id: true,
+        amount: true,
+        assetSymbol: true,
+        assetName: true,
+        assetClass: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+      take: 8,
     });
-    updated += 1;
+    if (transactions.length === 0) break;
+
+    let progressed = 0;
+    for (const tx of transactions) {
+      if (!tx.assetSymbol) continue;
+      const snapshot = await snapshotAssetPurchase({
+        symbol: tx.assetSymbol,
+        name: tx.assetName ?? undefined,
+        assetClass: tx.assetClass,
+        amountUah: tx.amount,
+        at: tx.createdAt,
+      });
+      if (!snapshot) continue;
+      await prisma.transaction.update({
+        where: { id: tx.id },
+        data: {
+          assetSymbol: snapshot.assetSymbol,
+          assetName: snapshot.assetName,
+          assetClass: snapshot.assetClass,
+          unitPriceUsd: snapshot.unitPriceUsd,
+          quantity: snapshot.quantity,
+          usdRateUah: snapshot.usdRateUah,
+        },
+      });
+      updated += 1;
+      progressed += 1;
+      if (updated >= PRICE_BACKFILL_LIMIT) break;
+    }
+    if (progressed === 0) break;
   }
   return updated;
 }
