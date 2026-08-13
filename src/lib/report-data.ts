@@ -8,6 +8,7 @@ import {
   mapGoalSourceCategories,
 } from "./goal-balance";
 import type { ReportPeriod } from "./report-period";
+import { transactionInclude } from "./transaction-include";
 import { computeSavingsRate } from "./savings-analytics";
 
 export type ReportCategoryRow = {

@@ -98,14 +98,6 @@ function buildInsights(input: {
     else if (current.savingsRate < 10) insights.push({ kind: "low_rate", rate: current.savingsRate });
   }
 
-  if (savedDelta != null && Math.abs(savedDelta) >= 1) {
-    insights.push(
-      savedDelta > 0
-        ? { kind: "saved_more", delta: savedDelta }
-        : { kind: "saved_less", delta: Math.abs(savedDelta) }
-    );
-  }
-
   if (goalCount > 0 && totalRemaining > 0) {
     if (monthsToAllGoals != null && monthsToAllGoals > 0) {
       insights.push({ kind: "pace_goals", months: monthsToAllGoals });
@@ -125,6 +117,14 @@ function buildInsights(input: {
       category: allocation.topCategoryName,
       share: allocation.topCategoryShare,
     });
+  }
+
+  if (savedDelta != null && Math.abs(savedDelta) >= 1) {
+    insights.push(
+      savedDelta > 0
+        ? { kind: "saved_more", delta: savedDelta }
+        : { kind: "saved_less", delta: Math.abs(savedDelta) }
+    );
   }
 
   return insights.slice(0, 3);
