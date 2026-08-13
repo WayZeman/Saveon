@@ -54,6 +54,7 @@ export const categorySchema = z.object({
   name: z.string().min(1).max(100),
   isShared: z.boolean().optional().default(false),
   tier: z.enum(["primary", "secondary"]).optional().default("primary"),
+  kind: z.enum(["cash", "stock", "crypto", "other"]).optional().default("other"),
 });
 
 export const categoryPatchSchema = z
@@ -61,10 +62,18 @@ export const categoryPatchSchema = z
     name: z.string().min(1).max(100).optional(),
     isShared: z.boolean().optional(),
     tier: z.enum(["primary", "secondary"]).optional(),
+    kind: z.enum(["cash", "stock", "crypto", "other"]).optional(),
   })
-  .refine((data) => data.name !== undefined || data.isShared !== undefined || data.tier !== undefined, {
-    message: "Nothing to update",
-  });
+  .refine(
+    (data) =>
+      data.name !== undefined ||
+      data.isShared !== undefined ||
+      data.tier !== undefined ||
+      data.kind !== undefined,
+    {
+      message: "Nothing to update",
+    }
+  );
 
 export const transactionSchema = z
   .object({
@@ -74,6 +83,9 @@ export const transactionSchema = z
     sourceCategoryId: z.string().min(1).optional(),
     goalId: z.string().optional(),
     currency: z.enum(["UAH", "USD", "EUR"]).optional().default("UAH"),
+    assetSymbol: z.string().min(1).max(20).optional(),
+    assetName: z.string().min(1).max(120).optional(),
+    assetClass: z.enum(["crypto", "stock", "etf"]).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === "expense" && !data.sourceCategoryId) {

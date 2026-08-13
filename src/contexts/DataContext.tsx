@@ -46,8 +46,21 @@ export type DashboardData = {
   };
   monthlyData: { month: string; income: number; expense: number }[];
   pieData: { name: string; value: number; chartValue: number }[];
-  categoryBreakdown: { name: string; net: number }[];
+  categoryBreakdown: { id?: string; name: string; net: number }[];
   categoryBreakdownTotal: number;
+  holdings: Array<{
+    categoryId: string;
+    categoryName: string;
+    symbol: string;
+    name: string;
+    assetClass: string;
+    quantity: number;
+    avgPriceUsd: number;
+    currentPriceUsd: number | null;
+    pnlPercent: number | null;
+    investedUah: number;
+    currentValueUah: number;
+  }>;
   comparison: {
     mySaved: number;
     partnerSaved: number;
@@ -66,8 +79,13 @@ export type Transaction = {
   categoryId: string;
   sourceCategoryId: string | null;
   createdAt: string;
-  category: { id: string; name: string; isShared: boolean };
-  sourceCategory: { id: string; name: string; isShared: boolean } | null;
+  assetSymbol?: string | null;
+  assetName?: string | null;
+  assetClass?: string | null;
+  unitPriceUsd?: number | null;
+  quantity?: number | null;
+  category: { id: string; name: string; isShared: boolean; kind?: string };
+  sourceCategory: { id: string; name: string; isShared: boolean; kind?: string } | null;
 };
 
 export type Category = {
@@ -75,6 +93,7 @@ export type Category = {
   name: string;
   isShared: boolean;
   tier?: "primary" | "secondary";
+  kind?: "cash" | "stock" | "crypto" | "other" | string;
   userId: string | null;
   _count?: { transactions: number };
 };
@@ -203,11 +222,15 @@ const DEV_PREVIEW_STATE: DataState = {
       { name: "Крипта", value: 290.27, chartValue: 290.27 },
     ],
     categoryBreakdown: [
-      { name: "Готівка", net: 1870.54 },
-      { name: "Акції", net: 552.03 },
-      { name: "Крипта", net: 290.27 },
+      { id: "cat-1", name: "Готівка", net: 1870.54 },
+      { id: "cat-2", name: "Акції", net: 552.03 },
+      { id: "cat-3", name: "Крипта", net: 290.27 },
     ],
     categoryBreakdownTotal: 2712.84,
+    holdings: [
+      { categoryId: "cat-2", categoryName: "Акції", symbol: "AAPL", name: "Apple", assetClass: "stock", quantity: 1.2, avgPriceUsd: 180, currentPriceUsd: 190, pnlPercent: 5.6, investedUah: 9000, currentValueUah: 9500 },
+      { categoryId: "cat-3", categoryName: "Крипта", symbol: "BTC", name: "Bitcoin", assetClass: "crypto", quantity: 0.003, avgPriceUsd: 60000, currentPriceUsd: 64000, pnlPercent: 6.7, investedUah: 7500, currentValueUah: 8000 },
+    ],
     comparison: {
       mySaved: 1870.54,
       partnerSaved: 842.3,
@@ -230,9 +253,9 @@ const DEV_PREVIEW_STATE: DataState = {
     },
   ],
   categories: [
-    { id: "cat-1", name: "Готівка", isShared: true, tier: "primary", userId: null, _count: { transactions: 4 } },
-    { id: "cat-2", name: "Акції", isShared: true, tier: "primary", userId: null, _count: { transactions: 2 } },
-    { id: "cat-3", name: "Крипта", isShared: false, tier: "secondary", userId: "preview-user", _count: { transactions: 1 } },
+    { id: "cat-1", name: "Готівка", isShared: true, tier: "primary", kind: "cash", userId: null, _count: { transactions: 4 } },
+    { id: "cat-2", name: "Акції", isShared: true, tier: "primary", kind: "stock", userId: null, _count: { transactions: 2 } },
+    { id: "cat-3", name: "Крипта", isShared: false, tier: "secondary", kind: "crypto", userId: "preview-user", _count: { transactions: 1 } },
   ],
   goals: [
     {

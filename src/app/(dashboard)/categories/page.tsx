@@ -13,6 +13,7 @@ export default function CategoriesPage() {
   const [modal, setModal] = useState(false);
   const [editCat, setEditCat] = useState<Category | null>(null);
   const [name, setName] = useState("");
+  const [kind, setKind] = useState<"cash" | "stock" | "crypto" | "other">("other");
   const [isShared, setIsShared] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -27,7 +28,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch("/api/categories", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isShared, tier: "primary" }),
+        body: JSON.stringify({ name: name.trim(), isShared, tier: "primary", kind }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
@@ -47,7 +48,7 @@ export default function CategoriesPage() {
     try {
       const res = await fetch(`/api/categories/${editCat.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), isShared: editCat.isShared }),
+        body: JSON.stringify({ name: name.trim(), isShared: editCat.isShared, kind }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? t("categories_errorGeneric")); return; }
@@ -92,15 +93,16 @@ export default function CategoriesPage() {
 
   function openCreate() {
     setModal(true); setEditCat(null); setError("");
-    setName(""); setIsShared(hasPartner);
+    setName(""); setKind("other"); setIsShared(hasPartner);
   }
   function openEdit(c: Category) {
     setEditCat(c); setError("");
     setName(c.name);
+    setKind((c.kind as "cash" | "stock" | "crypto" | "other") || "other");
   }
   function closeModal() {
     setModal(false); setEditCat(null); setError("");
-    setName(""); setIsShared(hasPartner);
+    setName(""); setKind("other"); setIsShared(hasPartner);
   }
 
   if (!initialLoadDone) return <Loader />;
@@ -167,6 +169,15 @@ export default function CategoriesPage() {
               <div>
                 <FieldLabel>{t("categories_name")}</FieldLabel>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Їжа, Готівка" required />
+              </div>
+              <div>
+                <FieldLabel>{t("categories_kind")}</FieldLabel>
+                <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
+                  <option value="other">{t("categories_kindOther")}</option>
+                  <option value="cash">{t("categories_kindCash")}</option>
+                  <option value="stock">{t("categories_kindStock")}</option>
+                  <option value="crypto">{t("categories_kindCrypto")}</option>
+                </select>
               </div>
               {!editCat && hasPartner && (
                 <CheckboxField checked={isShared} onChange={setIsShared} label={t("categories_sharedLabel")} />

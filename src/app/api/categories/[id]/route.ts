@@ -40,9 +40,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
     const hasPartner = !!session.partnerId;
-    const updateData: { name?: string; isShared?: boolean; tier?: string } = {};
+    const updateData: { name?: string; isShared?: boolean; tier?: string; kind?: string } = {};
     if (parsed.data.name !== undefined) updateData.name = parsed.data.name.trim();
     if (parsed.data.tier !== undefined) updateData.tier = parsed.data.tier;
+    if (parsed.data.kind !== undefined) updateData.kind = parsed.data.kind;
     if (parsed.data.isShared !== undefined && !category.isShared) {
       updateData.isShared = hasPartner ? parsed.data.isShared : category.isShared;
     }

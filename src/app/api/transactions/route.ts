@@ -5,6 +5,7 @@ import { canUseCategory, categoriesVisibleWhere, transactionUserIds } from "@/li
 import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
+import { snapshotForTransaction } from "@/lib/asset-transaction";
 
 export async function GET(request: Request) {
   const sessionOr = await getRequiredSession();
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { amount, type, categoryId, sourceCategoryId, goalId, currency } = parsed.data;
+    const { amount, type, categoryId, sourceCategoryId, goalId, currency, assetSymbol, assetName, assetClass } = parsed.data;
     let amountUah = amount;
     if (currency && currency !== "UAH") {
       const rates = await getExchangeRates();
@@ -56,15 +57,29 @@ export async function POST(request: Request) {
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
     if (!canUseCategory(session, category)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    let sourceCategory = null;
     let resolvedSourceCategoryId: string | null = null;
     if (type === "expense") {
-      const sourceCategory = await prisma.category.findFirst({
+      sourceCategory = await prisma.category.findFirst({
         where: { id: sourceCategoryId!, OR: categoriesVisibleWhere(session).OR },
       });
       if (!sourceCategory) return NextResponse.json({ error: "Source category not found" }, { status: 404 });
       if (!canUseCategory(session, sourceCategory)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       resolvedSourceCategoryId = sourceCategory.id;
     }
+
+    const asset = await snapshotForTransaction({
+      type,
+      amountUah,
+      category: { id: category.id, kind: category.kind, name: category.name },
+      sourceCategory: sourceCategory
+        ? { id: sourceCategory.id, kind: sourceCategory.kind, name: sourceCategory.name }
+        : null,
+      assetSymbol,
+      assetName,
+      assetClass,
+    });
+    if (asset.error) return NextResponse.json({ error: asset.error }, { status: 400 });
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -74,6 +89,12 @@ export async function POST(request: Request) {
         sourceCategoryId: resolvedSourceCategoryId,
         userId: session.id,
         goalId: goalId ?? null,
+        assetSymbol: asset.snapshot?.assetSymbol ?? null,
+        assetName: asset.snapshot?.assetName ?? null,
+        assetClass: asset.snapshot?.assetClass ?? null,
+        unitPriceUsd: asset.snapshot?.unitPriceUsd ?? null,
+        quantity: asset.snapshot?.quantity ?? null,
+        usdRateUah: asset.snapshot?.usdRateUah ?? null,
       },
       include: transactionInclude,
     });

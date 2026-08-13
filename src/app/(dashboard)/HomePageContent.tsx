@@ -18,6 +18,8 @@ import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoal
 import { SavingsAnalyticsCard } from "@/components/SavingsAnalyticsCard";
 import { filterPrimaryCategories } from "@/lib/category-tier";
 import { computeSavingsAnalytics } from "@/lib/savings-analytics";
+import { formatPnlPercent } from "@/lib/holdings";
+import { inferCategoryKind } from "@/lib/assets-catalog";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
@@ -256,13 +258,40 @@ export default function HomePageContent() {
               {(data.categoryBreakdown ?? data.pieData.map((p) => ({ name: p.name, net: p.value }))).map((item, i) => {
                 const colorIndex = data.pieData.findIndex((p) => p.name === item.name);
                 const color = colorIndex >= 0 ? COLORS[colorIndex % COLORS.length] : "var(--text-tertiary)";
+                const categoryHoldings = (data.holdings ?? []).filter((h) =>
+                  item.id ? h.categoryId === item.id : h.categoryName === item.name
+                );
                 return (
-                  <li key={`${item.name}-${i}`} className="flex items-center gap-3 text-[13px]">
-                    <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
-                    <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
-                    <span className={`shrink-0 font-medium ${item.net >= 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent-red)]"}`}>
-                      {item.net >= 0 ? "" : "−"}{formatMoney(Math.abs(item.net))}
-                    </span>
+                  <li key={`${item.name}-${i}`} className="text-[13px]">
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                      <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
+                      <span className={`shrink-0 font-medium ${item.net >= 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent-red)]"}`}>
+                        {item.net >= 0 ? "" : "−"}{formatMoney(Math.abs(item.net))}
+                      </span>
+                    </div>
+                    {categoryHoldings.length > 0 ? (
+                      <ul className="mt-1.5 ml-8 space-y-1">
+                        {categoryHoldings.map((holding) => (
+                          <li key={`${holding.categoryId}-${holding.symbol}`} className="flex items-center justify-between gap-3 text-[12px]">
+                            <span className="min-w-0 truncate text-[var(--text-secondary)]">
+                              {holding.name} <span className="text-[var(--text-tertiary)]">{holding.symbol}</span>
+                            </span>
+                            {holding.pnlPercent != null ? (
+                              <span className={`shrink-0 font-semibold tabular-nums ${holding.pnlPercent >= 0 ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
+                                {formatPnlPercent(holding.pnlPercent)}
+                              </span>
+                            ) : (
+                              <span className="shrink-0 text-[var(--text-tertiary)]">—</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      (inferCategoryKind(item.name) === "stock" || inferCategoryKind(item.name) === "crypto") && (
+                        <p className="mt-1 ml-8 text-[11px] text-[var(--text-tertiary)]">{t("home_assignAssetsHint")}</p>
+                      )
+                    )}
                   </li>
                 );
               })}

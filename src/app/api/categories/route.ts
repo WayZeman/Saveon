@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { name, isShared, tier } = parsed.data;
+    const { name, isShared, tier, kind } = parsed.data;
     const hasPartner = !!session.partnerId;
     const effectiveShared = hasPartner ? (isShared ?? false) : false;
     const category = await prisma.category.create({
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
         createdBy: session.id,
         isShared: effectiveShared,
         tier: tier ?? "primary",
+        kind: kind ?? "other",
       },
     });
     return NextResponse.json(category);
