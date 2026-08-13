@@ -113,67 +113,8 @@ export default function HomePageContent() {
         </section>
       )}
 
-      {/* Goals — зведення без подвійного підрахунку одних категорій між цілями */}
-      {data.goals.length > 0 && (() => {
-        const { totalTarget, totalCollected, totalRemaining, fillPercent } = data.goalsSummary;
-        return (
-          <section className="card opacity-0 animate-slide-up animate-stagger-3">
-            <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-              <Target className="w-[18px] h-[18px] text-[var(--accent-purple)]" strokeWidth={2} />
-              {t("home_goals")}
-            </h2>
-            <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_goalsProgress")}</p>
-            <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-[13px] mb-4">
-              <span className="text-[var(--text-secondary)]">{t("home_needed")} <span className="text-[var(--text)] font-medium">{formatMoney(totalTarget)}</span></span>
-              <span className="text-[var(--text-secondary)]">{t("home_collected")} <span className="text-[var(--accent-green)] font-medium">{formatMoney(totalCollected)}</span></span>
-            </div>
-            <div className="h-2.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
-              <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
-            </div>
-            <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">{t("home_remaining")} {formatMoney(totalRemaining)}</p>
-            <ul className="mt-5 space-y-2">
-              {data.goals.map((goal) => {
-                const hasEnough = goal.remainingNeeded <= 0;
-                return (
-                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
-                    <Link href="/goals" className="flex-1 min-w-0 flex items-center justify-between gap-3">
-                      <span className="text-[14px] font-medium truncate">{goal.title}</span>
-                      <span className="text-[13px] font-semibold text-[var(--accent-blue)] shrink-0 tabular-nums">
-                        {Math.min(100, Math.max(0, goal.progressPercent)).toFixed(0)}%
-                      </span>
-                    </Link>
-                    {hasEnough && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setRealizeGoal(goal);
-                        }}
-                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 transition"
-                      >
-                        {t("home_realize")}
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-            <Link href="/goals" className="inline-block mt-5 text-[13px] font-medium text-[var(--accent-blue)] hover:underline">{t("home_allGoals")}</Link>
-          </section>
-        );
-      })()}
-
-      {data.goals.length === 0 && (
-        <section className="card opacity-0 animate-slide-up animate-stagger-3 text-center py-10">
-          <Target className="w-10 h-10 mx-auto mb-3 text-[var(--accent-green)]" strokeWidth={1.5} />
-          <h2 className="text-xl font-semibold mb-1.5">{t("home_noGoals")}</h2>
-          <p className="text-[var(--text-secondary)] text-[15px]">{t("home_noGoalsHint")}</p>
-          <Link href="/goals" className="inline-block mt-6 rounded-xl bg-[var(--accent-blue)] text-white px-6 py-3 text-[14px] font-semibold hover:brightness-110 transition">{t("home_addGoal")}</Link>
-        </section>
-      )}
-
       {/* По категоріях — відсотки на діаграмі з полосками, minAngle щоб малі не налазили */}
-      <section className="card opacity-0 animate-slide-up animate-stagger-4">
+      <section className="card opacity-0 animate-slide-up animate-stagger-3">
         <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
           <PieChartIcon className="w-[18px] h-[18px] text-[var(--accent-blue)]" strokeWidth={2} />
           {t("home_byCategory")}
@@ -233,6 +174,65 @@ export default function HomePageContent() {
           <div className="py-12 text-center text-[var(--text-tertiary)] text-[14px]">{t("home_noDataPeriod")}</div>
         )}
       </section>
+
+      {/* Goals — зведення без подвійного підрахунку одних категорій між цілями */}
+      {data.goals.length > 0 && (() => {
+        const { totalTarget, totalCollected, totalRemaining, fillPercent } = data.goalsSummary;
+        return (
+          <section className="card opacity-0 animate-slide-up animate-stagger-4">
+            <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
+              <Target className="w-[18px] h-[18px] text-[var(--accent-purple)]" strokeWidth={2} />
+              {t("home_goals")}
+            </h2>
+            <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-5">{t("home_goalsProgress")}</p>
+            <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-[13px] mb-4">
+              <span className="text-[var(--text-secondary)]">{t("home_needed")} <span className="text-[var(--text)] font-medium">{formatMoney(totalTarget)}</span></span>
+              <span className="text-[var(--text-secondary)]">{t("home_collected")} <span className="text-[var(--accent-green)] font-medium">{formatMoney(totalCollected)}</span></span>
+            </div>
+            <div className="h-2.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
+              <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
+            </div>
+            <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">{t("home_remaining")} {formatMoney(totalRemaining)}</p>
+            <ul className="mt-5 space-y-2">
+              {data.goals.map((goal) => {
+                const hasEnough = goal.remainingNeeded <= 0;
+                return (
+                  <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
+                    <Link href="/goals" className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                      <span className="text-[14px] font-medium truncate">{goal.title}</span>
+                      <span className="text-[13px] font-semibold text-[var(--accent-blue)] shrink-0 tabular-nums">
+                        {Math.min(100, Math.max(0, goal.progressPercent)).toFixed(0)}%
+                      </span>
+                    </Link>
+                    {hasEnough && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setRealizeGoal(goal);
+                        }}
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold text-white bg-[var(--accent-blue)] hover:brightness-110 transition"
+                      >
+                        {t("home_realize")}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <Link href="/goals" className="inline-block mt-5 text-[13px] font-medium text-[var(--accent-blue)] hover:underline">{t("home_allGoals")}</Link>
+          </section>
+        );
+      })()}
+
+      {data.goals.length === 0 && (
+        <section className="card opacity-0 animate-slide-up animate-stagger-4 text-center py-10">
+          <Target className="w-10 h-10 mx-auto mb-3 text-[var(--accent-green)]" strokeWidth={1.5} />
+          <h2 className="text-xl font-semibold mb-1.5">{t("home_noGoals")}</h2>
+          <p className="text-[var(--text-secondary)] text-[15px]">{t("home_noGoalsHint")}</p>
+          <Link href="/goals" className="inline-block mt-6 rounded-xl bg-[var(--accent-blue)] text-white px-6 py-3 text-[14px] font-semibold hover:brightness-110 transition">{t("home_addGoal")}</Link>
+        </section>
+      )}
 
       <section className="card opacity-0 animate-slide-up animate-stagger-5 overflow-hidden">
         {/* Header */}
