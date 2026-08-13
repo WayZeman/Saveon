@@ -45,6 +45,14 @@ export default function SplashScreen() {
         >
           Saveon
         </h1>
+        <p
+          className="mt-2 text-[13px] text-[var(--text-secondary)] opacity-0"
+          style={{
+            animation: "splashTitleIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards",
+          }}
+        >
+          Аналітика інвестицій та заощаджень
+        </p>
         <div className="mt-8 w-32 h-0.5 rounded-full bg-[var(--text-tertiary)]/20 overflow-hidden">
           <div
             className="h-full rounded-full bg-[var(--accent-blue)] origin-left opacity-0"

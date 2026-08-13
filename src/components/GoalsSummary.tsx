@@ -9,6 +9,7 @@ type GoalsSummaryProps = {
   totalRemaining: number;
   fillPercent: number;
   activeCount: number;
+  monthsToAllGoals?: number | null;
   formatMoney: (n: number) => string;
   t: (key: string, ...args: string[]) => string;
 };
@@ -19,6 +20,7 @@ export function GoalsSummary({
   totalRemaining,
   fillPercent,
   activeCount,
+  monthsToAllGoals,
   formatMoney,
   t,
 }: GoalsSummaryProps) {
@@ -41,6 +43,13 @@ export function GoalsSummary({
               <Sparkles className="w-3.5 h-3.5 text-[var(--accent-purple)]" strokeWidth={2} />
               <span>{t("goals_activeCount", String(activeCount))}</span>
             </div>
+            {monthsToAllGoals != null && totalRemaining > 0 && (
+              <p className="mt-2 text-[12px] text-[var(--text-tertiary)]">
+                {monthsToAllGoals === 120
+                  ? t("analytics_paceLong")
+                  : t("analytics_paceMonths", String(monthsToAllGoals))}
+              </p>
+            )}
           </div>
           <GoalProgressRing percent={fillPercent} accent="purple" size={72} stroke={4} />
         </div>

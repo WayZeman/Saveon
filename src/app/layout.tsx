@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Saveon",
-  description: "Сімейний фінансовий облік для двох",
+  description: "Аналітика інвестицій та заощаджень",
   manifest: "/manifest.json",
   icons: {
     apple: "/icon-192.png",

@@ -11,6 +11,7 @@ import { GoalCard } from "@/components/GoalCard";
 import { GoalsSummary } from "@/components/GoalsSummary";
 import { filterPrimaryCategories } from "@/lib/category-tier";
 import { formatGoalDeadlineInput } from "@/lib/goal-dates";
+import { computeSavingsAnalytics } from "@/lib/savings-analytics";
 
 type GoalForm = {
   title: string;
@@ -43,18 +44,29 @@ export default function GoalsPage() {
   const [submitting, setSubmitting] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
+  const analytics = dashboardData
+    ? computeSavingsAnalytics({
+        monthlyData: dashboardData.monthlyData,
+        categoryBreakdown: dashboardData.categoryBreakdown ?? [],
+        goals: dashboardData.goals.map((g) => ({ id: g.id, remainingNeeded: g.remainingNeeded })),
+        totalRemaining: dashboardData.goalsSummary.totalRemaining,
+      })
+    : null;
+
   const MAX_AMOUNT = 999_999_999.99;
 
   function getGoalDisplay(goal: Goal) {
     const dashGoal = dashboardData?.goals.find((g) => g.id === goal.id);
+    const monthsToGoal = analytics?.goalForecasts[goal.id] ?? null;
     if (dashGoal) {
       return {
         balanceUsed: dashGoal.balanceUsed,
         remainingNeeded: dashGoal.remainingNeeded,
         progressPercent: dashGoal.progressPercent,
+        monthsToGoal,
       };
     }
-    return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0 };
+    return { balanceUsed: 0, remainingNeeded: goal.targetAmount, progressPercent: 0, monthsToGoal };
   }
 
   function setSourceCategory(categoryId: string, checked: boolean) {
@@ -245,6 +257,7 @@ export default function GoalsPage() {
           totalRemaining={summary.totalRemaining}
           fillPercent={summary.fillPercent}
           activeCount={activeGoals.length}
+          monthsToAllGoals={analytics?.monthsToAllGoals}
           formatMoney={formatMoney}
           t={t}
         />

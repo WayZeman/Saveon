@@ -95,7 +95,7 @@ function drawCoverHeader(doc: Doc, fonts: ReportFonts, data: ReportData) {
 
   const textX = fs.existsSync(logoPath) ? logoX + 50 : logoX;
   doc.font(fonts.bold).fontSize(26).fillColor(C.white).text("Saveon", textX, logoY + 2);
-  doc.font(fonts.regular).fontSize(11).fillColor("#e8f4ff").text("Фінансовий звіт", textX, logoY + 32);
+  doc.font(fonts.regular).fontSize(11).fillColor("#e8f4ff").text("Звіт про інвестиції та заощадження", textX, logoY + 32);
 
   doc.font(fonts.regular).fontSize(9).fillColor(C.white);
   doc.text(formatDateTime(data.generatedAt), MARGIN, headerH - 22, { width: CONTENT_W, align: "right" });
@@ -185,14 +185,14 @@ function drawKpiCard(
 
 function drawSummarySection(doc: Doc, fonts: ReportFonts, data: ReportData) {
   const cardH = 68;
-  drawSectionHeader(doc, fonts, "Підсумок за період", "Ключові показники руху коштів", cardH + 24);
+  drawSectionHeader(doc, fonts, "Підсумок за період", "Ключові показники інвестицій та заощаджень", cardH + 56);
 
   const gap = 10;
   const cardW = (CONTENT_W - gap * 2) / 3;
   ensureSpace(doc, cardH + 20);
   const y = doc.y;
 
-  drawKpiCard(doc, fonts, MARGIN, y, cardW, cardH, "Доходи", formatUah(data.totalIncome), C.income, C.incomeBg);
+  drawKpiCard(doc, fonts, MARGIN, y, cardW, cardH, "Вкладення", formatUah(data.totalIncome), C.income, C.incomeBg);
   drawKpiCard(
     doc,
     fonts,
@@ -200,7 +200,7 @@ function drawSummarySection(doc: Doc, fonts: ReportFonts, data: ReportData) {
     y,
     cardW,
     cardH,
-    "Витрати",
+    "Вилучення",
     formatUah(data.totalExpense),
     C.expense,
     C.expenseBg
@@ -212,13 +212,30 @@ function drawSummarySection(doc: Doc, fonts: ReportFonts, data: ReportData) {
     y,
     cardW,
     cardH,
-    "Чиста зміна",
+    "Заощаджено",
     formatUah(data.netChange),
     data.netChange >= 0 ? C.brand : C.expense,
     data.netChange >= 0 ? C.netPosBg : C.netNegBg
   );
 
-  doc.y = y + cardH + 20;
+  doc.y = y + cardH + 12;
+
+  if (data.savingsRate != null) {
+    ensureSpace(doc, 36);
+    const rateY = doc.y;
+    doc.roundedRect(MARGIN, rateY, CONTENT_W, 32, 8).fill(C.surface);
+    doc.roundedRect(MARGIN, rateY, CONTENT_W, 32, 8).stroke(C.border);
+    doc.font(fonts.regular).fontSize(9).fillColor(C.inkMuted).text("НОРМА ЗАОЩАДЖЕНЬ ЗА ПЕРІОД", MARGIN + 14, rateY + 10);
+    doc.font(fonts.bold).fontSize(12).fillColor(data.savingsRate >= 0 ? C.brand : C.expense).text(
+      `${Math.round(data.savingsRate)}%`,
+      MARGIN + 14,
+      rateY + 8,
+      { width: CONTENT_W - 28, align: "right" }
+    );
+    doc.y = rateY + 44;
+  } else {
+    doc.y = y + cardH + 20;
+  }
 }
 
 type TableColumn = { label: string; width: number; align?: "left" | "right" | "center" };
@@ -322,12 +339,12 @@ function renderPaginatedTable(
 }
 
 function drawCategoryTable(doc: Doc, fonts: ReportFonts, data: ReportData) {
-  drawSectionHeader(doc, fonts, "Рух по категоріях", "Доходи, витрати та нетто за обраний період", 50);
+  drawSectionHeader(doc, fonts, "Структура портфеля", "Вкладення, вилучення та нетто за обраний період", 50);
 
   const cols: TableColumn[] = [
     { label: "Категорія", width: 198 },
-    { label: "Дохід", width: 92, align: "right" },
-    { label: "Витрата", width: 92, align: "right" },
+    { label: "Вкладення", width: 92, align: "right" },
+    { label: "Вилучення", width: 92, align: "right" },
     { label: "Нетто", width: 117, align: "right" },
   ];
 
@@ -338,7 +355,7 @@ function drawCategoryTable(doc: Doc, fonts: ReportFonts, data: ReportData) {
     { text: formatUah(row.net), color: row.net >= 0 ? C.income : C.expense, bold: true },
   ]);
 
-  renderPaginatedTable(doc, fonts, cols, rows, "Рух по категоріях · продовження");
+  renderPaginatedTable(doc, fonts, cols, rows, "Структура портфеля · продовження");
 }
 
 function drawProgressBar(doc: Doc, x: number, y: number, w: number, percent: number) {
@@ -352,7 +369,7 @@ function drawProgressBar(doc: Doc, x: number, y: number, w: number, percent: num
 
 function drawGoalsSection(doc: Doc, fonts: ReportFonts, data: ReportData) {
   const boxH = 52;
-  drawSectionHeader(doc, fonts, "Активні цілі", "Стан накопичень на момент формування звіту", boxH + 16);
+  drawSectionHeader(doc, fonts, "Цілі накопичення", "Прогрес заощаджень на момент формування звіту", boxH + 16);
 
   for (const goal of data.goals) {
     if (doc.y + boxH + 8 > contentBottom(doc)) {
@@ -435,7 +452,7 @@ function drawFooters(doc: Doc, fonts: ReportFonts, generatedAt: Date) {
     doc.switchToPage(i);
     drawPageChrome(doc);
     doc.font(fonts.regular).fontSize(7.5).fillColor(C.inkMuted);
-    doc.text("Saveon · Конфіденційний фінансовий звіт", MARGIN, FOOTER_Y, { width: 280 });
+    doc.text("Saveon · Конфіденційний звіт аналітики", MARGIN, FOOTER_Y, { width: 280 });
     doc.text(`Сторінка ${i - range.start + 1} з ${range.count}`, 0, FOOTER_Y, {
       width: PAGE_W,
       align: "center",
@@ -455,7 +472,7 @@ export function buildReportPdf(data: ReportData): Promise<Buffer> {
       info: {
         Title: `Saveon — звіт ${formatDateShort(data.periodFrom)} – ${formatDateShort(data.periodTo)}`,
         Author: "Saveon",
-        Subject: "Фінансовий звіт",
+        Subject: "Звіт про інвестиції та заощадження",
       },
     });
     const chunks: Buffer[] = [];

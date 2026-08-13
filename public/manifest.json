@@ -1,7 +1,7 @@
 {
   "name": "Saveon",
   "short_name": "Saveon",
-  "description": "Сімейний фінансовий облік для двох",
+  "description": "Аналітика інвестицій та заощаджень",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

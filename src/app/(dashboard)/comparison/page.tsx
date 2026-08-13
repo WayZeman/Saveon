@@ -6,6 +6,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useData } from "@/contexts/DataContext";
 import { Users } from "lucide-react";
+import { computeSavingsRate } from "@/lib/savings-analytics";
 
 export default function ComparisonPage() {
   const { formatMoney } = useCurrency();
@@ -45,6 +46,8 @@ export default function ComparisonPage() {
   ];
 
   const diffSaved = c.mySaved - c.partnerSaved;
+  const myRate = computeSavingsRate(c.mySaved, c.myIncome ?? 0);
+  const partnerRate = computeSavingsRate(c.partnerSaved, c.partnerIncome ?? 0);
 
   return (
     <div className="section-spacing max-w-5xl mx-auto">
@@ -53,7 +56,24 @@ export default function ComparisonPage() {
         <p className="text-[14px] text-[var(--text-secondary)] mt-1.5">{t("comparison_subtitle", partnerLabel)}</p>
       </div>
 
-      <section className="card opacity-0 animate-slide-up animate-stagger-1">
+      <section className="grid grid-cols-2 gap-3 opacity-0 animate-slide-up animate-stagger-1">
+        <div className="card !p-4">
+          <p className="text-[12px] text-[var(--text-tertiary)]">{t("comparison_you")} · {t("comparison_savingsRate")}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--accent-blue)]">
+            {myRate == null ? "—" : `${Math.round(myRate)}%`}
+          </p>
+          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">{formatMoney(c.mySaved)}</p>
+        </div>
+        <div className="card !p-4">
+          <p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_partner")} · {t("comparison_savingsRate")}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--accent-purple)]">
+            {partnerRate == null ? "—" : `${Math.round(partnerRate)}%`}
+          </p>
+          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">{formatMoney(c.partnerSaved)}</p>
+        </div>
+      </section>
+
+      <section className="card opacity-0 animate-slide-up animate-stagger-2">
         <div className="h-72 md:h-96">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>

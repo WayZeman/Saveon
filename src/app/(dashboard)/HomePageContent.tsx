@@ -15,7 +15,9 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
 import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoalModal";
+import { SavingsAnalyticsCard } from "@/components/SavingsAnalyticsCard";
 import { filterPrimaryCategories } from "@/lib/category-tier";
+import { computeSavingsAnalytics } from "@/lib/savings-analytics";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
@@ -80,6 +82,13 @@ export default function HomePageContent() {
 
   const hasPartner = data.hasPartner;
   const partnerLabel = user?.role === "husband" ? t("home_partnerBalanceWife") : user?.role === "wife" ? t("home_partnerBalanceHusband") : t("home_partnerBalance");
+  const analytics = computeSavingsAnalytics({
+    monthlyData: data.monthlyData,
+    categoryBreakdown: data.categoryBreakdown ?? [],
+    goals: data.goals.map((g) => ({ id: g.id, remainingNeeded: g.remainingNeeded })),
+    totalRemaining: data.goalsSummary.totalRemaining,
+  });
+  const currentRate = analytics.currentMonth?.savingsRate ?? analytics.trailing.savingsRate;
 
   return (
     <div className="section-spacing max-w-6xl mx-auto">
@@ -90,19 +99,29 @@ export default function HomePageContent() {
           <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white translate-y-1/3 -translate-x-1/3" />
         </div>
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(70%_60%_at_50%_0%,rgba(255,255,255,0.18),transparent_68%)]" />
-        <div className="flex items-center gap-2 text-white/75 text-[12px] md:text-[13px] font-medium relative tracking-[0.08em] uppercase">
-          <Wallet className="w-4 h-4 shrink-0" strokeWidth={2} />
-          {hasPartner ? t("home_totalBalance") : t("home_myBalance")}
+        <div className="flex items-start justify-between gap-4 relative">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-white/75 text-[12px] md:text-[13px] font-medium tracking-[0.08em] uppercase">
+              <Wallet className="w-4 h-4 shrink-0" strokeWidth={2} />
+              {hasPartner ? t("home_totalBalance") : t("home_myBalance")}
+            </div>
+            <p className={`text-4xl md:text-5xl lg:text-6xl font-bold mt-3 tracking-tight ${data.totalBalance >= 0 ? "text-white" : "text-red-200"}`}>
+              <AnimatedNumber
+                value={data.totalBalance}
+                format={(n) => formatMoney(n)}
+                duration={900}
+                delay={150}
+                prefix={data.totalBalance >= 0 ? "" : "−"}
+              />
+            </p>
+          </div>
+          {currentRate != null && (
+            <div className="shrink-0 rounded-2xl bg-white/12 border border-white/20 px-3 py-2.5 text-right backdrop-blur-sm">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-white/70">{t("analytics_savingsRate")}</p>
+              <p className="mt-0.5 text-[22px] md:text-[26px] font-semibold text-white tabular-nums">{Math.round(currentRate)}%</p>
+            </div>
+          )}
         </div>
-        <p className={`text-4xl md:text-5xl lg:text-6xl font-bold mt-3 tracking-tight relative ${data.totalBalance >= 0 ? "text-white" : "text-red-200"}`}>
-          <AnimatedNumber
-            value={data.totalBalance}
-            format={(n) => formatMoney(n)}
-            duration={900}
-            delay={150}
-            prefix={data.totalBalance >= 0 ? "" : "−"}
-          />
-        </p>
       </section>
 
       {/* Balance cards — only show when partner exists */}
@@ -112,6 +131,8 @@ export default function HomePageContent() {
           <BalanceCard title={partnerLabel} amount={data.partnerBalance} formatMoney={formatMoney} className="opacity-0 animate-slide-up animate-stagger-2" />
         </section>
       )}
+
+      <SavingsAnalyticsCard analytics={analytics} formatMoney={formatMoney} t={t} />
 
       {/* Goals — зведення без подвійного підрахунку одних категорій між цілями */}
       {data.goals.length > 0 && (() => {
@@ -130,14 +151,32 @@ export default function HomePageContent() {
             <div className="h-2.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-strong)]">
               <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] rounded-full transition-all duration-700 ease-out" style={{ width: `${fillPercent}%` }} />
             </div>
-            <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">{t("home_remaining")} {formatMoney(totalRemaining)}</p>
+            <p className="mt-2.5 text-[13px] font-medium text-[var(--text)]">
+              {t("home_remaining")} {formatMoney(totalRemaining)}
+              {analytics.monthsToAllGoals != null && totalRemaining > 0 && (
+                <span className="ml-2 font-normal text-[var(--text-tertiary)]">
+                  · {analytics.monthsToAllGoals === 120
+                    ? t("analytics_paceLong")
+                    : t("analytics_paceMonths", String(analytics.monthsToAllGoals))}
+                </span>
+              )}
+            </p>
             <ul className="mt-5 space-y-2">
               {data.goals.map((goal) => {
                 const hasEnough = goal.remainingNeeded <= 0;
                 return (
                   <li key={goal.id} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--input-bg)] px-4 py-3.5 border border-[var(--border)]">
                     <Link href="/goals" className="flex-1 min-w-0 flex items-center justify-between gap-3">
-                      <span className="text-[14px] font-medium truncate">{goal.title}</span>
+                      <span className="min-w-0">
+                        <span className="text-[14px] font-medium truncate block">{goal.title}</span>
+                        {analytics.goalForecasts[goal.id] != null && goal.remainingNeeded > 0 && (
+                          <span className="block mt-0.5 text-[11px] text-[var(--text-tertiary)] truncate">
+                            {analytics.goalForecasts[goal.id] === 120
+                              ? t("analytics_paceLong")
+                              : t("analytics_paceMonths", String(analytics.goalForecasts[goal.id]))}
+                          </span>
+                        )}
+                      </span>
                       <span className="text-[13px] font-semibold text-[var(--accent-blue)] shrink-0 tabular-nums">
                         {Math.min(100, Math.max(0, goal.progressPercent)).toFixed(0)}%
                       </span>

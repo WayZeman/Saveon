@@ -8,6 +8,7 @@ type GoalDisplay = {
   balanceUsed: number;
   remainingNeeded: number;
   progressPercent: number;
+  monthsToGoal?: number | null;
 };
 
 type GoalCardProps = {
@@ -58,7 +59,7 @@ export function GoalCard({
   onDelete,
   onRealize,
 }: GoalCardProps) {
-  const { balanceUsed, remainingNeeded, progressPercent } = display;
+  const { balanceUsed, remainingNeeded, progressPercent, monthsToGoal } = display;
   const pct = progressPercent ?? 0;
   const hasEnough = remainingNeeded <= 0;
 
@@ -104,6 +105,11 @@ export function GoalCard({
                 {deadlineShort}
               </p>
             )}
+            {!expanded && monthsToGoal != null && remainingNeeded > 0 && (
+              <p className="mt-1 text-[11px] text-[var(--text-tertiary)] truncate">
+                {monthsToGoal === 120 ? t("analytics_paceLong") : t("analytics_paceMonths", String(monthsToGoal))}
+              </p>
+            )}
           </div>
           <ChevronDown
             className={`w-4 h-4 shrink-0 text-[var(--text-tertiary)] transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
@@ -147,6 +153,12 @@ export function GoalCard({
               <p className="text-[var(--text-tertiary)]">{t("goals_noDeadline")}</p>
             )}
           </div>
+
+          {monthsToGoal != null && remainingNeeded > 0 && (
+            <p className="mt-3 text-[13px] text-[var(--text-secondary)]">
+              {monthsToGoal === 120 ? t("analytics_paceLong") : t("analytics_paceMonths", String(monthsToGoal))}
+            </p>
+          )}
 
           <div className="mt-5 flex flex-wrap justify-center gap-2 pt-4 border-t border-[var(--border)]">
             {hasEnough && (

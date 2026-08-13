@@ -8,7 +8,7 @@ import {
   mapGoalSourceCategories,
 } from "./goal-balance";
 import type { ReportPeriod } from "./report-period";
-import { transactionInclude } from "./transaction-include";
+import { computeSavingsRate } from "./savings-analytics";
 
 export type ReportCategoryRow = {
   name: string;
@@ -43,6 +43,7 @@ export type ReportData = {
   totalIncome: number;
   totalExpense: number;
   netChange: number;
+  savingsRate: number | null;
   categoryRows: ReportCategoryRow[];
   transactions: ReportTransactionRow[];
   goals: ReportGoalRow[];
@@ -190,6 +191,7 @@ export async function fetchReportData(session: SessionUser, period: ReportPeriod
     totalIncome: round2(totalIncome),
     totalExpense: round2(totalExpense),
     netChange: round2(totalIncome - totalExpense),
+    savingsRate: computeSavingsRate(totalIncome - totalExpense, totalIncome),
     categoryRows,
     transactions,
     goals,
