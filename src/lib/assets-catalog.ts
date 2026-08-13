@@ -143,6 +143,10 @@ export const STOCK_ASSETS: CatalogAsset[] = [
 ];
 
 export const ETF_ASSETS: CatalogAsset[] = [
+  item("CSPX.L", "iShares Core S&P 500 UCITS ETF", "etf", ["cspx", "cspx.l"]),
+  item("VUAA.L", "Vanguard S&P 500 UCITS ETF", "etf", ["vuaa"]),
+  item("VWRA.L", "Vanguard FTSE All-World UCITS ETF", "etf", ["vwra"]),
+  item("SXR8.DE", "iShares Core S&P 500 UCITS ETF (Xetra)", "etf", ["sxr8"]),
   item("SPY", "SPDR S&P 500 ETF", "etf", ["s&p 500", "sp500"]),
   item("VOO", "Vanguard S&P 500 ETF", "etf"),
   item("IVV", "iShares Core S&P 500 ETF", "etf"),
@@ -222,12 +226,51 @@ export function searchCatalog(query: string, kind: CategoryKind, limit = 20): Ca
     .slice(0, limit);
 }
 
-export function inferAssetFromName(name: string): CatalogAsset | null {
-  const n = name.trim().toLowerCase();
-  if (!n) return null;
+const PREFIX_RE = /^(акції та etf|акції|stocks?|etf|фонд|криптовалюта|крипта|crypto)\s+/i;
+const TICKER_RE = /\b([A-Za-z]{1,5}(?:[.-][A-Za-z0-9]{1,3})?)\b/g;
+
+function matchExactAsset(n: string): CatalogAsset | null {
   for (const asset of ALL_ASSETS) {
     if (asset.symbol.toLowerCase() === n) return asset;
     if (asset.aliases.includes(n)) return asset;
+  }
+  return null;
+}
+
+export function inferAssetFromName(name: string): CatalogAsset | null {
+  const raw = name.trim();
+  if (!raw) return null;
+  const n = raw.toLowerCase();
+
+  const exact = matchExactAsset(n);
+  if (exact) return exact;
+
+  const stripped = n.replace(PREFIX_RE, "").trim();
+  if (stripped && stripped !== n) {
+    const fromStripped = matchExactAsset(stripped);
+    if (fromStripped) return fromStripped;
+  }
+
+  const tickers = raw.toUpperCase().match(TICKER_RE) ?? [];
+  for (const token of tickers) {
+    const fromTicker = getCatalogAsset(token);
+    if (fromTicker) return fromTicker;
+  }
+  for (const token of tickers) {
+    if (token.includes(".") || token.length >= 4) {
+      return {
+        symbol: token,
+        name: token,
+        class: token.includes(".") ? "etf" : "stock",
+        aliases: [token.toLowerCase()],
+      };
+    }
+  }
+
+  for (const asset of ALL_ASSETS) {
+    for (const alias of asset.aliases) {
+      if (alias.length >= 4 && n.includes(alias)) return asset;
+    }
   }
   return null;
 }

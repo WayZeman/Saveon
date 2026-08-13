@@ -261,16 +261,29 @@ export default function HomePageContent() {
                 const categoryHoldings = (data.holdings ?? []).filter((h) =>
                   item.id ? h.categoryId === item.id : h.categoryName === item.name
                 );
+                const rowPnl =
+                  categoryHoldings.length === 1
+                    ? categoryHoldings[0].pnlPercent
+                    : categoryHoldings.length > 1
+                      ? categoryHoldings.reduce((sum, h) => sum + (h.pnlPercent ?? 0) * h.currentValueUah, 0) /
+                        Math.max(1, categoryHoldings.reduce((sum, h) => sum + h.currentValueUah, 0))
+                      : null;
+                const rowPnlRounded = rowPnl != null && Number.isFinite(rowPnl) ? Math.round(rowPnl * 10) / 10 : null;
                 return (
                   <li key={`${item.name}-${i}`} className="text-[13px]">
                     <div className="flex items-center gap-3">
                       <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
                       <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
+                      {rowPnlRounded != null && (
+                        <span className={`shrink-0 font-semibold tabular-nums ${rowPnlRounded >= 0 ? "text-[var(--accent-green)]" : "text-[var(--accent-red)]"}`}>
+                          {formatPnlPercent(rowPnlRounded)}
+                        </span>
+                      )}
                       <span className={`shrink-0 font-medium ${item.net >= 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent-red)]"}`}>
                         {item.net >= 0 ? "" : "−"}{formatMoney(Math.abs(item.net))}
                       </span>
                     </div>
-                    {categoryHoldings.length > 0 ? (
+                    {categoryHoldings.length > 1 && (
                       <ul className="mt-1.5 ml-8 space-y-1">
                         {categoryHoldings.map((holding) => (
                           <li key={`${holding.categoryId}-${holding.symbol}`} className="flex items-center justify-between gap-3 text-[12px]">
@@ -287,11 +300,11 @@ export default function HomePageContent() {
                           </li>
                         ))}
                       </ul>
-                    ) : (
+                    )}
+                    {categoryHoldings.length === 0 &&
                       (inferCategoryKind(item.name) === "stock" || inferCategoryKind(item.name) === "crypto") && (
                         <p className="mt-1 ml-8 text-[11px] text-[var(--text-tertiary)]">{t("home_assignAssetsHint")}</p>
-                      )
-                    )}
+                      )}
                   </li>
                 );
               })}
