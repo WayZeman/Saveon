@@ -2,6 +2,7 @@ import * as bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
+import { ensureAssetSchema } from "./ensure-asset-schema";
 import { getSessionSecret, signSessionToken, verifySessionToken } from "./session-token";
 
 const SESSION_COOKIE = "family_fin_session";
@@ -60,6 +61,7 @@ export async function destroySession(): Promise<void> {
 export async function getRequiredSession(): Promise<SessionUser | NextResponse> {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  await ensureAssetSchema();
   return session;
 }
 
