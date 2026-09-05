@@ -44,7 +44,6 @@ export type DashboardData = {
     totalRemaining: number;
     fillPercent: number;
   };
-  monthlyData: { month: string; income: number; expense: number }[];
   pieData: { name: string; value: number; chartValue: number }[];
   categoryBreakdown: { name: string; net: number }[];
   categoryBreakdownTotal: number;
@@ -190,13 +189,6 @@ const DEV_PREVIEW_STATE: DataState = {
       totalRemaining: 28287.16,
       fillPercent: 8.75,
     },
-    monthlyData: [
-      { month: "01", income: 23000, expense: 16500 },
-      { month: "02", income: 18000, expense: 14900 },
-      { month: "03", income: 21500, expense: 17100 },
-      { month: "04", income: 20800, expense: 18350 },
-      { month: "05", income: 24000, expense: 19600 },
-    ],
     pieData: [
       { name: "Готівка", value: 1870.54, chartValue: 1870.54 },
       { name: "Акції", value: 552.03, chartValue: 552.03 },

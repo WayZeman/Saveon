@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { Wallet, Target, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
+import { Wallet, Target, PieChart as PieChartIcon } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useHomeSections } from "@/contexts/HomeSectionsContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,20 +18,8 @@ import { filterPrimaryCategories } from "@/lib/category-tier";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
 
-const PALE_RED = "#e57373";
-
-function formatAxisShort(valueUah: number, currency: string, rates: { usd: number; eur: number } | null): string {
-  let v = valueUah;
-  if (currency === "USD" && rates) v = valueUah / rates.usd;
-  else if (currency === "EUR" && rates) v = valueUah / rates.eur;
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000) return (v / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
-  if (abs >= 1000) return (v / 1000).toFixed(1).replace(/\.0$/, "") + "k";
-  return String(Math.round(v));
-}
-
 export default function HomePageContent() {
-  const { formatMoney, currency, rates } = useCurrency();
+  const { formatMoney } = useCurrency();
   const { showFearGreed, showMarketNews } = useHomeSections();
   const { t } = useLanguage();
   const { dashboardData: data, user, categories, initialLoadDone, refetchDashboard, refetchGoals } = useData();
@@ -65,10 +52,6 @@ export default function HomePageContent() {
             <div className="h-10 rounded-xl bg-[var(--input-bg)]/80" />
             <div className="h-10 rounded-xl bg-[var(--input-bg)]/80" />
           </div>
-        </div>
-        <div className="card !p-5 animate-pulse">
-          <div className="h-5 w-44 rounded bg-[var(--input-bg)] mb-3" />
-          <div className="h-52 rounded-xl bg-[var(--input-bg)]/80" />
         </div>
         <div className="flex flex-col items-center gap-3 pb-6">
           <p className="text-[13px] text-[var(--text-tertiary)] animate-pulse">{t("home_loading")}</p>
@@ -233,101 +216,6 @@ export default function HomePageContent() {
           <Link href="/goals" className="inline-block mt-6 rounded-xl bg-[var(--accent-blue)] text-white px-6 py-3 text-[14px] font-semibold hover:brightness-110 transition">{t("home_addGoal")}</Link>
         </section>
       )}
-
-      <section className="card opacity-0 animate-slide-up animate-stagger-5 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h2 className="text-[17px] md:text-lg font-semibold flex items-center gap-2">
-              <TrendingUp className="w-[18px] h-[18px] text-[var(--accent-green)]" strokeWidth={2} />
-              {t("home_incomeExpense")}
-            </h2>
-            <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{t("home_incomeExpenseHint")}</p>
-          </div>
-        </div>
-
-        {/* Summary row */}
-        {data.monthlyData.length > 0 && (() => {
-          const totalIncome = data.monthlyData.reduce((s, d) => s + d.income, 0);
-          const totalExpense = data.monthlyData.reduce((s, d) => s + d.expense, 0);
-          return (
-            <div className="flex gap-4 mb-5 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--border)]">
-              <div className="flex-1">
-                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-0.5">{t("home_income")}</p>
-                <p className="text-[15px] font-semibold text-[var(--accent-green)]">{formatMoney(totalIncome)}</p>
-              </div>
-              <div className="w-px bg-[var(--border)]" />
-              <div className="flex-1">
-                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-0.5">{t("home_expense")}</p>
-                <p className="text-[15px] font-semibold text-[var(--text-secondary)]">{formatMoney(totalExpense)}</p>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Chart: баланс + накопичувальні дохід/витрата (лінії не падають до нуля) */}
-        {data.monthlyData.length > 0 && (() => {
-          let balance = 0;
-          let sumIncome = 0;
-          let sumExpense = 0;
-          const chartData = data.monthlyData.map((d) => {
-            sumIncome += d.income;
-            sumExpense += d.expense;
-            balance += d.income - d.expense;
-            return { ...d, balance, cumulativeIncome: sumIncome, cumulativeExpense: sumExpense };
-          });
-          return (
-            <>
-              <div className="h-52 md:h-64 chart-minimal -mx-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                      tickFormatter={(v) => (typeof v === "string" ? v.slice(-2) : v)}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
-                      tickFormatter={(v) => formatAxisShort(v, currency, rates)}
-                      width={36}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "12px", padding: "8px 12px" }}
-                      formatter={(value: number, name: string) => [formatMoney(value), name]}
-                      cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 2" }}
-                    />
-                    {/* Накопичувальна витрата — блідо-червона (не падає до нуля) */}
-                    <Line type="monotone" dataKey="cumulativeExpense" stroke={PALE_RED} strokeWidth={1.5} dot={{ r: 2.5, fill: PALE_RED }} activeDot={{ r: 4, fill: PALE_RED, strokeWidth: 0 }} name={t("home_expense")} isAnimationActive={false} connectNulls />
-                    {/* Накопичувальний дохід — зелений (не падає до нуля) */}
-                    <Line type="monotone" dataKey="cumulativeIncome" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: "var(--accent-green)" }} activeDot={{ r: 5, fill: "var(--accent-green)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_income")} isAnimationActive={false} connectNulls />
-                    {/* Баланс накопичувальний */}
-                    <Line type="monotone" dataKey="balance" stroke="var(--accent-blue)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent-blue)" }} activeDot={{ r: 5, fill: "var(--accent-blue)", strokeWidth: 2, stroke: "var(--bg)" }} name={t("home_balanceChart")} isAnimationActive={false} connectNulls />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[var(--border)] flex-wrap">
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-blue)] inline-block" />
-                  {t("home_balanceChart")}
-                </div>
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full bg-[var(--accent-green)] inline-block" />
-                  {t("home_income")}
-                </div>
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]">
-                  <span className="w-6 h-0.5 rounded-full inline-block" style={{ backgroundColor: PALE_RED }} />
-                  {t("home_expense")}
-                </div>
-              </div>
-            </>
-          );
-        })()}
-      </section>
 
       {showFearGreed && <FearGreedIndex />}
       {showMarketNews && <NewsSection />}

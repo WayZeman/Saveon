@@ -120,7 +120,6 @@ export async function GET(request: Request) {
     totalBalance
   );
 
-  const monthlyData = buildMonthlyData(externalTransactions);
   const categoryBreakdown = Object.values(categoryTotals)
     .filter((v) => Math.abs(v.net) >= 0.005)
     .sort((a, b) => b.net - a.net)
@@ -147,7 +146,6 @@ export async function GET(request: Request) {
     hasPartner,
     goals,
     goalsSummary,
-    monthlyData,
     pieData,
     categoryBreakdown,
     categoryBreakdownTotal,
@@ -156,34 +154,4 @@ export async function GET(request: Request) {
   });
   res.headers.set("Cache-Control", "no-store");
   return res;
-}
-
-function buildMonthlyData(
-  transactions: { type: string; amount: number; createdAt: Date | string }[]
-) {
-  const start = new Date();
-  start.setMonth(start.getMonth() - 11);
-  start.setDate(1);
-  start.setHours(0, 0, 0, 0);
-
-  const byMonth: Record<string, { income: number; expense: number }> = {};
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(start);
-    d.setMonth(d.getMonth() + i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    byMonth[key] = { income: 0, expense: 0 };
-  }
-
-  for (const t of transactions) {
-    const d = new Date(t.createdAt);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const row = byMonth[key];
-    if (!row) continue;
-    if (t.type === "income") row.income += t.amount;
-    else row.expense += t.amount;
-  }
-
-  return Object.entries(byMonth)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, data]) => ({ month, ...data }));
 }
