@@ -62,7 +62,8 @@ model Category {
   sourceTransactions Transaction[] @relation("TransactionSourceCategory")
   goalSources       GoalSourceCategory[]
   goalId            String?  @unique
-  goal              Goal?    @relation("GoalExpenseCategory", fields: [goalId], references: [id], onDelete: Cascade)
+  // SetNull: витрата за реалізованою ціллю лишається в історії навіть після видалення цілі
+  goal              Goal?    @relation("GoalExpenseCategory", fields: [goalId], references: [id], onDelete: SetNull)
 }
 
 model Transaction {

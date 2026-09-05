@@ -22,7 +22,7 @@ export default function HomePageContent() {
   const { formatMoney } = useCurrency();
   const { showFearGreed, showMarketNews } = useHomeSections();
   const { t } = useLanguage();
-  const { dashboardData: data, user, categories, initialLoadDone, refetchDashboard, refetchGoals } = useData();
+  const { dashboardData: data, user, categories, initialLoadDone, invalidateAfterMutation } = useData();
   const [realizeGoal, setRealizeGoal] = useState<RealizeGoalInfo | null>(null);
   const primaryCategories = filterPrimaryCategories(categories);
 
@@ -34,7 +34,7 @@ export default function HomePageContent() {
     });
     if (res.ok) {
       setRealizeGoal(null);
-      await Promise.all([refetchGoals(), refetchDashboard()]);
+      await invalidateAfterMutation("goal");
       return true;
     }
     return false;
