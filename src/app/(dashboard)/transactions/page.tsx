@@ -86,12 +86,18 @@ export default function TransactionsPage() {
     const ok = await confirm(t("transactions_confirmDelete"));
     if (!ok) return;
     try {
-      const res = await fetch(`/api/transactions/${tr.id}`, { method: "DELETE" });
-      if (res.ok) {
-        setTransactions((prev) => prev.filter((x) => x.id !== tr.id));
-        await invalidateAfterMutation("transaction");
+      const res = await fetch(`/api/transactions/${tr.id}`, { method: "DELETE", cache: "no-store" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? t("transactions_errorGeneric"));
+        return;
       }
-    } catch { /* ignore */ }
+      setError("");
+      setTransactions((prev) => prev.filter((x) => x.id !== tr.id));
+      await invalidateAfterMutation("transaction");
+    } catch {
+      setError(t("transactions_errorConnection"));
+    }
   }
 
   function openCreate() {
@@ -138,6 +144,10 @@ export default function TransactionsPage() {
           {t("transactions_add")}
         </button>
       </div>
+
+      {error && !showModal && (
+        <FieldError message={error} />
+      )}
 
       <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-1">
         <ul className="divide-y divide-[var(--border)]">

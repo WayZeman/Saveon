@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canUseCategory, categoriesVisibleWhere } from "@/lib/data-scope";
+import { canUseCategory, categoriesVisibleWhere, transactionUserIds } from "@/lib/data-scope";
 import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
@@ -68,9 +68,11 @@ export async function DELETE(
   const session = sessionOr;
   const { id } = await params;
   const existing = await prisma.transaction.findFirst({
-    where: { id, userId: session.id },
+    where: { id, userId: { in: transactionUserIds(session) } },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
   await prisma.transaction.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }

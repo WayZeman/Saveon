@@ -30,7 +30,9 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
     include: transactionInclude,
   });
-  return NextResponse.json(transactions);
+  const res = NextResponse.json(transactions);
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
 
 export async function POST(request: Request) {

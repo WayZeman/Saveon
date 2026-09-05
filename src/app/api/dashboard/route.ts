@@ -9,6 +9,7 @@ import {
   computeHomeGoalsSummary,
   mapGoalSourceCategories,
 } from "@/lib/goal-balance";
+import { excludeInternalTransfers } from "@/lib/cashflow";
 type Agg = { userId: string; income: number; expense: number };
 
 export async function GET(request: Request) {
@@ -41,13 +42,15 @@ export async function GET(request: Request) {
       amount: true,
       categoryId: true,
       sourceCategoryId: true,
+      createdAt: true,
       category: { select: { id: true, name: true } },
       sourceCategory: { select: { id: true, name: true } },
     },
   });
-  const monthTransactions = await prisma.transaction.findMany({
-    where: { userId: { in: userIds }, createdAt: { gte: start, lte: end } },
-    select: { userId: true, type: true, amount: true, categoryId: true },
+  const externalTransactions = excludeInternalTransfers(allTransactions);
+  const monthTransactions = externalTransactions.filter((t) => {
+    const at = new Date(t.createdAt).getTime();
+    return at >= start.getTime() && at <= end.getTime();
   });
 
   const byUser: Record<string, Agg> = {};
@@ -117,7 +120,7 @@ export async function GET(request: Request) {
     totalBalance
   );
 
-  const monthlyData = await getMonthlyData(session.id, partnerId);
+  const monthlyData = buildMonthlyData(externalTransactions);
   const categoryBreakdown = Object.values(categoryTotals)
     .filter((v) => Math.abs(v.net) >= 0.005)
     .sort((a, b) => b.net - a.net)
@@ -137,7 +140,7 @@ export async function GET(request: Request) {
     partnerIncome: byUserMonth[partnerId!]?.income ?? 0,
   } : null;
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     myBalance,
     partnerBalance,
     totalBalance,
@@ -151,19 +154,17 @@ export async function GET(request: Request) {
     comparison,
     period: { start, end },
   });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
 
-async function getMonthlyData(myId: string, partnerId: string | null) {
+function buildMonthlyData(
+  transactions: { type: string; amount: number; createdAt: Date | string }[]
+) {
   const start = new Date();
   start.setMonth(start.getMonth() - 11);
   start.setDate(1);
   start.setHours(0, 0, 0, 0);
-
-  const userIds = partnerId ? [myId, partnerId] : [myId];
-  const transactions = await prisma.transaction.findMany({
-    where: { userId: { in: userIds }, createdAt: { gte: start } },
-    select: { userId: true, type: true, amount: true, createdAt: true },
-  });
 
   const byMonth: Record<string, { income: number; expense: number }> = {};
   for (let i = 0; i < 12; i++) {

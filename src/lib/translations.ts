@@ -81,7 +81,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_byCategoryHint: "Загальний залишок по категоріях",
     home_noDataPeriod: "Немає вкладень за період",
     home_incomeExpense: "Доходи та витрати",
-    home_incomeExpenseHint: "Динаміка за останні місяці",
+    home_incomeExpenseHint: "Нові надходження і витрати, без переказів між своїми категоріями",
     home_income: "Доходи",
     home_expense: "Витрати",
     home_balanceChart: "Баланс",

@@ -9,6 +9,7 @@ import {
 } from "./goal-balance";
 import type { ReportPeriod } from "./report-period";
 import { transactionInclude } from "./transaction-include";
+import { excludeInternalTransfers } from "./cashflow";
 
 export type ReportCategoryRow = {
   name: string;
@@ -103,15 +104,22 @@ export async function fetchReportData(session: SessionUser, period: ReportPeriod
     categoryMap.set(key, row);
   }
 
+  const externalIds = new Set(
+    excludeInternalTransfers(periodTransactions).map((t) => t.id)
+  );
+
   const transactions: ReportTransactionRow[] = periodTransactions.map((t) => {
     const type = t.type as "income" | "expense";
-    if (type === "income") {
-      totalIncome += t.amount;
-      bumpCategory(t.category.name, t.amount, 0);
-    } else {
-      totalExpense += t.amount;
-      const sourceName = t.sourceCategory?.name ?? t.category.name;
-      bumpCategory(sourceName, 0, t.amount);
+    const isExternal = externalIds.has(t.id);
+    if (isExternal) {
+      if (type === "income") {
+        totalIncome += t.amount;
+        bumpCategory(t.category.name, t.amount, 0);
+      } else {
+        totalExpense += t.amount;
+        const sourceName = t.sourceCategory?.name ?? t.category.name;
+        bumpCategory(sourceName, 0, t.amount);
+      }
     }
 
     return {

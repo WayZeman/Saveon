@@ -303,12 +303,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       const user = meRes.ok ? await meRes.json() : null;
 
+      const noStore = { cache: "no-store" as RequestCache };
       const [dashboardRes, transactionsRes, categoriesRes, goalsRes, partnerRes] = await Promise.all([
-        fetch("/api/dashboard"),
-        fetch("/api/transactions"),
-        fetch("/api/categories"),
-        fetch("/api/goals"),
-        fetch("/api/partner"),
+        fetch("/api/dashboard", noStore),
+        fetch("/api/transactions", noStore),
+        fetch("/api/categories", noStore),
+        fetch("/api/goals", noStore),
+        fetch("/api/partner", noStore),
       ]);
 
       const dashboardData = dashboardRes.ok ? await dashboardRes.json() : null;
@@ -403,14 +404,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refetchDashboard = useCallback(async () => {
-    const res = await fetch("/api/dashboard");
+    const res = await fetch("/api/dashboard", { cache: "no-store" });
     if (!res.ok) return;
     const dashboardData = await res.json();
     setState((s) => ({ ...s, dashboardData }));
   }, []);
 
   const refetchTransactions = useCallback(async () => {
-    const res = await fetch("/api/transactions");
+    const res = await fetch("/api/transactions", { cache: "no-store" });
     if (!res.ok) return;
     const transactions = await res.json();
     setState((s) => ({ ...s, transactions }));
