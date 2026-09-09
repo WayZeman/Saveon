@@ -286,6 +286,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     settings_reportDownloading: "Генеруємо…",
     settings_reportError: "Не вдалося завантажити звіт",
     settings_reportErrorDates: "Вкажіть коректний період",
+    settings_investments: "Інвестиції",
+    settings_investmentsHint: "Граф портфеля Cortex",
     partnerInvite_title: "Запрошення до спільного рахунку",
     partnerInvite_body: "запрошує вас до спільного обліку фінансів.",
     partnerInvite_roleHint: "Ваша роль після прийняття",

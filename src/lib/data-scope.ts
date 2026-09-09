@@ -53,3 +53,8 @@ export function goalsVisibleWhere(session: SessionUser) {
 export function transactionUserIds(session: SessionUser): string[] {
   return session.partnerId ? [session.id, session.partnerId] : [session.id];
 }
+
+/** Інвестиції Cortex: свої та партнера. */
+export function investmentsVisibleWhere(session: SessionUser) {
+  return { userId: { in: transactionUserIds(session) } };
+}

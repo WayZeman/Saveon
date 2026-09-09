@@ -970,3 +970,17 @@ input[type="checkbox"]:checked::after {
     scroll-behavior: auto !important;
   }
 }
+
+.cortex-input {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+  padding: 0.55rem 0.7rem;
+  color: #ececec;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.cortex-input:focus {
+  border-color: #a88bfa;
+}

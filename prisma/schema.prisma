@@ -25,6 +25,7 @@ model User {
   goalsCreated           Goal[]           @relation("GoalCreatedBy")
   partnerInvitesSent     PartnerInvite[]  @relation("PartnerInviteFrom")
   partnerInvitesReceived PartnerInvite[]  @relation("PartnerInviteTo")
+  investments            Investment[]
 }
 
 // Запрошення до спільного рахунку (підтвердження одержувачем)
@@ -109,5 +110,49 @@ model GoalSourceCategory {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([goalId, categoryId])
+}
+
+model Investment {
+  id                     String   @id @default(cuid())
+  userId                 String
+  name                   String
+  type                   String
+  symbol                 String?
+  investedAmount         Float
+  investedCurrency       String
+  quantity               Float?
+  purchaseDate           DateTime
+  purchaseUnitPrice      Float?
+  purchaseUnitCurrency   String?
+  monthlyIncome          Float?
+  monthlyIncomeCurrency  String?
+  estimatedValue         Float?
+  estimatedValueCurrency String?
+  annualRate             Float?
+  notes                  String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  receipts IncomeReceipt[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([purchaseDate])
+}
+
+model IncomeReceipt {
+  id           String     @id @default(cuid())
+  investmentId String
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  amount       Float
+  currency     String
+  receivedAt   DateTime
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([investmentId])
+  @@index([receivedAt])
 }
 

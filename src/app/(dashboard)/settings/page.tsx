@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Settings, Sun, Moon, Monitor, ChevronRight, Palette,
   CircleDollarSign, LifeBuoy, Heart, LogOut, ExternalLink, Check,
   Users, UserPlus, UserMinus, Activity, Newspaper, LayoutGrid, ShieldCheck,
-  FileText, Download,
+  FileText, Download, TrendingUp,
 } from "lucide-react";
 import {
   toDateInputValue,
@@ -588,6 +589,15 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Investments (Cortex) */}
+      <div className="card overflow-hidden !p-0 opacity-0 animate-slide-up animate-stagger-7">
+        <Link href="/investments" className="w-full flex items-center gap-3 px-5 py-4 transition-colors">
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7c5cbf] to-[#a88bfa] flex items-center justify-center"><TrendingUp className="w-4 h-4 text-white" strokeWidth={2} /></span>
+          <div className="flex-1 text-left"><p className="text-[14px] font-medium">{t("settings_investments")}</p><p className="text-[12px] text-[var(--text-tertiary)]">{t("settings_investmentsHint")}</p></div>
+          <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)]" />
+        </Link>
       </div>
 
       {/* Support */}
