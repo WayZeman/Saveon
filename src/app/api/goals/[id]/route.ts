@@ -3,7 +3,13 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, goalsVisibleWhere } from "@/lib/data-scope";
 import { isPrimaryCategory } from "@/lib/category-tier";
-import { goalListInclude, syncGoalSourceCategories, validateGoalSourceCategoryIds, getOrCreateGoalExpenseCategory, removeGoalExpenseCategory } from "@/lib/goal-api";
+import {
+  goalListInclude,
+  syncGoalSourceCategories,
+  validateGoalSourceCategoryIds,
+  createGoalRealizationExpense,
+  detachGoalExpenseHistory,
+} from "@/lib/goal-api";
 import { parseGoalDeadline } from "@/lib/goal-dates";
 import { mapGoalSourceCategories } from "@/lib/goal-balance";
 import { goalPatchSchema } from "@/lib/validations";
@@ -58,14 +64,6 @@ export async function PATCH(
     }
     if (parsed.data.realize !== undefined) {
       if (parsed.data.realize) {
-        if (goal.realizedAt) {
-          const current = await prisma.goal.findUnique({
-            where: { id: goalId },
-            include: goalListInclude,
-          });
-          return NextResponse.json(mapGoalSourceCategories(current!));
-        }
-
         const sourceCategory = await prisma.category.findFirst({
           where: { id: parsed.data.sourceCategoryId!, OR: categoriesVisibleWhere(session).OR },
         });
@@ -83,37 +81,35 @@ export async function PATCH(
           return NextResponse.json({ error: "Category not allowed for this goal" }, { status: 400 });
         }
 
-        let category = await getOrCreateGoalExpenseCategory(goal);
-
-        await prisma.transaction.create({
-          data: {
-            amount: goal.targetAmount,
-            type: "expense",
-            categoryId: category.id,
-            sourceCategoryId: sourceCategory.id,
-            userId: session.id,
-            goalId: goal.id,
-          },
+        // Idempotent: вже реалізована ціль — лише достворити витрату, якщо її немає
+        await createGoalRealizationExpense({
+          goal,
+          userId: session.id,
+          sourceCategoryId: sourceCategory.id,
         });
 
         const updated = await prisma.goal.update({
           where: { id: goalId },
-          data: { realizedAt: new Date() },
+          data: { realizedAt: goal.realizedAt ?? new Date() },
           include: goalListInclude,
         });
         return NextResponse.json(mapGoalSourceCategories(updated));
       }
 
-      await prisma.transaction.deleteMany({
-        where: { goalId: goal.id },
-      });
-      await removeGoalExpenseCategory(goal.id);
-      const updated = await prisma.goal.update({
+      // Скасування реалізації — прибираємо створену витрату й службову категорію цілі
+      await prisma.$transaction([
+        prisma.transaction.deleteMany({ where: { goalId: goal.id } }),
+        prisma.category.deleteMany({ where: { goalId: goal.id } }),
+        prisma.goal.update({
+          where: { id: goalId },
+          data: { realizedAt: null },
+        }),
+      ]);
+      const updated = await prisma.goal.findUnique({
         where: { id: goalId },
-        data: { realizedAt: null },
         include: goalListInclude,
       });
-      return NextResponse.json(mapGoalSourceCategories(updated));
+      return NextResponse.json(mapGoalSourceCategories(updated!));
     }
     const hasPartner = !!session.partnerId;
     const updateData: {
@@ -194,6 +190,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Can only delete your own goals" }, { status: 403 });
   }
   try {
+    // Зберігаємо витрату в історії транзакцій навіть після видалення цілі
+    await detachGoalExpenseHistory(id);
     await prisma.goal.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e: any) {

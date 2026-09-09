@@ -66,6 +66,51 @@ export async function getOrCreateGoalExpenseCategory(goal: GoalForExpenseCategor
   });
 }
 
+/** Створює витрату за ціллю (категорія = назва цілі, списання з sourceCategoryId). */
+export async function createGoalRealizationExpense(params: {
+  goal: GoalForExpenseCategory & { targetAmount: number };
+  userId: string;
+  sourceCategoryId: string;
+}) {
+  const { goal, userId, sourceCategoryId } = params;
+  const category = await getOrCreateGoalExpenseCategory(goal);
+  const existing = await prisma.transaction.findFirst({
+    where: { goalId: goal.id, type: "expense" },
+    select: { id: true },
+  });
+  if (existing) return { category, transactionId: existing.id, created: false as const };
+
+  const tx = await prisma.transaction.create({
+    data: {
+      amount: goal.targetAmount,
+      type: "expense",
+      categoryId: category.id,
+      sourceCategoryId,
+      userId,
+      goalId: goal.id,
+    },
+    select: { id: true },
+  });
+  return { category, transactionId: tx.id, created: true as const };
+}
+
 export async function removeGoalExpenseCategory(goalId: string) {
   await prisma.category.deleteMany({ where: { goalId } });
+}
+
+/**
+ * Відв'язує витратні категорію/транзакції від цілі перед видаленням,
+ * щоб історія витрат залишилась у списку транзакцій.
+ */
+export async function detachGoalExpenseHistory(goalId: string) {
+  await prisma.$transaction([
+    prisma.transaction.updateMany({
+      where: { goalId },
+      data: { goalId: null },
+    }),
+    prisma.category.updateMany({
+      where: { goalId },
+      data: { goalId: null },
+    }),
+  ]);
 }
