@@ -67,23 +67,22 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
     <div className="relative h-[100dvh] overflow-hidden bg-[#07060b]">
       <Cortex snapshot={snapshot} selectedId={selectedId} onSelect={setSelectedId} />
 
-      <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
-        <Link
-          href="/settings"
-          aria-label="Назад до налаштувань"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#0c0a12]/90 text-white backdrop-blur-xl hover:bg-white/10"
-        >
-          <ArrowLeft className="h-5 w-5" strokeWidth={2} />
-        </Link>
-        <button
-          type="button"
-          onClick={() => setAddOpen(true)}
-          aria-label="Додати інвестицію"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#0c0a12]/90 text-white backdrop-blur-xl hover:bg-white/10"
-        >
-          <Plus className="h-5 w-5" strokeWidth={2} />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setAddOpen(true)}
+        aria-label="Додати інвестицію"
+        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#0c0a12]/90 text-white backdrop-blur-xl hover:bg-white/10"
+      >
+        <Plus className="h-5 w-5" strokeWidth={2} />
+      </button>
+
+      <Link
+        href="/settings"
+        aria-label="Назад до налаштувань"
+        className="absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#0c0a12]/90 text-white backdrop-blur-xl hover:bg-white/10"
+      >
+        <ArrowLeft className="h-5 w-5" strokeWidth={2} />
+      </Link>
 
       {error ? (
         <p className="absolute left-4 top-16 z-10 rounded-lg border border-rose-500/20 bg-rose-950/70 px-3 py-2 text-sm text-rose-300 backdrop-blur">
