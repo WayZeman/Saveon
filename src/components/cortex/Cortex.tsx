@@ -155,14 +155,16 @@ function drawCenteredLabel(
 }
 
 function layout(w: number, h: number, snapshot: PortfolioSnapshot): GraphNode[] {
+  const compact = w < 720;
+  const scale = compact ? Math.min(1, Math.max(0.55, Math.min(w, h) / 520)) : 1;
   const span = Math.min(w, h);
   const types: Exclude<AssetType, "other">[] = ["crypto", "stock", "real_estate", "bond"];
   const sector = (Math.PI * 2) / types.length;
   const origin = -Math.PI / 2 + 0.18;
   const up = snapshot.totals.pnlUsd >= 0;
-  const groupR = 118;
-  const coreR = 64;
-  const inner = Math.max(span * 0.28, coreR + groupR + 48);
+  const groupR = 118 * scale;
+  const coreR = 64 * scale;
+  const inner = Math.max(span * (compact ? 0.24 : 0.28), coreR + groupR + 36 * scale);
 
   const core: GraphNode = {
     id: "core",
@@ -199,7 +201,7 @@ function layout(w: number, h: number, snapshot: PortfolioSnapshot): GraphNode[] 
       y,
       ox: x,
       oy: y,
-      r: items.length ? groupR : 16,
+      r: items.length ? groupR : Math.max(12, 16 * scale),
       kind: "group" as const,
       parentId: "core",
       color: TYPE_COLORS[type],
@@ -230,16 +232,17 @@ function layout(w: number, h: number, snapshot: PortfolioSnapshot): GraphNode[] 
     const pad = 0.2;
     const sweep = sector - pad * 2;
     let index = 0;
-    let lastRadius = inner + groupR + 12;
+    let lastRadius = inner + groupR + 12 * scale;
     sizes.forEach((slots) => {
       if (!slots) return;
       const slice = items.slice(index, index + slots);
-      const rs = slice.map((item) => 42 + Math.sqrt(item.currentUsd / maxAsset) * 6);
+      const rs = slice.map((item) => (36 + Math.sqrt(item.currentUsd / maxAsset) * 6) * scale);
       const maxR = Math.max(...rs);
       const theta = slots === 1 ? sweep : sweep / slots;
-      const minChord = 2 * maxR + 28;
-      const need = slots <= 1 ? lastRadius + maxR + 28 : minChord / (2 * Math.sin(Math.max(theta / 2, 0.05)));
-      const radius = Math.max(lastRadius + maxR + 28, need);
+      const gap = 22 * scale;
+      const minChord = 2 * maxR + gap;
+      const need = slots <= 1 ? lastRadius + maxR + gap : minChord / (2 * Math.sin(Math.max(theta / 2, 0.05)));
+      const radius = Math.max(lastRadius + maxR + gap, need);
       slice.forEach((item, slot) => {
         const t = slots === 1 ? 0.5 : (slot + 0.5) / slots;
         const ang = group.base + pad + t * sweep;
@@ -335,12 +338,15 @@ export function Cortex({
     if (!ctx) return;
 
     let running = true;
+    let visible = document.visibilityState !== "hidden";
     let raf = 0;
     let w = 0;
     let h = 0;
     let nodes: GraphNode[] = [];
     let pulses: Pulse[] = [];
-    const stars = Array.from({ length: 110 }, () => ({
+    const compact = () => w > 0 && w < 720;
+    const starCount = window.matchMedia("(max-width: 719px)").matches ? 36 : 110;
+    const stars = Array.from({ length: starCount }, () => ({
       x: Math.random() * 2 - 1,
       y: Math.random() * 2 - 1,
       a: 0.06 + Math.random() * 0.32,
@@ -350,10 +356,15 @@ export function Cortex({
     const cam = { x: 0, y: 0, k: 1 };
     let dragging = false;
     let dragNode = false;
+    let moved = false;
     let lastX = 0;
     let lastY = 0;
     let hoverId: string | null = null;
+    let pinchStart = 0;
+    let pinchScale = 1;
     const time = { t: 0 };
+    const tapSlop = () => (window.matchMedia("(pointer: coarse)").matches ? 14 : 5);
+    const hitPad = () => (window.matchMedia("(pointer: coarse)").matches ? 14 : 6);
 
     const toWorld = (sx: number, sy: number) => ({
       x: (sx - w / 2) / cam.k + cam.x,
@@ -362,7 +373,7 @@ export function Cortex({
 
     const hit = (sx: number, sy: number) => {
       const p = toWorld(sx, sy);
-      return [...nodes].reverse().find((n) => Math.hypot(n.x - p.x, n.y - p.y) <= n.r + 6 / cam.k);
+      return [...nodes].reverse().find((n) => Math.hypot(n.x - p.x, n.y - p.y) <= n.r + hitPad() / cam.k);
     };
 
     const makePulses = (list: GraphNode[]): Pulse[] =>
@@ -383,11 +394,11 @@ export function Cortex({
     const rebuild = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, compact() ? 2 : 2.5);
       w = parent.clientWidth;
       h = parent.clientHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      canvas.width = Math.max(1, Math.floor(w * dpr));
+      canvas.height = Math.max(1, Math.floor(h * dpr));
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -397,10 +408,11 @@ export function Cortex({
         120,
         ...nodes.map((node) => Math.hypot(node.ox, node.oy) + node.r + 52),
       );
-      const usable = Math.min(w, Math.max(280, h - 120));
-      cam.k = Math.min(1.25, Math.max(0.55, (usable * 0.5) / reach));
+      const chrome = compact() ? 168 : 120;
+      const usable = Math.min(w * (compact() ? 0.94 : 1), Math.max(220, h - chrome));
+      cam.k = Math.min(compact() ? 1.55 : 1.25, Math.max(0.4, (usable * 0.48) / reach));
       cam.x = 0;
-      cam.y = 10;
+      cam.y = compact() ? -8 : 10;
     };
 
     rebuild();
@@ -443,12 +455,16 @@ export function Cortex({
 
     const draw = () => {
       if (!running) return;
+      if (!visible) {
+        raf = 0;
+        return;
+      }
       if (snapshotRef.current.updatedAt !== stamp) {
         stamp = snapshotRef.current.updatedAt;
         nodes = layout(w, h, snapshotRef.current);
         pulses = makePulses(nodes);
       }
-      time.t += 1;
+      time.t += compact() ? 0.75 : 1;
 
       const bg = ctx.createRadialGradient(w * 0.5, h * 0.4, 20, w * 0.5, h * 0.52, Math.max(w, h) * 0.78);
       bg.addColorStop(0, "#161226");
@@ -659,6 +675,7 @@ export function Cortex({
       const sx = event.clientX - rect.left;
       const sy = event.clientY - rect.top;
       if (dragging && !dragNode) {
+        if (Math.hypot(sx - lastX, sy - lastY) > 2) moved = true;
         cam.x -= (sx - lastX) / cam.k;
         cam.y -= (sy - lastY) / cam.k;
         lastX = sx;
@@ -671,9 +688,13 @@ export function Cortex({
     };
 
     const onDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch" && (event as PointerEvent & { isPrimary?: boolean }).isPrimary === false) {
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       lastX = event.clientX - rect.left;
       lastY = event.clientY - rect.top;
+      moved = false;
       dragNode = Boolean(hit(lastX, lastY));
       dragging = !dragNode;
       canvas.setPointerCapture(event.pointerId);
@@ -681,32 +702,81 @@ export function Cortex({
 
     const onUp = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      const node = hit(event.clientX - rect.left, event.clientY - rect.top);
-      if (!dragging && node) {
-        onSelect(node.kind === "core" ? null : node.id);
-      } else if (!dragNode && Math.hypot(event.clientX - rect.left - lastX, event.clientY - rect.top - lastY) < 4) {
-        onSelect(null);
+      const sx = event.clientX - rect.left;
+      const sy = event.clientY - rect.top;
+      const dist = Math.hypot(sx - lastX, sy - lastY);
+      const node = hit(sx, sy);
+      if (!moved && dist < tapSlop()) {
+        if (node) onSelect(node.kind === "core" ? null : node.id);
+        else onSelect(null);
       }
       dragging = false;
       dragNode = false;
+      moved = false;
     };
 
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const sx = event.clientX - rect.left;
-      const sy = event.clientY - rect.top;
+    const zoomAt = (sx: number, sy: number, factor: number) => {
       const before = toWorld(sx, sy);
-      cam.k = Math.min(3.2, Math.max(0.45, cam.k * (event.deltaY > 0 ? 0.92 : 1.08)));
+      cam.k = Math.min(3.2, Math.max(0.38, cam.k * factor));
       const after = toWorld(sx, sy);
       cam.x += before.x - after.x;
       cam.y += before.y - after.y;
     };
 
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      zoomAt(event.clientX - rect.left, event.clientY - rect.top, event.deltaY > 0 ? 0.92 : 1.08);
+    };
+
+    const touchDist = (touches: TouchList) => {
+      if (touches.length < 2) return 0;
+      return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 2) {
+        event.preventDefault();
+        pinchStart = touchDist(event.touches);
+        pinchScale = cam.k;
+        dragging = false;
+        dragNode = false;
+      }
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length === 2 && pinchStart > 0) {
+        event.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const midX = (event.touches[0].clientX + event.touches[1].clientX) / 2 - rect.left;
+        const midY = (event.touches[0].clientY + event.touches[1].clientY) / 2 - rect.top;
+        const next = pinchScale * (touchDist(event.touches) / pinchStart);
+        const before = toWorld(midX, midY);
+        cam.k = Math.min(3.2, Math.max(0.38, next));
+        const after = toWorld(midX, midY);
+        cam.x += before.x - after.x;
+        cam.y += before.y - after.y;
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (pinchStart) pinchStart = 0;
+    };
+
+    const onVisibility = () => {
+      visible = document.visibilityState !== "hidden";
+      if (visible && running && !raf) raf = requestAnimationFrame(draw);
+    };
+
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onUp);
     canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+    canvas.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       running = false;
@@ -715,9 +785,20 @@ export function Cortex({
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointercancel", onUp);
       canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [onSelect]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 h-full w-full touch-none select-none"
+      style={{ touchAction: "none" }}
+    />
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { X } from "lucide-react";
 import type { AssetType } from "@/lib/cortex/types";
 import { TYPE_LABELS } from "@/lib/cortex/types";
 
@@ -21,16 +22,32 @@ export function AddInvestment({
 
   const fields = useMemo(() => {
     if (type === "crypto") {
-      return { symbol: "BTC", symbolLabel: "Тікер / CoinGecko id", hint: "На дату покупки фіксується курс BTC і кількість монет." };
+      return {
+        symbol: "BTC",
+        symbolLabel: "Тікер / CoinGecko id",
+        hint: "На дату покупки фіксується курс BTC і кількість монет.",
+      };
     }
     if (type === "stock") {
-      return { symbol: "AAPL", symbolLabel: "Тікер Yahoo", hint: "Курс акції на дату покупки береться з Yahoo Finance." };
+      return {
+        symbol: "AAPL",
+        symbolLabel: "Тікер Yahoo",
+        hint: "Курс акції на дату покупки береться з Yahoo Finance.",
+      };
     }
     if (type === "real_estate") {
-      return { symbol: "", symbolLabel: "Не потрібно", hint: "Оренда в гривні щодня перераховується в долар по курсу НБУ." };
+      return {
+        symbol: "",
+        symbolLabel: "Не потрібно",
+        hint: "Оренда в гривні щодня перераховується в долар по курсу НБУ.",
+      };
     }
     if (type === "bond") {
-      return { symbol: "", symbolLabel: "Не потрібно", hint: "Купон у гривні нараховується щодня і переводиться в долар по курсу НБУ." };
+      return {
+        symbol: "",
+        symbolLabel: "Не потрібно",
+        hint: "Купон у гривні нараховується щодня і переводиться в долар по курсу НБУ.",
+      };
     }
     return { symbol: "", symbolLabel: "Опційно", hint: "Вартість лишається як внесена, без ринкового курсу." };
   }, [type]);
@@ -72,38 +89,49 @@ export function AddInvestment({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/40 backdrop-blur-[2px]">
-      <button className="flex-1" aria-label="Закрити" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-[2px] sm:items-stretch sm:justify-end">
+      <button className="absolute inset-0 sm:static sm:flex-1" aria-label="Закрити" onClick={onClose} />
       <form
         key={type}
-        className="flex h-full w-full max-w-md flex-col gap-4 overflow-y-auto border-l border-white/10 bg-[#262626] p-6 text-[#ece8f5]"
+        className="relative flex max-h-[92dvh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-t-3xl border border-white/10 bg-[#262626] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-[#ece8f5] sm:h-full sm:max-h-none sm:rounded-none sm:border-l sm:border-t-0 sm:p-6 sm:pb-6"
         onSubmit={(event) => {
           event.preventDefault();
           void onSubmit(new FormData(event.currentTarget));
         }}
       >
-        <div>
-          <p className="text-[11px] tracking-[0.22em] text-[#a88bfa]">НОВА НОТАТКА ГРАФА</p>
-          <h2 className="mt-1 text-xl font-semibold text-white">Додати інвестицію</h2>
+        <div className="mx-auto h-1 w-10 rounded-full bg-white/20 sm:hidden" />
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] tracking-[0.22em] text-[#a88bfa]">НОВА НОТАТКА ГРАФА</p>
+            <h2 className="mt-1 text-xl font-semibold text-white">Додати інвестицію</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Закрити"
+            onClick={onClose}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 active:bg-white/10"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(TYPE_LABELS) as AssetType[])
             .filter((key) => key !== "other")
             .map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setType(key)}
-              className={`rounded-md border px-3 py-2 text-sm ${
-                type === key
-                  ? "border-[#a88bfa] bg-[#a88bfa]/10 text-white"
-                  : "border-white/10 text-[#8a8a8a]"
-              }`}
-            >
-              {TYPE_LABELS[key]}
-            </button>
-          ))}
+              <button
+                key={key}
+                type="button"
+                onClick={() => setType(key)}
+                className={`min-h-11 rounded-md border px-3 py-2 text-sm ${
+                  type === key
+                    ? "border-[#a88bfa] bg-[#a88bfa]/10 text-white"
+                    : "border-white/10 text-[#8a8a8a]"
+                }`}
+              >
+                {TYPE_LABELS[key]}
+              </button>
+            ))}
         </div>
 
         <label className="grid gap-1 text-sm">
@@ -121,7 +149,15 @@ export function AddInvestment({
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <label className="grid gap-1 text-sm">
             Скільки вклав
-            <input name="investedAmount" type="number" step="0.01" required placeholder="12000" className="cortex-input" />
+            <input
+              name="investedAmount"
+              type="number"
+              step="0.01"
+              required
+              placeholder="12000"
+              inputMode="decimal"
+              className="cortex-input"
+            />
           </label>
           <label className="grid gap-1 text-sm">
             Валюта
@@ -140,14 +176,29 @@ export function AddInvestment({
         {(type === "crypto" || type === "stock") && (
           <label className="grid gap-1 text-sm">
             Кількість (опційно)
-            <input name="quantity" type="number" step="any" placeholder="порахується з курсу на дату" className="cortex-input" />
+            <input
+              name="quantity"
+              type="number"
+              step="any"
+              placeholder="порахується з курсу на дату"
+              inputMode="decimal"
+              className="cortex-input"
+            />
           </label>
         )}
 
         {type === "bond" && (
           <label className="grid gap-1 text-sm">
             Ставка, % річних
-            <input name="annualRate" type="number" step="0.01" required placeholder="15.2" className="cortex-input" />
+            <input
+              name="annualRate"
+              type="number"
+              step="0.01"
+              required
+              placeholder="15.2"
+              inputMode="decimal"
+              className="cortex-input"
+            />
           </label>
         )}
 
@@ -156,7 +207,7 @@ export function AddInvestment({
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <label className="grid gap-1 text-sm">
                 Оренда на місяць
-                <input name="monthlyIncome" type="number" step="0.01" placeholder="6000" className="cortex-input" />
+                <input name="monthlyIncome" type="number" step="0.01" placeholder="6000" inputMode="decimal" className="cortex-input" />
               </label>
               <label className="grid gap-1 text-sm">
                 Валюта
@@ -169,7 +220,7 @@ export function AddInvestment({
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <label className="grid gap-1 text-sm">
                 Поточна оцінка (опційно)
-                <input name="estimatedValue" type="number" step="0.01" className="cortex-input" />
+                <input name="estimatedValue" type="number" step="0.01" inputMode="decimal" className="cortex-input" />
               </label>
               <label className="grid gap-1 text-sm">
                 Валюта
@@ -193,7 +244,7 @@ export function AddInvestment({
         <button
           type="submit"
           disabled={busy}
-          className="mt-auto rounded-md bg-[#7c5cbf] px-4 py-2.5 text-sm text-white hover:bg-[#8b6dd0] disabled:opacity-60"
+          className="mt-auto min-h-11 rounded-md bg-[#7c5cbf] px-4 py-2.5 text-sm text-white active:bg-[#8b6dd0] disabled:opacity-60"
         >
           {busy ? "Фіксую курс..." : "Додати у граф"}
         </button>

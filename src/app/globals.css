@@ -978,9 +978,24 @@ input[type="checkbox"]:checked::after {
   padding: 0.55rem 0.7rem;
   color: #ececec;
   outline: none;
-  font-size: 0.9rem;
+  font-size: 16px;
+  width: 100%;
+  min-height: 2.75rem;
 }
 
 .cortex-input:focus {
   border-color: #a88bfa;
+}
+
+.cortex-root {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
+@media (min-width: 640px) {
+  .cortex-input {
+    font-size: 0.9rem;
+    min-height: 0;
+  }
 }
