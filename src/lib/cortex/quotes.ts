@@ -414,7 +414,7 @@ async function yahooLiveQuote(symbol: string): Promise<MarketQuote> {
 
 export async function getCryptoQuote(idOrSymbol: string): Promise<MarketQuote> {
   const ticker = resolveCryptoTicker(idOrSymbol);
-  return remember(`cg-live:${ticker}`, LIVE_TTL_MS, () => {
+  return remember(`cg-live-v2:${ticker}`, LIVE_TTL_MS, () => {
     const pair = usdtPair(ticker);
     const coinbase = COINBASE_PAIR[ticker];
     const kraken = KRAKEN_PAIR[ticker];
@@ -437,7 +437,7 @@ export async function getCryptoUsd(idOrSymbol: string): Promise<number> {
 export async function getCryptoUsdOn(idOrSymbol: string, date: Date): Promise<number> {
   const ticker = resolveCryptoTicker(idOrSymbol);
   const stamp = ymd(date).gecko;
-  return remember(`cg-hist:${ticker}:${stamp}`, HIST_TTL_MS, () => {
+  return remember(`cg-hist-v2:${ticker}:${stamp}`, HIST_TTL_MS, () => {
     const pair = usdtPair(ticker);
     const coinbase = COINBASE_PAIR[ticker];
     const gecko = CRYPTO_IDS[ticker];
@@ -472,7 +472,7 @@ export async function getStockQuote(symbol: string): Promise<MarketQuote> {
 export async function getStockUsdOn(symbol: string, date: Date): Promise<number> {
   const ticker = symbol.trim().toUpperCase();
   const day = utcDayStartSec(date);
-  return remember(`yh-hist:${ticker}:${day}`, HIST_TTL_MS, async () => {
+  return remember(`yh-hist-v2:${ticker}:${day}`, HIST_TTL_MS, async () => {
     const start = day - 12 * 24 * 60 * 60;
     const end = day + 2 * 24 * 60 * 60;
     const yahoo = YAHOO_UNDERLYING[ticker] ?? ticker;
