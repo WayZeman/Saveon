@@ -133,7 +133,7 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
             </h2>
             <p className="mt-1 text-xs font-medium leading-5 text-violet-200">
               {selected.livePriceUsd != null
-                ? `Ціна 1 шт. ${formatUsd(selected.livePriceUsd)} — не сума позиції`
+                ? `Ціна 1 шт. ${formatUsd(selected.livePriceUsd)}${selected.quoteSource ? ` · ${selected.quoteSource}` : ""}`
                 : selected.quoteLabel}
             </p>
 
@@ -256,10 +256,17 @@ function DetailStats({ selected }: { selected: ValuedInvestment }) {
     ["Позиція зараз", formatUsd(selected.currentUsd), ""],
     [
       "P&L",
-      `${selected.pnlUsd >= 0 ? "+" : ""}${formatUsd(selected.pnlUsd)}`,
+      `${selected.pnlUsd >= 0 ? "+" : ""}${formatUsd(selected.pnlUsd)} (${selected.pnlPct >= 0 ? "+" : ""}${selected.pnlPct.toFixed(2)}%)`,
       selected.pnlUsd >= 0 ? "text-emerald-400" : "text-rose-400",
     ],
   );
+  if (selected.change24hPct != null) {
+    rows.push([
+      "Ринок 24 год",
+      `${selected.change24hPct >= 0 ? "+" : ""}${selected.change24hPct.toFixed(2)}%`,
+      selected.change24hPct >= 0 ? "text-emerald-400" : "text-rose-400",
+    ]);
+  }
   if (selected.incomeUsd > 0) rows.push(["Дохід", formatUsd(selected.incomeUsd), ""]);
   if (selected.dailyIncomeUsd > 0) {
     rows.push(

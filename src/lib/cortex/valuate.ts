@@ -1,6 +1,7 @@
 import type { AssetType, InvestmentRecord, PortfolioSnapshot, ValuedInvestment } from "./types";
 import { roundCents } from "./money";
-import { currentMarketQuote, getUsdUah } from "./quotes";
+import { resolveMarketPosition } from "./position";
+import { currentMarketQuote, getCryptoUsdOn, getStockUsdOn, getUsdUah } from "./quotes";
 
 const MS_DAY = 1000 * 60 * 60 * 24;
 const DAYS_PER_YEAR = 365.25;
@@ -11,20 +12,24 @@ function startOfUtcDay(date: Date) {
 }
 
 async function costBasisUsd(item: InvestmentRecord) {
-  if (item.quantity && item.purchaseUnitPrice && item.purchaseUnitPrice > 0 && item.purchaseUnitCurrency === "USD") {
-    return item.quantity * item.purchaseUnitPrice;
-  }
   if (item.investedCurrency === "USD") return item.investedAmount;
   const buyFx = await getUsdUah(new Date(item.purchaseDate));
   return item.investedAmount / buyFx;
 }
 
-function shares(item: InvestmentRecord, costUsd: number) {
-  if (item.quantity && item.quantity > 0) return item.quantity;
-  if (item.purchaseUnitPrice && item.purchaseUnitPrice > 0 && item.purchaseUnitCurrency === "USD") {
-    return costUsd / item.purchaseUnitPrice;
+async function historicalUsd(item: InvestmentRecord, todayStart: number): Promise<number | null> {
+  if (!item.symbol) return item.purchaseUnitPrice;
+  const purchase = new Date(item.purchaseDate);
+  if (startOfUtcDay(purchase) === todayStart) {
+    return item.purchaseUnitPrice;
   }
-  return null;
+  try {
+    if (item.type === "crypto") return await getCryptoUsdOn(item.symbol, purchase);
+    if (item.type === "stock") return await getStockUsdOn(item.symbol, purchase);
+  } catch {
+    return item.purchaseUnitPrice;
+  }
+  return item.purchaseUnitPrice;
 }
 
 async function accrueDaily(opts: {
@@ -103,23 +108,37 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
           todayIncomeUsd: roundCents((dailyUah * (todayElapsed / MS_DAY)) / usdUah),
           incomeDays,
           livePriceUsd: null,
+          change24hPct: null,
+          quoteSource: "НБУ",
         };
       }
 
       const costUah = item.investedCurrency === "UAH" ? item.investedAmount : costUsd * usdUah;
+      let change24hPct: number | null = null;
+      let quoteSource: string | null = null;
+      let resolvedQuantity = item.quantity;
+      let resolvedEntry = item.purchaseUnitPrice;
 
       try {
         if (item.type === "crypto" || item.type === "stock") {
           const live = await currentMarketQuote(item);
-          const qty = shares(item, costUsd);
-          if (live?.price && qty) {
+          const hist = await historicalUsd(item, todayStart);
+          if (live?.price) {
+            const position = resolveMarketPosition({
+              investedUsd: costUsd,
+              quantity: item.quantity,
+              storedEntryUsd: item.purchaseUnitCurrency === "USD" ? item.purchaseUnitPrice : null,
+              historicalUsd: hist,
+              liveUsd: live.price,
+            });
             livePriceUsd = live.price;
-            marketUsd = qty * live.price;
+            marketUsd = position.currentUsd;
             quoteLabel = live.label;
-          } else if (live) {
-            marketUsd = costUsd;
-            quoteLabel = live.label;
-            quoteOk = false;
+            change24hPct = live.change24hPct;
+            quoteSource = live.source;
+            resolvedQuantity = position.quantity;
+            resolvedEntry = position.entryUsd;
+            if (!position.quantity) quoteOk = false;
           } else {
             marketUsd = costUsd;
             quoteOk = false;
@@ -190,6 +209,9 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
 
       return {
         ...item,
+        quantity: resolvedQuantity,
+        purchaseUnitPrice: resolvedEntry,
+        purchaseUnitCurrency: resolvedEntry ? item.purchaseUnitCurrency ?? "USD" : item.purchaseUnitCurrency,
         costUah: roundCents(costUah),
         costUsd: valuedCostUsd,
         currentUah: roundCents(currentUsd * usdUah),
@@ -205,6 +227,8 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
         todayIncomeUsd: roundCents(accrued.todayIncomeUsd),
         incomeDays: accrued.incomeDays,
         livePriceUsd,
+        change24hPct,
+        quoteSource,
       };
     }),
   );

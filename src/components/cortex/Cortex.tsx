@@ -56,7 +56,7 @@ function earliestDate(items: ValuedInvestment[]) {
 
 function formatPct(value: number) {
   const sign = value >= 0 ? "+" : "";
-  return `${sign}${value.toFixed(1)}%`;
+  return `${sign}${value.toFixed(2)}%`;
 }
 
 function compactUsd(value: number) {

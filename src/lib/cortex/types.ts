@@ -45,6 +45,8 @@ export type ValuedInvestment = InvestmentRecord & {
   todayIncomeUsd: number;
   incomeDays: number;
   livePriceUsd: number | null;
+  change24hPct: number | null;
+  quoteSource: string | null;
 };
 
 export type PortfolioSnapshot = {
