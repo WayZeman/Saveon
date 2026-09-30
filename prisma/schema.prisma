@@ -55,6 +55,8 @@ model Category {
   isShared Boolean  @default(false)
   // primary = основна (для цілей), secondary = другорядна
   tier     String   @default("primary")
+  // cash | stock | crypto | other — для підбору акцій/ETF або крипти
+  kind     String   @default("other")
   createdAt DateTime @default(now())
 
   user              User?         @relation("UserCategories", fields: [userId], references: [id], onDelete: SetNull)
@@ -75,11 +77,20 @@ model Transaction {
   userId           String
   createdAt        DateTime @default(now())
   goalId           String?
+  assetSymbol      String?
+  assetName        String?
+  assetClass       String?
+  unitPriceUsd     Float?
+  quantity         Float?
+  usdRateUah       Float?
 
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   category       Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   sourceCategory Category? @relation("TransactionSourceCategory", fields: [sourceCategoryId], references: [id], onDelete: SetNull)
   goal           Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  @@index([assetSymbol])
+  @@index([userId, assetSymbol])
 }
 
 model Goal {
