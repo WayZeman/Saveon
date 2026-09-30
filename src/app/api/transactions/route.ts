@@ -3,6 +3,7 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, transactionUserIds } from "@/lib/data-scope";
 import { getExchangeRates } from "@/lib/exchange-rates";
+import { syncLotForTransactionSafe } from "@/lib/cortex/create-lot-from-transaction";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
       },
       include: transactionInclude,
     });
+    await syncLotForTransactionSafe(session.id, transaction);
     return NextResponse.json(transaction);
   } catch (e) {
     console.error(e);

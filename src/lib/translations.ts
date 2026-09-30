@@ -78,7 +78,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     home_noGoalsHint: "Додайте першу ціль для накопичення",
     home_addGoal: "Додати ціль",
     home_byCategory: "По категоріях",
-    home_byCategoryHint: "Загальний залишок по категоріях",
+    home_byCategoryHint: "Натисніть категорію, щоб додати транзакцію",
     home_noDataPeriod: "Немає вкладень за період",
     home_loading: "Завантажуємо дані",
     home_news: "Ринок",
@@ -137,6 +137,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     transactions_errorConnection: "Помилка з'єднання",
     transactions_confirmDelete: "Видалити цю транзакцію?",
     transactions_shared: "спільна",
+    transactions_createsCircleHint: "Після збереження з’явиться новий кружечок на схемі інвестицій.",
 
     // Goals
     goals_title: "Цілі",
@@ -191,7 +192,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 
     // Categories
     categories_title: "Категорії",
-    categories_subtitle: "Основні та другорядні категорії. Натисніть на категорію, щоб перемістити її.",
+    categories_subtitle: "Основні та другорядні категорії. Натисніть на назву, щоб додати транзакцію.",
     categories_addPartnerHint: " · Додайте партнера в налаштуваннях, щоб створювати спільні категорії",
     categories_primary: "Основні",
     categories_secondary: "Другорядні",

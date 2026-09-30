@@ -14,6 +14,7 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
 import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoalModal";
+import { AddTransactionModal } from "@/components/AddTransactionModal";
 import { filterPrimaryCategories } from "@/lib/category-tier";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
@@ -22,9 +23,18 @@ export default function HomePageContent() {
   const { formatMoney } = useCurrency();
   const { showFearGreed, showMarketNews } = useHomeSections();
   const { t } = useLanguage();
-  const { dashboardData: data, user, categories, initialLoadDone, refetchDashboard, refetchGoals } = useData();
+  const { dashboardData: data, user, categories, initialLoadDone, refetchDashboard, refetchGoals, invalidateAfterMutation } = useData();
   const [realizeGoal, setRealizeGoal] = useState<RealizeGoalInfo | null>(null);
+  const [txCategoryId, setTxCategoryId] = useState<string | null>(null);
   const primaryCategories = filterPrimaryCategories(categories);
+
+  function openAddTransaction(id?: string, name?: string) {
+    const cat =
+      (id ? categories.find((c) => c.id === id) : undefined) ??
+      (name ? categories.find((c) => c.name === name) : undefined);
+    if (!cat) return;
+    setTxCategoryId(cat.id);
+  }
 
   async function confirmRealizeGoal(goalId: string, sourceCategoryId: string): Promise<boolean> {
     const res = await fetch(`/api/goals/${goalId}`, {
@@ -124,6 +134,10 @@ export default function HomePageContent() {
                       labelLine={{ stroke: "var(--text-tertiary)", strokeWidth: 1 }}
                       label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                       isAnimationActive={false}
+                      cursor="pointer"
+                      onClick={(slice: { id?: string; name?: string; payload?: { id?: string; name?: string } }) => {
+                        openAddTransaction(slice?.id ?? slice?.payload?.id, slice?.name ?? slice?.payload?.name);
+                      }}
                     >
                       {data.pieData.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -138,16 +152,22 @@ export default function HomePageContent() {
               </div>
             )}
             <ul className={`space-y-2.5 border-t border-[var(--border)] pt-4 ${data.pieData.length > 0 ? "mt-5" : ""}`}>
-              {(data.categoryBreakdown ?? data.pieData.map((p) => ({ name: p.name, net: p.value }))).map((item, i) => {
+              {(data.categoryBreakdown ?? data.pieData.map((p) => ({ id: p.id, name: p.name, net: p.value }))).map((item, i) => {
                 const colorIndex = data.pieData.findIndex((p) => p.name === item.name);
                 const color = colorIndex >= 0 ? COLORS[colorIndex % COLORS.length] : "var(--text-tertiary)";
                 return (
-                  <li key={`${item.name}-${i}`} className="flex items-center gap-3 text-[13px]">
-                    <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
-                    <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
-                    <span className={`shrink-0 font-medium ${item.net >= 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent-red)]"}`}>
-                      {item.net >= 0 ? "" : "−"}{formatMoney(Math.abs(item.net))}
-                    </span>
+                  <li key={`${item.name}-${i}`}>
+                    <button
+                      type="button"
+                      onClick={() => openAddTransaction(item.id, item.name)}
+                      className="flex w-full items-center gap-3 text-[13px] rounded-lg px-1 py-1 -mx-1 text-left hover:bg-[var(--input-bg)] transition"
+                    >
+                      <span className="w-5 h-0.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                      <span className="flex-1 min-w-0 text-[var(--text)] truncate">{item.name}</span>
+                      <span className={`shrink-0 font-medium ${item.net >= 0 ? "text-[var(--text-secondary)]" : "text-[var(--accent-red)]"}`}>
+                        {item.net >= 0 ? "" : "−"}{formatMoney(Math.abs(item.net))}
+                      </span>
+                    </button>
                   </li>
                 );
               })}
@@ -232,6 +252,14 @@ export default function HomePageContent() {
           onConfirm={(sourceCategoryId) => confirmRealizeGoal(realizeGoal.id, sourceCategoryId)}
         />
       )}
+      <AddTransactionModal
+        open={Boolean(txCategoryId)}
+        onClose={() => setTxCategoryId(null)}
+        categories={categories}
+        presetCategoryId={txCategoryId ?? undefined}
+        lockCategory
+        onSaved={() => invalidateAfterMutation("transaction")}
+      />
     </div>
   );
 }

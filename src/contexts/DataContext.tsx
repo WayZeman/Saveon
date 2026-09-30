@@ -44,8 +44,8 @@ export type DashboardData = {
     totalRemaining: number;
     fillPercent: number;
   };
-  pieData: { name: string; value: number; chartValue: number }[];
-  categoryBreakdown: { name: string; net: number }[];
+    pieData: { id?: string; name: string; value: number; chartValue: number }[];
+    categoryBreakdown: { id?: string; name: string; net: number }[];
   categoryBreakdownTotal: number;
   comparison: {
     mySaved: number;
@@ -190,14 +190,14 @@ const DEV_PREVIEW_STATE: DataState = {
       fillPercent: 8.75,
     },
     pieData: [
-      { name: "Готівка", value: 1870.54, chartValue: 1870.54 },
-      { name: "Акції", value: 552.03, chartValue: 552.03 },
-      { name: "Крипта", value: 290.27, chartValue: 290.27 },
+      { id: "cat-1", name: "Готівка", value: 1870.54, chartValue: 1870.54 },
+      { id: "cat-2", name: "Акції", value: 552.03, chartValue: 552.03 },
+      { id: "cat-3", name: "Крипта", value: 290.27, chartValue: 290.27 },
     ],
     categoryBreakdown: [
-      { name: "Готівка", net: 1870.54 },
-      { name: "Акції", net: 552.03 },
-      { name: "Крипта", net: 290.27 },
+      { id: "cat-1", name: "Готівка", net: 1870.54 },
+      { id: "cat-2", name: "Акції", net: 552.03 },
+      { id: "cat-3", name: "Крипта", net: 290.27 },
     ],
     categoryBreakdownTotal: 2712.84,
     comparison: {

@@ -54,6 +54,8 @@ const BYBIT_SPOT: Record<string, string> = {
 
 const YAHOO_UNDERLYING: Record<string, string> = {
   NVDAX: "NVDA",
+  SPYX: "SPY",
+  CSPX: "CSPX.L",
 };
 type CacheEntry<T> = { at: number; value: T };
 

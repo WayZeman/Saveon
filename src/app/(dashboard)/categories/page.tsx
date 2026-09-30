@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useData, type Category } from "@/contexts/DataContext";
 import { ModalOverlay, ModalPanel, FieldLabel, FieldError, ModalActions, CheckboxField, useConfirm } from "@/components/Modal";
 import { filterPrimaryCategories, isPrimaryCategory, oppositeTier, type CategoryTier } from "@/lib/category-tier";
+import { AddTransactionModal } from "@/components/AddTransactionModal";
 
 export default function CategoriesPage() {
   const { t } = useLanguage();
@@ -17,6 +18,7 @@ export default function CategoriesPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [movingId, setMovingId] = useState<string | null>(null);
+  const [txCategoryId, setTxCategoryId] = useState<string | null>(null);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -135,6 +137,7 @@ export default function CategoriesPage() {
       <CategoryList
         title={t("categories_primary")}
         items={primary}
+        onAddTransaction={(c) => setTxCategoryId(c.id)}
         onMove={handleMoveTier}
         onEdit={openEdit}
         onDelete={handleDelete}
@@ -148,6 +151,7 @@ export default function CategoriesPage() {
       <CategoryList
         title={t("categories_secondary")}
         items={secondary}
+        onAddTransaction={(c) => setTxCategoryId(c.id)}
         onMove={handleMoveTier}
         onEdit={openEdit}
         onDelete={handleDelete}
@@ -160,6 +164,14 @@ export default function CategoriesPage() {
       />
 
       {confirmDialog}
+      <AddTransactionModal
+        open={Boolean(txCategoryId)}
+        onClose={() => setTxCategoryId(null)}
+        categories={categories}
+        presetCategoryId={txCategoryId ?? undefined}
+        lockCategory
+        onSaved={() => invalidateAfterMutation("transaction")}
+      />
       {showModal && (
         <ModalOverlay onClose={closeModal}>
           <ModalPanel title={editCat ? t("categories_edit") : t("categories_new")} onClose={closeModal}>
@@ -184,6 +196,7 @@ export default function CategoriesPage() {
 function CategoryList({
   title,
   items,
+  onAddTransaction,
   onMove,
   onEdit,
   onDelete,
@@ -196,6 +209,7 @@ function CategoryList({
 }: {
   title: string;
   items: Category[];
+  onAddTransaction: (c: Category) => void;
   onMove: (c: Category) => void;
   onEdit: (c: Category) => void;
   onDelete: (c: Category) => void;
@@ -217,10 +231,9 @@ function CategoryList({
           <li key={c.id} className="flex items-center justify-between gap-3 py-3.5 group">
             <button
               type="button"
-              onClick={() => onMove(c)}
-              disabled={movingId === c.id}
-              className="flex-1 min-w-0 text-left rounded-lg -my-1 py-1 px-1 hover:bg-[var(--input-bg)] transition disabled:opacity-60"
-              title={moveLabel}
+              onClick={() => onAddTransaction(c)}
+              className="flex-1 min-w-0 text-left rounded-lg -my-1 py-1 px-1 hover:bg-[var(--input-bg)] transition"
+              title={t("transactions_add")}
             >
               <span className="text-[14px] font-medium block truncate">{c.name}</span>
               {hasPartner && (

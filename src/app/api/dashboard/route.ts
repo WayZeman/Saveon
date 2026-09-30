@@ -66,17 +66,17 @@ export async function GET(request: Request) {
   }
 
   // Нетто по категоріях-джерелах: дохід зараховується в categoryId, витрата знімається з sourceCategoryId.
-  const categoryTotals: Record<string, { name: string; net: number }> = {};
+  const categoryTotals: Record<string, { id: string; name: string; net: number }> = {};
   for (const t of allTransactions) {
     if (t.type === "income") {
       const catId = t.category?.id ?? t.categoryId;
       const catName = t.category?.name ?? "Інше";
-      if (!categoryTotals[catId]) categoryTotals[catId] = { name: catName, net: 0 };
+      if (!categoryTotals[catId]) categoryTotals[catId] = { id: catId, name: catName, net: 0 };
       categoryTotals[catId].net += t.amount;
     } else {
       const catId = t.sourceCategory?.id ?? t.sourceCategoryId ?? t.categoryId;
       const catName = t.sourceCategory?.name ?? t.category?.name ?? "Інше";
-      if (!categoryTotals[catId]) categoryTotals[catId] = { name: catName, net: 0 };
+      if (!categoryTotals[catId]) categoryTotals[catId] = { id: catId, name: catName, net: 0 };
       categoryTotals[catId].net -= t.amount;
     }
   }
@@ -123,12 +123,12 @@ export async function GET(request: Request) {
   const categoryBreakdown = Object.values(categoryTotals)
     .filter((v) => Math.abs(v.net) >= 0.005)
     .sort((a, b) => b.net - a.net)
-    .map((v) => ({ name: v.name, net: Math.round(v.net * 100) / 100 }));
+    .map((v) => ({ id: v.id, name: v.name, net: Math.round(v.net * 100) / 100 }));
   const categoryBreakdownTotal = Math.round(categoryBreakdown.reduce((s, c) => s + c.net, 0) * 100) / 100;
   // Діаграма — лише позитивні вкладення; повний список і «Разом» збігаються з балансом.
   const pieData = categoryBreakdown
     .filter((v) => v.net > 0)
-    .map((v) => ({ name: v.name, value: v.net, chartValue: v.net }));
+    .map((v) => ({ id: v.id, name: v.name, value: v.net, chartValue: v.net }));
 
   const comparison = hasPartner ? {
     mySaved: (byUserMonth[session.id]?.income ?? 0) - (byUserMonth[session.id]?.expense ?? 0),

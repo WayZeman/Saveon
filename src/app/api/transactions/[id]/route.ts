@@ -3,6 +3,7 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseCategory, categoriesVisibleWhere, transactionUserIds } from "@/lib/data-scope";
 import { getExchangeRates } from "@/lib/exchange-rates";
+import { deleteLotForTransaction, syncLotForTransactionSafe } from "@/lib/cortex/create-lot-from-transaction";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 
@@ -52,6 +53,7 @@ export async function PATCH(
       data: { amount: amountUah, type, categoryId, sourceCategoryId: resolvedSourceCategoryId },
       include: transactionInclude,
     });
+    await syncLotForTransactionSafe(session.id, transaction);
     return NextResponse.json(transaction);
   } catch (e) {
     console.error(e);
@@ -71,6 +73,7 @@ export async function DELETE(
     where: { id, userId: { in: transactionUserIds(session) } },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  await deleteLotForTransaction(id);
   await prisma.transaction.delete({ where: { id } });
   const res = NextResponse.json({ ok: true });
   res.headers.set("Cache-Control", "no-store");

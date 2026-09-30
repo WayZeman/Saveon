@@ -6,7 +6,9 @@ import { ArrowLeft, Plus, X } from "lucide-react";
 import { AddInvestment } from "@/components/cortex/AddInvestment";
 import { BalanceBar } from "@/components/cortex/BalanceBar";
 import { Cortex } from "@/components/cortex/Cortex";
+import { AddTransactionModal, type AddTxCategory } from "@/components/AddTransactionModal";
 import { TYPE_COLORS } from "@/lib/cortex/colors";
+import { inferLotFromCategory } from "@/lib/cortex/infer-from-category";
 import { formatUsd } from "@/lib/cortex/money";
 import type { AssetType, PortfolioSnapshot, ValuedInvestment } from "@/lib/cortex/types";
 import { TYPE_LABELS } from "@/lib/cortex/types";
@@ -33,6 +35,9 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [txOpen, setTxOpen] = useState(false);
+  const [txCategoryId, setTxCategoryId] = useState<string | undefined>();
+  const [categories, setCategories] = useState<AddTxCategory[]>([]);
 
   const load = useCallback(async () => {
     if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
@@ -59,6 +64,14 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
     };
   }, [load]);
 
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch("/api/categories", { cache: "no-store", credentials: "include" });
+      if (!res.ok) return;
+      setCategories((await res.json()) as AddTxCategory[]);
+    })();
+  }, []);
+
   const selected = snapshot.investments.find((item) => item.id === selectedId);
   const groupSelected = selectedId?.startsWith("g-")
     ? (selectedId.replace("g-", "") as Exclude<AssetType, "other">)
@@ -71,6 +84,14 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
     await fetch(`/api/investments/${id}`, { method: "DELETE", credentials: "include" });
     setSelectedId(null);
     await load();
+  }
+
+  function openAddTransaction(type?: AssetType) {
+    const match = type
+      ? categories.find((c) => inferLotFromCategory(c.name)?.type === type)
+      : undefined;
+    setTxCategoryId(match?.id);
+    setTxOpen(true);
   }
 
   const share =
@@ -224,12 +245,31 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
                 </li>
               ))}
             </ul>
+            <button
+              type="button"
+              onClick={() => openAddTransaction(groupSelected)}
+              className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 text-sm text-white active:bg-white/15"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              Додати транзакцію
+            </button>
           </div>
         </aside>
       ) : null}
 
       <BalanceBar pnlUsd={snapshot.totals.pnlUsd} hidden={detailOpen} />
       <AddInvestment open={addOpen} onClose={() => setAddOpen(false)} onCreated={() => void load()} />
+      <AddTransactionModal
+        open={txOpen}
+        onClose={() => {
+          setTxOpen(false);
+          setTxCategoryId(undefined);
+        }}
+        categories={categories}
+        presetCategoryId={txCategoryId}
+        lockCategory={Boolean(txCategoryId)}
+        onSaved={() => void load()}
+      />
     </div>
   );
 }
