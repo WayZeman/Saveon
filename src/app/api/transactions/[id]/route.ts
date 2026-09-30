@@ -6,6 +6,7 @@ import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 import { snapshotForTransaction, snapshotWriteData } from "@/lib/asset-transaction";
+import { syncCortexInvestmentsForUsers } from "@/lib/cortex/sync-from-transactions";
 
 export async function PATCH(
   request: Request,
@@ -74,6 +75,11 @@ export async function PATCH(
       },
       include: transactionInclude,
     });
+    try {
+      await syncCortexInvestmentsForUsers([session.id]);
+    } catch (error) {
+      console.error("cortex sync after transaction update failed", error);
+    }
     return NextResponse.json(transaction);
   } catch (e) {
     console.error(e);
@@ -94,6 +100,11 @@ export async function DELETE(
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
   await prisma.transaction.delete({ where: { id } });
+  try {
+    await syncCortexInvestmentsForUsers([existing.userId]);
+  } catch (error) {
+    console.error("cortex sync after transaction delete failed", error);
+  }
   const res = NextResponse.json({ ok: true });
   res.headers.set("Cache-Control", "no-store");
   return res;

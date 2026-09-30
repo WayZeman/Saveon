@@ -52,9 +52,21 @@ const BYBIT_SPOT: Record<string, string> = {
   NVDAX: "NVDAXUSDT",
 };
 
+const STOCK_TICKER_ALIAS: Record<string, string> = {
+  NVDAX: "NVDA",
+  SPYX: "SPY",
+};
+
 const YAHOO_UNDERLYING: Record<string, string> = {
   NVDAX: "NVDA",
+  SPYX: "SPY",
 };
+
+export function resolveStockTicker(symbol: string) {
+  const ticker = symbol.trim().toUpperCase().replace(/\s+/g, "");
+  return STOCK_TICKER_ALIAS[ticker] ?? ticker;
+}
+
 type CacheEntry<T> = { at: number; value: T };
 
 const cache = new Map<string, CacheEntry<unknown>>();
@@ -207,7 +219,7 @@ export async function getCryptoUsdOn(idOrSymbol: string, date: Date): Promise<nu
 }
 
 export async function getStockUsd(symbol: string): Promise<number> {
-  const ticker = symbol.trim().toUpperCase();
+  const ticker = resolveStockTicker(symbol);
   return remember(`yh:${ticker}`, 15_000, async () => {
     const bybit = BYBIT_SPOT[ticker];
     if (bybit) {
@@ -235,7 +247,7 @@ export async function getStockUsd(symbol: string): Promise<number> {
 }
 
 export async function getStockUsdOn(symbol: string, date: Date): Promise<number> {
-  const ticker = symbol.trim().toUpperCase();
+  const ticker = resolveStockTicker(symbol);
   const start = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 1000);
   const end = start + 10 * 24 * 60 * 60;
   return remember(`yh-hist:${ticker}:${start}`, 24 * 60 * 60 * 1000, async () => {

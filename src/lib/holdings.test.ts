@@ -1,5 +1,5 @@
 import { inferAssetFromName, inferCategoryKind } from "./assets-catalog";
-import { computeHoldings, groupInvestments } from "./holdings";
+import { computeHoldings, computeSymbolPositions, cortexTypeForAssetClass, groupInvestments } from "./holdings";
 
 function assert(cond: boolean, message: string) {
   if (!cond) throw new Error(message);
@@ -59,6 +59,16 @@ const groups = groupInvestments(holdings);
 assert(groups.some((g) => g.key === "crypto" && g.holdings[0].symbol === "BTC"), "crypto group has BTC");
 assert(groups.some((g) => g.key === "stock" && g.holdings[0].symbol === "SPY"), "stock group has SPY");
 
+const positions = computeSymbolPositions(txs);
+assert(positions.length === 2, `expected 2 cortex positions, got ${positions.length}`);
+const btcP = positions.find((p) => p.symbol === "BTC");
+const spyP = positions.find((p) => p.symbol === "SPY");
+assert(btcP != null && Math.abs(btcP.costUsd - 100) < 1e-9, `BTC costUsd ${btcP?.costUsd}`);
+assert(spyP != null && Math.abs(spyP.costUsd - 200) < 1e-9, `SPY costUsd ${spyP?.costUsd}`);
+assert(cortexTypeForAssetClass(btcP?.assetClass) === "crypto", "BTC maps to crypto schema");
+assert(cortexTypeForAssetClass(spyP?.assetClass) === "stock", "SPYx maps to stock schema");
+assert(btcP != null && btcP.firstBoughtAt.toISOString().startsWith("2026-09-29"), "BTC purchase date is yesterday");
+
 const buyExpense = computeHoldings(
   [
     {
@@ -81,5 +91,38 @@ const buyExpense = computeHoldings(
   41
 );
 assert(buyExpense.length === 1 && buyExpense[0].symbol === "BTC", "expense from cash into BTC still counts as a buy");
+
+const dca = computeSymbolPositions([
+  txs[0],
+  {
+    ...txs[0],
+    quantity: 0.001,
+    unitPriceUsd: 80000,
+    createdAt: "2026-09-30T12:00:00.000Z",
+  },
+]);
+const dcaBtc = dca.find((p) => p.symbol === "BTC");
+assert(dcaBtc != null && Math.abs(dcaBtc.quantity - 0.002) < 1e-9, "DCA quantity");
+assert(dcaBtc != null && Math.abs(dcaBtc.costUsd - 180) < 1e-9, `DCA locked cost ${dcaBtc?.costUsd}`);
+
+const sold = computeSymbolPositions([
+  txs[0],
+  {
+    type: "expense",
+    amount: 4100,
+    categoryId: "cash",
+    sourceCategoryId: "btc",
+    categoryName: "Готівка",
+    sourceCategoryName: "Біткоін",
+    assetSymbol: "BTC",
+    assetName: "Bitcoin",
+    assetClass: "crypto",
+    unitPriceUsd: 100000,
+    quantity: 0.001,
+    usdRateUah: 41,
+    createdAt: "2026-09-30T12:00:00.000Z",
+  },
+]);
+assert(!sold.some((p) => p.symbol === "BTC"), "selling the full BTC position removes it from the schema");
 
 console.log("investment tests passed");

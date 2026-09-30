@@ -57,6 +57,92 @@ function isBuyTransaction(tx: HoldingTx): boolean {
   return isMarketName(tx.categoryName) && !isMarketName(tx.sourceCategoryName);
 }
 
+function asDate(value: Date | string): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
+export type SymbolPosition = {
+  symbol: string;
+  name: string;
+  assetClass: string;
+  quantity: number;
+  costUsd: number;
+  firstBoughtAt: Date;
+};
+
+/** Net holdings by ticker (crypto vs stocks), using the price locked on each transaction. */
+export function computeSymbolPositions(transactions: HoldingTx[]): SymbolPosition[] {
+  const ordered = [...transactions].sort((a, b) => asDate(a.createdAt).getTime() - asDate(b.createdAt).getTime());
+
+  type Acc = {
+    symbol: string;
+    name: string;
+    assetClass: string;
+    qty: number;
+    costUsd: number;
+    firstBoughtAt: Date | null;
+  };
+  const acc = new Map<string, Acc>();
+
+  function bucket(tx: HoldingTx): Acc | null {
+    const symbol = tx.assetSymbol?.trim().toUpperCase();
+    if (!symbol) return null;
+    const existing = acc.get(symbol);
+    if (existing) {
+      if (tx.assetName) existing.name = tx.assetName;
+      if (tx.assetClass) existing.assetClass = tx.assetClass;
+      return existing;
+    }
+    const created: Acc = {
+      symbol,
+      name: tx.assetName || symbol,
+      assetClass: tx.assetClass || "stock",
+      qty: 0,
+      costUsd: 0,
+      firstBoughtAt: null,
+    };
+    acc.set(symbol, created);
+    return created;
+  }
+
+  for (const tx of ordered) {
+    const qty = txQuantity(tx);
+    const price = tx.unitPriceUsd;
+    if (qty == null || price == null || price <= 0) continue;
+    const row = bucket(tx);
+    if (!row) continue;
+
+    if (isBuyTransaction(tx)) {
+      if (!row.firstBoughtAt) row.firstBoughtAt = asDate(tx.createdAt);
+      row.qty += qty;
+      row.costUsd += qty * price;
+    } else if (row.qty > 0) {
+      const sold = Math.min(qty, row.qty);
+      const avg = row.costUsd / row.qty;
+      row.costUsd = Math.max(0, row.costUsd - avg * sold);
+      row.qty -= sold;
+    }
+  }
+
+  const positions: SymbolPosition[] = [];
+  for (const row of Array.from(acc.values())) {
+    if (row.qty <= 1e-10 || row.costUsd <= 0 || !row.firstBoughtAt) continue;
+    positions.push({
+      symbol: row.symbol,
+      name: row.name,
+      assetClass: row.assetClass,
+      quantity: row.qty,
+      costUsd: row.costUsd,
+      firstBoughtAt: row.firstBoughtAt,
+    });
+  }
+  return positions.sort((a, b) => b.costUsd - a.costUsd);
+}
+
+export function cortexTypeForAssetClass(assetClass: string | null | undefined): "crypto" | "stock" {
+  return assetClass === "crypto" ? "crypto" : "stock";
+}
+
 export function computeHoldings(
   transactions: HoldingTx[],
   currentPricesUsd: Record<string, number>,

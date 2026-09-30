@@ -6,6 +6,7 @@ import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
 import { snapshotForTransaction, snapshotWriteData } from "@/lib/asset-transaction";
+import { syncCortexInvestmentsForUsers } from "@/lib/cortex/sync-from-transactions";
 
 export async function GET(request: Request) {
   const sessionOr = await getRequiredSession();
@@ -95,6 +96,11 @@ export async function POST(request: Request) {
       },
       include: transactionInclude,
     });
+    try {
+      await syncCortexInvestmentsForUsers([session.id]);
+    } catch (error) {
+      console.error("cortex sync after transaction create failed", error);
+    }
     return NextResponse.json(transaction);
   } catch (e) {
     console.error(e);
