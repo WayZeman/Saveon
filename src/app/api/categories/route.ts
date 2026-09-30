@@ -33,11 +33,11 @@ export async function POST(request: Request) {
     const category = await prisma.category.create({
       data: {
         name,
-        userId: effectiveShared ? null : session.id,
         createdBy: session.id,
         isShared: effectiveShared,
         tier: tier ?? "primary",
         kind: inferCategoryKind(name),
+        ...(effectiveShared ? {} : { user: { connect: { id: session.id } } }),
       },
     });
     return NextResponse.json(category);
