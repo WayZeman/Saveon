@@ -11,7 +11,7 @@ export async function GET() {
   const sessionOr = await getRequiredSession();
   if (isApiUnauthorized(sessionOr)) return sessionOr;
   const snapshot = await loadPortfolio(sessionOr);
-  return NextResponse.json(snapshot);
+  return NextResponse.json(snapshot, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request) {

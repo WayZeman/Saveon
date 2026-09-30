@@ -25,7 +25,7 @@ export function AddInvestment({
       return {
         symbol: "BTC",
         symbolLabel: "Тікер / CoinGecko id",
-        hint: "На дату покупки фіксується курс BTC і кількість монет.",
+        hint: "Вкажи кількість монет з біржі — тоді P&L збігатиметься з Bybit. Без кількості курс на дату покупки береться зі споту (Bybit, інакше Coinbase/Kraken).",
       };
     }
     if (type === "stock") {
@@ -175,12 +175,12 @@ export function AddInvestment({
 
         {(type === "crypto" || type === "stock") && (
           <label className="grid gap-1 text-sm">
-            Кількість (опційно)
+            Кількість монет / акцій (з біржі)
             <input
               name="quantity"
               type="number"
               step="any"
-              placeholder="порахується з курсу на дату"
+              placeholder="напр. 0.0512 з Bybit"
               inputMode="decimal"
               className="cortex-input"
             />
