@@ -3,7 +3,6 @@ import { getRequiredSession, isApiUnauthorized } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { categoriesManageWhere } from "@/lib/data-scope";
 import { categorySchema } from "@/lib/validations";
-import { inferCategoryKind } from "@/lib/assets-catalog";
 
 export async function GET() {
   const sessionOr = await getRequiredSession();
@@ -33,11 +32,10 @@ export async function POST(request: Request) {
     const category = await prisma.category.create({
       data: {
         name,
+        userId: effectiveShared ? null : session.id,
         createdBy: session.id,
         isShared: effectiveShared,
         tier: tier ?? "primary",
-        kind: inferCategoryKind(name),
-        ...(effectiveShared ? {} : { user: { connect: { id: session.id } } }),
       },
     });
     return NextResponse.json(category);

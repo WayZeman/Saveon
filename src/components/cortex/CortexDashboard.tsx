@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
+import { AddInvestment } from "@/components/cortex/AddInvestment";
 import { BalanceBar } from "@/components/cortex/BalanceBar";
 import { Cortex } from "@/components/cortex/Cortex";
 import { TYPE_COLORS } from "@/lib/cortex/colors";
@@ -31,6 +32,7 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
   const [snapshot, setSnapshot] = useState<PortfolioSnapshot>(initial);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
@@ -65,6 +67,12 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
   const groupTotal = groupItems.reduce((sum, item) => sum + item.currentUsd, 0);
   const detailOpen = Boolean(selected || groupSelected);
 
+  async function remove(id: string) {
+    await fetch(`/api/investments/${id}`, { method: "DELETE", credentials: "include" });
+    setSelectedId(null);
+    await load();
+  }
+
   const share =
     selected && snapshot.totals.currentUsd > 0
       ? (selected.currentUsd / snapshot.totals.currentUsd) * 100
@@ -79,6 +87,15 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
   return (
     <div className="relative h-[100dvh] overflow-hidden overscroll-none bg-[#07060b]">
       <Cortex snapshot={snapshot} selectedId={selectedId} onSelect={setSelectedId} />
+
+      <button
+        type="button"
+        onClick={() => setAddOpen(true)}
+        aria-label="Додати інвестицію"
+        className="absolute left-[max(1rem,env(safe-area-inset-left))] top-[max(1rem,env(safe-area-inset-top))] z-20 flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-[#0c0a12]/90 text-white backdrop-blur-xl active:bg-white/10"
+      >
+        <Plus className="h-5 w-5" strokeWidth={2} />
+      </button>
 
       <Link
         href="/settings"
@@ -142,6 +159,19 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
                 {formatUsd(selected.livePriceUsd)} = {formatUsd(selected.quantity * selected.livePriceUsd)}
               </p>
             ) : null}
+            {selected.notes ? <p className="mt-3 text-xs leading-5 text-zinc-400">{selected.notes}</p> : null}
+
+            {selected.type === "real_estate" ? (
+              <RentForm selected={selected} onAdded={() => void load()} />
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void remove(selected.id)}
+              className="mt-4 min-h-10 text-xs text-rose-400/80 transition hover:text-rose-300"
+            >
+              Видалити
+            </button>
           </div>
         </aside>
       ) : groupSelected ? (
@@ -199,6 +229,7 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
       ) : null}
 
       <BalanceBar pnlUsd={snapshot.totals.pnlUsd} hidden={detailOpen} />
+      <AddInvestment open={addOpen} onClose={() => setAddOpen(false)} onCreated={() => void load()} />
     </div>
   );
 }
@@ -246,5 +277,87 @@ function DetailStats({ selected }: { selected: ValuedInvestment }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function RentForm({
+  selected,
+  onAdded,
+}: {
+  selected: ValuedInvestment;
+  onAdded: () => void;
+}) {
+  return (
+    <div className="mt-4 border-t border-white/10 pt-4">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">Надходження оренди</p>
+      {selected.receipts.length ? (
+        <ul className="mt-2 space-y-1.5">
+          {selected.receipts.map((receipt) => (
+            <li key={receipt.id} className="flex justify-between gap-3 text-sm text-zinc-200">
+              <span className="min-w-0 truncate">
+                {dateUk(receipt.receivedAt)}
+                {receipt.notes ? ` · ${receipt.notes}` : ""}
+              </span>
+              <span className="shrink-0 text-emerald-400">
+                +{receipt.currency === "USD" ? formatUsd(receipt.amount) : `${receipt.amount} грн`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-xs text-zinc-500">Ще немає записаних платежів</p>
+      )}
+      <form
+        className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto_auto]"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const form = event.currentTarget;
+          const data = new FormData(form);
+          void (async () => {
+            await fetch(`/api/investments/${selected.id}/receipts`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                amount: Number(data.get("amount")),
+                currency: data.get("currency"),
+                receivedAt: data.get("receivedAt"),
+                notes: "Оренда",
+              }),
+            });
+            form.reset();
+            onAdded();
+          })();
+        }}
+      >
+        <input
+          name="amount"
+          type="number"
+          step="0.01"
+          min="0.01"
+          required
+          placeholder="136"
+          inputMode="decimal"
+          className="cortex-input col-span-1 px-2 py-2 text-base sm:text-sm"
+        />
+        <select name="currency" defaultValue="USD" className="cortex-input px-2 py-2 text-base sm:text-sm">
+          <option value="USD">USD</option>
+          <option value="UAH">UAH</option>
+        </select>
+        <input
+          name="receivedAt"
+          type="date"
+          required
+          defaultValue={new Date().toISOString().slice(0, 10)}
+          className="cortex-input col-span-2 px-2 py-2 text-base sm:col-span-2 sm:text-sm"
+        />
+        <button
+          type="submit"
+          className="col-span-2 min-h-10 rounded-md bg-[#7c5cbf] px-2 py-2 text-sm text-white active:bg-[#8b6dd0] sm:col-span-1"
+        >
+          Додати
+        </button>
+      </form>
+    </div>
   );
 }

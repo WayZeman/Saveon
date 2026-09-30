@@ -74,9 +74,6 @@ export const transactionSchema = z
     sourceCategoryId: z.string().min(1).optional(),
     goalId: z.string().optional(),
     currency: z.enum(["UAH", "USD", "EUR"]).optional().default("UAH"),
-    assetSymbol: z.string().min(1).max(20).optional(),
-    assetName: z.string().min(1).max(120).optional(),
-    assetClass: z.enum(["crypto", "stock", "etf"]).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === "expense" && !data.sourceCategoryId) {

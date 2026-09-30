@@ -10,9 +10,6 @@ import {
   mapGoalSourceCategories,
 } from "@/lib/goal-balance";
 import { excludeInternalTransfers } from "@/lib/cashflow";
-import { syncHoldingsForUsers } from "@/lib/asset-sync";
-import { getCurrentPricesUsd, getUsdUahRate } from "@/lib/asset-prices";
-import { computeHoldings, groupInvestments } from "@/lib/holdings";
 type Agg = { userId: string; income: number; expense: number };
 
 export async function GET(request: Request) {
@@ -37,8 +34,6 @@ export async function GET(request: Request) {
   const hasPartner = !!partnerId;
   const userIds = hasPartner ? [session.id, partnerId] : [session.id];
 
-  await syncHoldingsForUsers(userIds);
-
   const allTransactions = await prisma.transaction.findMany({
     where: { userId: { in: userIds } },
     select: {
@@ -48,12 +43,6 @@ export async function GET(request: Request) {
       categoryId: true,
       sourceCategoryId: true,
       createdAt: true,
-      assetSymbol: true,
-      assetName: true,
-      assetClass: true,
-      unitPriceUsd: true,
-      quantity: true,
-      usdRateUah: true,
       category: { select: { id: true, name: true } },
       sourceCategory: { select: { id: true, name: true } },
     },
@@ -141,39 +130,6 @@ export async function GET(request: Request) {
     .filter((v) => v.net > 0)
     .map((v) => ({ name: v.name, value: v.net, chartValue: v.net }));
 
-  const pricedAssets = allTransactions
-    .filter((t) => t.assetSymbol)
-    .map((t) => ({ symbol: t.assetSymbol as string, assetClass: t.assetClass }));
-  const [currentPrices, usdUah] = await Promise.all([
-    getCurrentPricesUsd(pricedAssets),
-    getUsdUahRate(),
-  ]);
-  const holdings = computeHoldings(
-    allTransactions.map((t) => ({
-      type: t.type,
-      amount: t.amount,
-      categoryId: t.categoryId,
-      sourceCategoryId: t.sourceCategoryId,
-      categoryName: t.category?.name ?? "Інше",
-      sourceCategoryName: t.sourceCategory?.name ?? null,
-      assetSymbol: t.assetSymbol,
-      assetName: t.assetName,
-      assetClass: t.assetClass,
-      unitPriceUsd: t.unitPriceUsd,
-      quantity: t.quantity,
-      usdRateUah: t.usdRateUah,
-      createdAt: t.createdAt,
-    })),
-    currentPrices,
-    usdUah
-  );
-  const investmentGroups = groupInvestments(holdings);
-  const investmentPie = holdings.map((h) => ({
-    name: h.symbol,
-    value: h.currentValueUah,
-    chartValue: h.currentValueUah,
-  }));
-
   const comparison = hasPartner ? {
     mySaved: (byUserMonth[session.id]?.income ?? 0) - (byUserMonth[session.id]?.expense ?? 0),
     partnerSaved: (byUserMonth[partnerId!]?.income ?? 0) - (byUserMonth[partnerId!]?.expense ?? 0),
@@ -193,9 +149,6 @@ export async function GET(request: Request) {
     pieData,
     categoryBreakdown,
     categoryBreakdownTotal,
-    holdings,
-    investmentGroups,
-    investmentPie,
     comparison,
     period: { start, end },
   });

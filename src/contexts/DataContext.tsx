@@ -47,27 +47,6 @@ export type DashboardData = {
   pieData: { name: string; value: number; chartValue: number }[];
   categoryBreakdown: { name: string; net: number }[];
   categoryBreakdownTotal: number;
-  holdings: Array<{
-    categoryId: string;
-    categoryName: string;
-    symbol: string;
-    name: string;
-    assetClass: string;
-    quantity: number;
-    avgPriceUsd: number;
-    currentPriceUsd: number | null;
-    pnlPercent: number | null;
-    investedUah: number;
-    currentValueUah: number;
-  }>;
-  investmentGroups: Array<{
-    key: "crypto" | "stock";
-    holdings: DashboardData["holdings"];
-    investedUah: number;
-    currentValueUah: number;
-    pnlPercent: number | null;
-  }>;
-  investmentPie: { name: string; value: number; chartValue: number }[];
   comparison: {
     mySaved: number;
     partnerSaved: number;
@@ -86,21 +65,14 @@ export type Transaction = {
   categoryId: string;
   sourceCategoryId: string | null;
   createdAt: string;
-  assetSymbol?: string | null;
-  assetName?: string | null;
-  assetClass?: string | null;
-  unitPriceUsd?: number | null;
-  quantity?: number | null;
-  usdRateUah?: number | null;
-  category: { id: string; name: string; isShared: boolean; kind?: string };
-  sourceCategory: { id: string; name: string; isShared: boolean; kind?: string } | null;
+  category: { id: string; name: string; isShared: boolean };
+  sourceCategory: { id: string; name: string; isShared: boolean } | null;
 };
 
 export type Category = {
   id: string;
   name: string;
   isShared: boolean;
-  kind?: string;
   tier?: "primary" | "secondary";
   userId: string | null;
   _count?: { transactions: number };
@@ -228,9 +200,6 @@ const DEV_PREVIEW_STATE: DataState = {
       { name: "Крипта", net: 290.27 },
     ],
     categoryBreakdownTotal: 2712.84,
-    holdings: [],
-    investmentGroups: [],
-    investmentPie: [],
     comparison: {
       mySaved: 1870.54,
       partnerSaved: 842.3,
