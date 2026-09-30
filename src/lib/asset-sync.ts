@@ -1,7 +1,6 @@
 import { prisma } from "./prisma";
 import { inferAssetFromName, inferCategoryKind } from "./assets-catalog";
 import { snapshotAssetPurchase } from "./asset-prices";
-import { syncCortexInvestmentsForUsers } from "./cortex/sync-from-transactions";
 
 const PRICE_BACKFILL_LIMIT = 80;
 
@@ -118,7 +117,6 @@ export async function syncHoldingsForUsers(userIds: string[]): Promise<void> {
     await syncCategoryKinds(categories.map((c) => c.id));
     await attachAssetsFromCategoryNames(userIds);
     await fillMissingHistoricalPrices(userIds);
-    await syncCortexInvestmentsForUsers(userIds);
   } catch (error) {
     console.error("asset sync failed", error);
   }

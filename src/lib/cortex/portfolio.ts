@@ -1,12 +1,11 @@
 import type { SessionUser } from "@/lib/auth";
-import { investmentsVisibleWhere, transactionUserIds } from "@/lib/data-scope";
+import { transactionUserIds } from "@/lib/data-scope";
 import { prisma } from "@/lib/prisma";
-import { toInvestmentRecord } from "@/lib/cortex/records";
+import { recordsFromTransactions, toHoldingTx } from "@/lib/cortex/from-transactions";
 import { valuePortfolio } from "@/lib/cortex/valuate";
 import type { PortfolioSnapshot } from "@/lib/cortex/types";
 import { syncHoldingsForUsers } from "@/lib/asset-sync";
 
-const receiptInclude = { receipts: { orderBy: { receivedAt: "asc" as const } } };
 const lastPrep = new Map<string, number>();
 const PREP_TTL_MS = 60_000;
 
@@ -19,10 +18,25 @@ export async function loadPortfolio(session: SessionUser): Promise<PortfolioSnap
     await syncHoldingsForUsers(userIds);
   }
 
-  const rows = await prisma.investment.findMany({
-    where: investmentsVisibleWhere(session),
+  const transactions = await prisma.transaction.findMany({
+    where: { userId: { in: userIds }, assetSymbol: { not: null } },
+    select: {
+      type: true,
+      amount: true,
+      categoryId: true,
+      sourceCategoryId: true,
+      assetSymbol: true,
+      assetName: true,
+      assetClass: true,
+      unitPriceUsd: true,
+      quantity: true,
+      usdRateUah: true,
+      createdAt: true,
+      category: { select: { name: true } },
+      sourceCategory: { select: { name: true } },
+    },
     orderBy: { createdAt: "asc" },
-    include: receiptInclude,
   });
-  return valuePortfolio(rows.map(toInvestmentRecord));
+
+  return valuePortfolio(recordsFromTransactions(transactions.map(toHoldingTx)));
 }
