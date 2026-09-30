@@ -5,6 +5,7 @@ import { canUseCategory, categoriesVisibleWhere, transactionUserIds } from "@/li
 import { getExchangeRates } from "@/lib/exchange-rates";
 import { transactionInclude } from "@/lib/transaction-include";
 import { transactionSchema } from "@/lib/validations";
+import { snapshotForTransaction, snapshotWriteData } from "@/lib/asset-transaction";
 
 export async function PATCH(
   request: Request,
@@ -20,7 +21,7 @@ export async function PATCH(
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
-    const { amount, type, categoryId, sourceCategoryId, currency } = parsed.data;
+    const { amount, type, categoryId, sourceCategoryId, currency, assetSymbol, assetName, assetClass } = parsed.data;
     let amountUah = amount;
     if (currency && currency !== "UAH") {
       const rates = await getExchangeRates();
@@ -37,9 +38,10 @@ export async function PATCH(
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
     if (!canUseCategory(session, category)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    let sourceCategory = null;
     let resolvedSourceCategoryId: string | null = null;
     if (type === "expense") {
-      const sourceCategory = await prisma.category.findFirst({
+      sourceCategory = await prisma.category.findFirst({
         where: { id: sourceCategoryId!, OR: categoriesVisibleWhere(session).OR },
       });
       if (!sourceCategory) return NextResponse.json({ error: "Source category not found" }, { status: 404 });
@@ -47,9 +49,29 @@ export async function PATCH(
       resolvedSourceCategoryId = sourceCategory.id;
     }
 
+    const snapped = await snapshotForTransaction({
+      type,
+      amountUah,
+      category: { id: category.id, name: category.name, kind: category.kind },
+      sourceCategory: sourceCategory
+        ? { id: sourceCategory.id, name: sourceCategory.name, kind: sourceCategory.kind }
+        : null,
+      assetSymbol,
+      assetName,
+      assetClass,
+      at: existing.createdAt,
+    });
+    if (snapped.error) return NextResponse.json({ error: snapped.error }, { status: 400 });
+
     const transaction = await prisma.transaction.update({
       where: { id },
-      data: { amount: amountUah, type, categoryId, sourceCategoryId: resolvedSourceCategoryId },
+      data: {
+        amount: amountUah,
+        type,
+        categoryId,
+        sourceCategoryId: resolvedSourceCategoryId,
+        ...snapshotWriteData(snapped.snapshot),
+      },
       include: transactionInclude,
     });
     return NextResponse.json(transaction);

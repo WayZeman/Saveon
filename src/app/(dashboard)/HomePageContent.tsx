@@ -14,6 +14,7 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { FearGreedIndex } from "@/components/FearGreedIndex";
 import { NewsSection } from "@/components/NewsSection";
 import { RealizeGoalModal, type RealizeGoalInfo } from "@/components/RealizeGoalModal";
+import { InvestmentsCard } from "@/components/InvestmentsCard";
 import { filterPrimaryCategories } from "@/lib/category-tier";
 
 const COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff453a", "#bf5af2", "#ff375f", "#64d2ff", "#ac8e68"];
@@ -95,6 +96,13 @@ export default function HomePageContent() {
           <BalanceCard title={partnerLabel} amount={data.partnerBalance} formatMoney={formatMoney} className="opacity-0 animate-slide-up animate-stagger-2" />
         </section>
       )}
+
+      <InvestmentsCard
+        groups={data.investmentGroups ?? []}
+        pie={data.investmentPie ?? []}
+        formatMoney={formatMoney}
+        t={t}
+      />
 
       {/* По категоріях — відсотки на діаграмі з полосками, minAngle щоб малі не налазили */}
       <section className="card opacity-0 animate-slide-up animate-stagger-3">

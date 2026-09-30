@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { getSessionSecret, signSessionToken, verifySessionToken } from "./session-token";
+import { ensureAssetSchema } from "./ensure-asset-schema";
 
 const SESSION_COOKIE = "family_fin_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -60,6 +61,7 @@ export async function destroySession(): Promise<void> {
 export async function getRequiredSession(): Promise<SessionUser | NextResponse> {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  await ensureAssetSchema();
   return session;
 }
 
