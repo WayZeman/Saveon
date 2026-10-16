@@ -46,7 +46,7 @@ export function AddInvestment({
       return {
         symbol: "",
         symbolLabel: "Не потрібно",
-        hint: "Додай напрям Inzhur: назва напряму, сума вкладення і за бажанням оцінку або ставку.",
+        hint: "Інвестиція в нерухомість через Inzhur: напрям/об’єкт, сума вкладення і за бажанням оцінку або ставку.",
       };
     }
     if (type === "real_estate") {
@@ -149,11 +149,11 @@ export function AddInvestment({
         </div>
 
         <label className="grid gap-1 text-sm">
-          {type === "inzhur" ? "Напрям" : "Назва"}
+          {type === "inzhur" ? "Об’єкт / напрям" : "Назва"}
           <input
             name="name"
             required
-            placeholder={type === "inzhur" ? "Напр. Сільгосп, Логістика, Офіси..." : "Bitcoin, квартира на Подолі..."}
+            placeholder={type === "inzhur" ? "Напр. ЖК, склад, офіси..." : "Bitcoin, квартира на Подолі..."}
             className="cortex-input"
           />
         </label>
@@ -240,7 +240,7 @@ export function AddInvestment({
             </label>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <label className="grid gap-1 text-sm">
-                Поточна оцінка напряму (опційно)
+                Поточна оцінка (опційно)
                 <input name="estimatedValue" type="number" step="0.01" inputMode="decimal" className="cortex-input" />
               </label>
               <label className="grid gap-1 text-sm">

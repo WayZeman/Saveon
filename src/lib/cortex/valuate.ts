@@ -131,7 +131,7 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
               item.estimatedValueCurrency === "USD"
                 ? item.estimatedValue
                 : item.estimatedValue / usdUah;
-            quoteLabel = item.type === "inzhur" ? "оцінка напряму" : "оцінка ринку";
+            quoteLabel = item.type === "inzhur" ? "оцінка Inzhur" : "оцінка ринку";
           } else {
             marketUsd = costUsd;
             quoteLabel = item.type === "inzhur" ? "сума вкладення" : "вартість покупки";
