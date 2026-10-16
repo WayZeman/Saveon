@@ -16,6 +16,7 @@ assert(inferLotFromCategory("Їжа") === null, "food is not an asset");
 assert(inferLotFromCategory("Готівка") === null, "cash is not an asset");
 assert(inferLotFromCategory("Крипта") === null, "generic crypto category is not a lot");
 assert(inferLotFromCategory("Акції") === null, "generic stocks category is not a lot");
+assert(inferLotFromCategory("Фонди") === null, "generic funds category is not a lot");
 
 const btcIncome = lotFromTransaction({ type: "income", categoryName: "Біткоін" });
 assert(btcIncome?.symbol === "BTC", "income into bitcoin is a buy");

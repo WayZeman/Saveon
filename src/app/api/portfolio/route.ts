@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     if (locked) {
       purchaseUnitPrice = locked.price;
       purchaseUnitCurrency = locked.currency;
-      if (!quantity && (body.type === "crypto" || body.type === "stock")) {
+      if (!quantity && (body.type === "crypto" || body.type === "stock" || body.type === "fund")) {
         const investedUsd =
           investedCurrency === "USD" ? body.investedAmount : body.investedAmount / (await getUsdUah(purchaseDate));
         if (locked.currency === "USD" && locked.price > 0) quantity = investedUsd / locked.price;
