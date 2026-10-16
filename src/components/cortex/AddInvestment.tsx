@@ -35,6 +35,13 @@ export function AddInvestment({
         hint: "Курс акції на дату покупки береться з Yahoo Finance.",
       };
     }
+    if (type === "fund") {
+      return {
+        symbol: "CSPX.L",
+        symbolLabel: "Тікер Yahoo (ETF / фонд)",
+        hint: "Курс фонду на дату покупки береться з Yahoo Finance.",
+      };
+    }
     if (type === "real_estate") {
       return {
         symbol: "",
@@ -173,7 +180,7 @@ export function AddInvestment({
           <input name="purchaseDate" type="date" required defaultValue={today()} className="cortex-input" />
         </label>
 
-        {(type === "crypto" || type === "stock") && (
+        {(type === "crypto" || type === "stock" || type === "fund") && (
           <label className="grid gap-1 text-sm">
             Кількість (опційно)
             <input

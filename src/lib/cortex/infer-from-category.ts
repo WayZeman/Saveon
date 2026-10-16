@@ -40,6 +40,11 @@ const IGNORE_EXACT = new Set([
   "акции",
   "stocks",
   "stock",
+  "фонд",
+  "фонди",
+  "funds",
+  "fund",
+  "etf",
 ]);
 
 type Spec = {
@@ -53,8 +58,8 @@ const SPECS: Spec[] = [
   { keys: ["біткоін", "біткойн", "bitcoin", "btc"], type: "crypto", symbol: "BTC", name: "Bitcoin" },
   { keys: ["ефіріум", "ефіриум", "етериум", "ethereum", "eth"], type: "crypto", symbol: "ETH", name: "Ethereum" },
   { keys: ["солана", "solana", "sol"], type: "crypto", symbol: "SOL", name: "Solana" },
-  { keys: ["spyx", "spy"], type: "stock", symbol: "SPYX", name: "SPYX" },
-  { keys: ["cspx"], type: "stock", symbol: "CSPX", name: "CSPX" },
+  { keys: ["spyx", "spy"], type: "fund", symbol: "SPYX", name: "SPYX" },
+  { keys: ["cspx"], type: "fund", symbol: "CSPX", name: "CSPX" },
   { keys: ["nvdax", "nvidia", "нвідіа", "нівідіа", "nvda"], type: "stock", symbol: "NVDAX", name: "NVDAX" },
   { keys: ["овдп", "облігац"], type: "bond", symbol: null, name: "ОВДП" },
   { keys: ["квартира", "нерухом", "апартамент", "apartment"], type: "real_estate", symbol: null, name: "Квартира" },

@@ -263,7 +263,7 @@ export async function lockPurchaseQuote(input: {
     const price = await getCryptoUsdOn(id, input.purchaseDate);
     return { price, currency: "USD", label: `${input.symbol.toUpperCase()}/USD` };
   }
-  if (input.type === "stock" && input.symbol) {
+  if ((input.type === "stock" || input.type === "fund") && input.symbol) {
     const price = await getStockUsdOn(input.symbol, input.purchaseDate);
     return { price, currency: "USD", label: `${input.symbol.toUpperCase()}/USD` };
   }
@@ -282,7 +282,7 @@ export async function currentMarketQuote(input: {
     const price = await getCryptoUsd(input.symbol);
     return { price, label: `${input.symbol.toUpperCase()} $${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}` };
   }
-  if (input.type === "stock" && input.symbol) {
+  if ((input.type === "stock" || input.type === "fund") && input.symbol) {
     const price = await getStockUsd(input.symbol);
     return { price, label: `${input.symbol.toUpperCase()} $${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}` };
   }

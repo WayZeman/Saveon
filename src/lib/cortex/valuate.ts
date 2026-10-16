@@ -109,7 +109,7 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
       const costUah = item.investedCurrency === "UAH" ? item.investedAmount : costUsd * usdUah;
 
       try {
-        if (item.type === "crypto" || item.type === "stock") {
+        if (item.type === "crypto" || item.type === "stock" || item.type === "fund") {
           const live = await currentMarketQuote(item);
           const qty = shares(item, costUsd);
           if (live?.price && qty) {
@@ -249,6 +249,7 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
   const groups: PortfolioSnapshot["groups"] = {
     crypto: [],
     stock: [],
+    fund: [],
     real_estate: [],
     bond: [],
     other: [],

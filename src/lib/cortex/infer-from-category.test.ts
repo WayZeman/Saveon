@@ -7,8 +7,10 @@ function assert(cond: boolean, message: string) {
 assert(inferLotFromCategory("Біткоін")?.symbol === "BTC", "bitcoin uk");
 assert(inferLotFromCategory("біткоїн")?.type === "crypto", "bitcoin iotified");
 assert(inferLotFromCategory("SPYx")?.symbol === "SPYX", "spyx keeps existing ticker");
+assert(inferLotFromCategory("SPYx")?.type === "fund", "spyx is a fund");
 assert(inferLotFromCategory("SPY")?.symbol === "SPYX", "spy maps to SPYX");
 assert(inferLotFromCategory("CSPX")?.symbol === "CSPX", "cspx");
+assert(inferLotFromCategory("CSPX")?.type === "fund", "cspx is a fund");
 assert(inferLotFromCategory("NVDAX")?.symbol === "NVDAX", "nvdax");
 assert(inferLotFromCategory("ОВДП")?.type === "bond", "ovdp");
 assert(inferLotFromCategory("Квартира")?.type === "real_estate", "apartment");
@@ -16,6 +18,7 @@ assert(inferLotFromCategory("Їжа") === null, "food is not an asset");
 assert(inferLotFromCategory("Готівка") === null, "cash is not an asset");
 assert(inferLotFromCategory("Крипта") === null, "generic crypto category is not a lot");
 assert(inferLotFromCategory("Акції") === null, "generic stocks category is not a lot");
+assert(inferLotFromCategory("Фонди") === null, "generic funds category is not a lot");
 
 const btcIncome = lotFromTransaction({ type: "income", categoryName: "Біткоін" });
 assert(btcIncome?.symbol === "BTC", "income into bitcoin is a buy");
