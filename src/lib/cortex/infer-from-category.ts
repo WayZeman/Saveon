@@ -40,8 +40,11 @@ const IGNORE_EXACT = new Set([
   "акции",
   "stocks",
   "stock",
+  "фонди",
+  "фонд",
+  "funds",
+  "fund",
 ]);
-
 type Spec = {
   keys: string[];
   type: InferredLot["type"];

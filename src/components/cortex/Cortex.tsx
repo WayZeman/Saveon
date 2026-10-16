@@ -158,7 +158,7 @@ function layout(w: number, h: number, snapshot: PortfolioSnapshot): GraphNode[] 
   const compact = w < 720;
   const scale = compact ? Math.min(1, Math.max(0.55, Math.min(w, h) / 520)) : 1;
   const span = Math.min(w, h);
-  const types: Exclude<AssetType, "other">[] = ["crypto", "stock", "real_estate", "bond"];
+  const types: Exclude<AssetType, "other">[] = ["crypto", "stock", "real_estate", "bond", "fund"];
   const sector = (Math.PI * 2) / types.length;
   const origin = -Math.PI / 2 + 0.18;
   const up = snapshot.totals.pnlUsd >= 0;

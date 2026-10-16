@@ -5,6 +5,7 @@ export const TYPE_COLORS: Record<Exclude<AssetType, "other">, string> = {
   stock: "#4ade80",
   real_estate: "#fbbf24",
   bond: "#fb923c",
+  fund: "#38bdf8",
 };
 
 export function rgba(hex: string, alpha: number) {

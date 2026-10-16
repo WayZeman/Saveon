@@ -70,7 +70,7 @@ export async function syncLotForTransaction(userId: string, tx: TxForLot): Promi
     purchaseUnitCurrency = locked.currency;
   }
 
-  if (lot.type === "crypto" || lot.type === "stock") {
+  if (lot.type === "crypto" || lot.type === "stock" || lot.type === "fund") {
     try {
       const usdUah = await getUsdUah(purchaseDate);
       if (usdUah > 0) {

@@ -49,6 +49,13 @@ export function AddInvestment({
         hint: "Купон у гривні нараховується щодня і переводиться в долар по курсу НБУ.",
       };
     }
+    if (type === "fund") {
+      return {
+        symbol: "VWCE",
+        symbolLabel: "Тікер Yahoo",
+        hint: "Курс фонду на дату покупки береться з Yahoo Finance.",
+      };
+    }
     return { symbol: "", symbolLabel: "Опційно", hint: "Вартість лишається як внесена, без ринкового курсу." };
   }, [type]);
 
@@ -173,7 +180,7 @@ export function AddInvestment({
           <input name="purchaseDate" type="date" required defaultValue={today()} className="cortex-input" />
         </label>
 
-        {(type === "crypto" || type === "stock") && (
+        {(type === "crypto" || type === "stock" || type === "fund") && (
           <label className="grid gap-1 text-sm">
             Кількість (опційно)
             <input
