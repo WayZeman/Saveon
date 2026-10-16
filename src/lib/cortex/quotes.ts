@@ -267,7 +267,7 @@ export async function lockPurchaseQuote(input: {
     const price = await getStockUsdOn(input.symbol, input.purchaseDate);
     return { price, currency: "USD", label: `${input.symbol.toUpperCase()}/USD` };
   }
-  if (input.type === "real_estate" || input.type === "bond") {
+  if (input.type === "real_estate" || input.type === "bond" || input.type === "inzhur") {
     const price = await getUsdUah(input.purchaseDate);
     return { price, currency: "UAH", label: "USD/UAH" };
   }

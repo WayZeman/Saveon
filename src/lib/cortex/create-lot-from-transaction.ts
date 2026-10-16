@@ -30,7 +30,7 @@ async function lockQuote(type: string, symbol: string | null, purchaseDate: Date
     /* fall through to live quote so a new lot still appears */
   }
   try {
-    if (type === "real_estate" || type === "bond") {
+    if (type === "real_estate" || type === "bond" || type === "inzhur") {
       const price = await getUsdUah(purchaseDate);
       return { price, currency: "UAH", label: "USD/UAH" };
     }

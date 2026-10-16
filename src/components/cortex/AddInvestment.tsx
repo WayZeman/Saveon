@@ -42,6 +42,13 @@ export function AddInvestment({
         hint: "Курс фонду на дату покупки береться з Yahoo Finance.",
       };
     }
+    if (type === "inzhur") {
+      return {
+        symbol: "",
+        symbolLabel: "Не потрібно",
+        hint: "Додай напрям Inzhur: назва напряму, сума вкладення і за бажанням оцінку або ставку.",
+      };
+    }
     if (type === "real_estate") {
       return {
         symbol: "",
@@ -142,11 +149,16 @@ export function AddInvestment({
         </div>
 
         <label className="grid gap-1 text-sm">
-          Назва
-          <input name="name" required placeholder="Bitcoin, квартира на Подолі..." className="cortex-input" />
+          {type === "inzhur" ? "Напрям" : "Назва"}
+          <input
+            name="name"
+            required
+            placeholder={type === "inzhur" ? "Напр. Сільгосп, Логістика, Офіси..." : "Bitcoin, квартира на Подолі..."}
+            className="cortex-input"
+          />
         </label>
 
-        {type !== "real_estate" && type !== "other" && type !== "bond" ? (
+        {type !== "real_estate" && type !== "other" && type !== "bond" && type !== "inzhur" ? (
           <label className="grid gap-1 text-sm">
             {fields.symbolLabel}
             <input name="symbol" defaultValue={fields.symbol} className="cortex-input" />
@@ -168,7 +180,11 @@ export function AddInvestment({
           </label>
           <label className="grid gap-1 text-sm">
             Валюта
-            <select name="investedCurrency" defaultValue={type === "bond" ? "UAH" : "USD"} className="cortex-input">
+            <select
+              name="investedCurrency"
+              defaultValue={type === "bond" || type === "inzhur" ? "UAH" : "USD"}
+              className="cortex-input"
+            >
               <option>USD</option>
               <option>UAH</option>
             </select>
@@ -207,6 +223,35 @@ export function AddInvestment({
               className="cortex-input"
             />
           </label>
+        )}
+
+        {type === "inzhur" && (
+          <>
+            <label className="grid gap-1 text-sm">
+              Ставка, % річних (опційно)
+              <input
+                name="annualRate"
+                type="number"
+                step="0.01"
+                placeholder="12"
+                inputMode="decimal"
+                className="cortex-input"
+              />
+            </label>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <label className="grid gap-1 text-sm">
+                Поточна оцінка напряму (опційно)
+                <input name="estimatedValue" type="number" step="0.01" inputMode="decimal" className="cortex-input" />
+              </label>
+              <label className="grid gap-1 text-sm">
+                Валюта
+                <select name="estimatedValueCurrency" defaultValue="UAH" className="cortex-input">
+                  <option>UAH</option>
+                  <option>USD</option>
+                </select>
+              </label>
+            </div>
+          </>
         )}
 
         {type === "real_estate" && (

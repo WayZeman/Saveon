@@ -1,4 +1,4 @@
-export const ASSET_TYPES = ["crypto", "stock", "fund", "real_estate", "bond", "other"] as const;
+export const ASSET_TYPES = ["crypto", "stock", "fund", "inzhur", "real_estate", "bond", "other"] as const;
 export type AssetType = (typeof ASSET_TYPES)[number];
 
 export type InvestmentRecord = {
@@ -70,6 +70,7 @@ export const TYPE_LABELS: Record<AssetType, string> = {
   crypto: "Крипта",
   stock: "Акції",
   fund: "Фонди",
+  inzhur: "Inzhur",
   real_estate: "Нерухомість",
   bond: "ОВДП",
   other: "Інше",

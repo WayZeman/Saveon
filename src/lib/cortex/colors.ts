@@ -4,6 +4,7 @@ export const TYPE_COLORS: Record<Exclude<AssetType, "other">, string> = {
   crypto: "#c4b5fd",
   stock: "#4ade80",
   fund: "#38bdf8",
+  inzhur: "#f472b6",
   real_estate: "#fbbf24",
   bond: "#fb923c",
 };

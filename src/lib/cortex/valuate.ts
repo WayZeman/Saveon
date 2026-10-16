@@ -125,16 +125,16 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
             quoteOk = false;
             quoteLabel = "немає котирування";
           }
-        } else if (item.type === "real_estate") {
+        } else if (item.type === "real_estate" || item.type === "inzhur") {
           if (item.estimatedValue != null && item.estimatedValueCurrency) {
             marketUsd =
               item.estimatedValueCurrency === "USD"
                 ? item.estimatedValue
                 : item.estimatedValue / usdUah;
-            quoteLabel = "оцінка ринку";
+            quoteLabel = item.type === "inzhur" ? "оцінка напряму" : "оцінка ринку";
           } else {
             marketUsd = costUsd;
-            quoteLabel = "вартість покупки";
+            quoteLabel = item.type === "inzhur" ? "сума вкладення" : "вартість покупки";
           }
         } else {
           marketUsd = costUsd;
@@ -250,6 +250,7 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
     crypto: [],
     stock: [],
     fund: [],
+    inzhur: [],
     real_estate: [],
     bond: [],
     other: [],

@@ -45,6 +45,8 @@ const IGNORE_EXACT = new Set([
   "funds",
   "fund",
   "etf",
+  "inzhur",
+  "інжур",
 ]);
 
 type Spec = {
