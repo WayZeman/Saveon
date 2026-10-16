@@ -6,17 +6,10 @@ import { ArrowLeft, Plus, X } from "lucide-react";
 import { AddInvestment } from "@/components/cortex/AddInvestment";
 import { BalanceBar } from "@/components/cortex/BalanceBar";
 import { Cortex } from "@/components/cortex/Cortex";
-import { HorizonChips } from "@/components/cortex/HorizonChips";
 import { AddTransactionModal, type AddTxCategory } from "@/components/AddTransactionModal";
 import { TYPE_COLORS } from "@/lib/cortex/colors";
 import { inferLotFromCategory } from "@/lib/cortex/infer-from-category";
-import { formatUsd, roundCents } from "@/lib/cortex/money";
-import {
-  horizonHint,
-  projectInvestment,
-  projectPortfolio,
-  type ProjectHorizon,
-} from "@/lib/cortex/project";
+import { formatUsd } from "@/lib/cortex/money";
 import type { AssetType, PortfolioSnapshot, ValuedInvestment } from "@/lib/cortex/types";
 import { TYPE_LABELS } from "@/lib/cortex/types";
 
@@ -45,7 +38,6 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
   const [txOpen, setTxOpen] = useState(false);
   const [txCategoryId, setTxCategoryId] = useState<string | undefined>();
   const [categories, setCategories] = useState<AddTxCategory[]>([]);
-  const [horizonYears, setHorizonYears] = useState<ProjectHorizon | 0>(0);
 
   const load = useCallback(async () => {
     if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
@@ -113,18 +105,9 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
       )
     : 0;
 
-  const portfolioProjection = projectPortfolio(snapshot, horizonYears);
-  const selectedProjection = selected ? projectInvestment(selected, horizonYears) : null;
-
   return (
     <div className="relative h-[100dvh] overflow-hidden overscroll-none bg-[#07060b]">
-      <Cortex
-        snapshot={snapshot}
-        selectedId={selectedId}
-        onSelect={setSelectedId}
-        horizonYears={horizonYears}
-        projectedTotalUsd={horizonYears > 0 ? portfolioProjection.valueUsd : null}
-      />
+      <Cortex snapshot={snapshot} selectedId={selectedId} onSelect={setSelectedId} />
 
       <button
         type="button"
@@ -191,29 +174,6 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
 
             <DetailStats selected={selected} />
 
-            <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">Через скільки років</p>
-              <HorizonChips value={horizonYears} onChange={setHorizonYears} className="mt-2" />
-              {selectedProjection && horizonYears > 0 ? (
-                <div className="mt-3 space-y-1">
-                  <p className="text-sm text-white">
-                    {formatUsd(selectedProjection.valueUsd)}
-                    <span
-                      className={`ml-2 text-xs ${
-                        selectedProjection.pnlUsd >= 0 ? "text-emerald-400" : "text-rose-400"
-                      }`}
-                    >
-                      {selectedProjection.pnlUsd >= 0 ? "+" : ""}
-                      {formatUsd(selectedProjection.pnlUsd)}
-                    </span>
-                  </p>
-                  <p className="text-[11px] leading-4 text-zinc-500">
-                    {horizonHint(selectedProjection.mode, selected.annualRate)}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-
             {selected.quantity && selected.livePriceUsd != null ? (
               <p className="mt-3 text-xs leading-5 text-zinc-300">
                 {selected.quantity.toLocaleString("en-US", { maximumFractionDigits: 6 })} ×{" "}
@@ -263,17 +223,8 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
               </p>
             ) : null}
             <p className="mt-2 text-sm text-zinc-300">
-              {groupItems.length} позицій ·{" "}
-              {horizonYears > 0
-                ? formatUsd(
-                    roundCents(
-                      groupItems.reduce((sum, item) => sum + projectInvestment(item, horizonYears).valueUsd, 0),
-                    ),
-                  )
-                : formatUsd(groupTotal)}
-              {horizonYears > 0 ? ` · через ${horizonYears} р` : ""}
+              {groupItems.length} позицій · {formatUsd(groupTotal)}
             </p>
-            <HorizonChips value={horizonYears} onChange={setHorizonYears} className="mt-3" />
             <ul className="mt-4 space-y-2">
               {groupItems.map((item) => (
                 <li key={item.id}>
@@ -306,13 +257,7 @@ export function CortexDashboard({ initial }: { initial: PortfolioSnapshot }) {
         </aside>
       ) : null}
 
-      <BalanceBar
-        pnlUsd={horizonYears > 0 ? portfolioProjection.pnlUsd : snapshot.totals.pnlUsd}
-        valueUsd={horizonYears > 0 ? portfolioProjection.valueUsd : undefined}
-        horizonYears={horizonYears}
-        onHorizonChange={setHorizonYears}
-        hidden={detailOpen}
-      />
+      <BalanceBar pnlUsd={snapshot.totals.pnlUsd} hidden={detailOpen} />
       <AddInvestment open={addOpen} onClose={() => setAddOpen(false)} onCreated={() => void load()} />
       <AddTransactionModal
         open={txOpen}

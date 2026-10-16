@@ -320,24 +320,16 @@ export function Cortex({
   snapshot,
   selectedId,
   onSelect,
-  horizonYears = 0,
-  projectedTotalUsd,
 }: {
   snapshot: PortfolioSnapshot;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
-  horizonYears?: number;
-  projectedTotalUsd?: number | null;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const selectedRef = useRef(selectedId);
   const snapshotRef = useRef(snapshot);
-  const horizonRef = useRef(horizonYears);
-  const projectedRef = useRef(projectedTotalUsd);
   selectedRef.current = selectedId;
   snapshotRef.current = snapshot;
-  horizonRef.current = horizonYears;
-  projectedRef.current = projectedTotalUsd;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -511,20 +503,11 @@ export function Cortex({
       }
 
       const live = snapshotRef.current;
-      const years = horizonRef.current;
-      const projected = projectedRef.current;
       const drip =
-        years > 0
-          ? 0
-          : live.totals.dailyIncomeUsd *
-            Math.max(0, (Date.now() - new Date(live.updatedAt).getTime()) / 86_400_000);
+        live.totals.dailyIncomeUsd *
+        Math.max(0, (Date.now() - new Date(live.updatedAt).getTime()) / 86_400_000);
       const coreLive = nodes.find((n) => n.kind === "core");
-      if (coreLive) {
-        coreLive.label = years > 0 ? `Через ${years} р` : "Капітал";
-        coreLive.sub = formatUsd(
-          years > 0 && projected != null ? projected : live.totals.currentUsd + drip,
-        );
-      }
+      if (coreLive) coreLive.sub = formatUsd(live.totals.currentUsd + drip);
 
       for (const node of nodes) {
         node.x = node.ox;
