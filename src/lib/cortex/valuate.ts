@@ -125,16 +125,35 @@ export async function valuePortfolio(records: InvestmentRecord[]): Promise<Portf
             quoteOk = false;
             quoteLabel = "немає котирування";
           }
-        } else if (item.type === "real_estate" || item.type === "inzhur") {
+        } else if (item.type === "inzhur") {
+          const live = await currentMarketQuote(item);
+          const qty = item.quantity && item.quantity > 0 ? item.quantity : null;
+          if (live?.price && qty) {
+            const unitUsd = live.currency === "UAH" ? live.price / usdUah : live.price;
+            livePriceUsd = unitUsd;
+            marketUsd = qty * unitUsd;
+            quoteLabel = live.label;
+          } else if (item.estimatedValue != null && item.estimatedValueCurrency) {
+            marketUsd =
+              item.estimatedValueCurrency === "USD"
+                ? item.estimatedValue
+                : item.estimatedValue / usdUah;
+            quoteLabel = live?.label ?? "оцінка Inzhur";
+          } else {
+            marketUsd = costUsd;
+            quoteLabel = live?.label ?? "сума вкладення";
+            if (live) quoteOk = false;
+          }
+        } else if (item.type === "real_estate") {
           if (item.estimatedValue != null && item.estimatedValueCurrency) {
             marketUsd =
               item.estimatedValueCurrency === "USD"
                 ? item.estimatedValue
                 : item.estimatedValue / usdUah;
-            quoteLabel = item.type === "inzhur" ? "оцінка Inzhur" : "оцінка ринку";
+            quoteLabel = "оцінка ринку";
           } else {
             marketUsd = costUsd;
-            quoteLabel = item.type === "inzhur" ? "сума вкладення" : "вартість покупки";
+            quoteLabel = "вартість покупки";
           }
         } else {
           marketUsd = costUsd;

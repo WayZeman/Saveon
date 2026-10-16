@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     const locked = await lockPurchaseQuote({
       type: body.type,
       symbol: body.symbol,
+      name: body.name,
       purchaseDate,
     });
     if (locked) {
@@ -62,6 +63,11 @@ export async function POST(request: Request) {
         const investedUsd =
           investedCurrency === "USD" ? body.investedAmount : body.investedAmount / (await getUsdUah(purchaseDate));
         if (locked.currency === "USD" && locked.price > 0) quantity = investedUsd / locked.price;
+      }
+      if (!quantity && body.type === "inzhur" && locked.currency === "UAH" && locked.price > 0) {
+        const investedUah =
+          investedCurrency === "UAH" ? body.investedAmount : body.investedAmount * (await getUsdUah(purchaseDate));
+        quantity = investedUah / locked.price;
       }
     }
   } catch (error) {

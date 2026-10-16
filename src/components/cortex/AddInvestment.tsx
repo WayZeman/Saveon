@@ -44,9 +44,9 @@ export function AddInvestment({
     }
     if (type === "inzhur") {
       return {
-        symbol: "",
-        symbolLabel: "Не потрібно",
-        hint: "Інвестиція в нерухомість через Inzhur: напрям/об’єкт, сума вкладення і за бажанням оцінку або ставку.",
+        symbol: "IREIT",
+        symbolLabel: "Символ (IREIT = автокурс)",
+        hint: "Для Inzhur REIT постав IREIT — курс сертифіката підтягнеться з inzhur.reit. Інші напрями — лиши порожнім і вкажи оцінку.",
       };
     }
     if (type === "real_estate") {
@@ -158,7 +158,7 @@ export function AddInvestment({
           />
         </label>
 
-        {type !== "real_estate" && type !== "other" && type !== "bond" && type !== "inzhur" ? (
+        {type !== "real_estate" && type !== "other" && type !== "bond" ? (
           <label className="grid gap-1 text-sm">
             {fields.symbolLabel}
             <input name="symbol" defaultValue={fields.symbol} className="cortex-input" />
@@ -196,7 +196,7 @@ export function AddInvestment({
           <input name="purchaseDate" type="date" required defaultValue={today()} className="cortex-input" />
         </label>
 
-        {(type === "crypto" || type === "stock" || type === "fund") && (
+        {(type === "crypto" || type === "stock" || type === "fund" || type === "inzhur") && (
           <label className="grid gap-1 text-sm">
             Кількість (опційно)
             <input

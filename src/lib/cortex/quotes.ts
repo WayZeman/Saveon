@@ -253,9 +253,62 @@ export async function getStockUsdOn(symbol: string, date: Date): Promise<number>
   });
 }
 
+const INZHUR_REIT_SYMBOLS = new Set(["IREIT", "INZHUR-REIT", "INZHUR_REIT", "REIT"]);
+
+export function isInzhurReit(symbol?: string | null, name?: string | null) {
+  const sym = (symbol ?? "").trim().toUpperCase();
+  if (sym && INZHUR_REIT_SYMBOLS.has(sym)) return true;
+  const label = `${symbol ?? ""} ${name ?? ""}`.toLowerCase();
+  return /inzhur[-_\s]?reit|\breit\b/.test(label);
+}
+
+export type InzhurReitQuote = {
+  buyUah: number;
+  sellUah: number;
+  buyUsd: number | null;
+  sellUsd: number | null;
+};
+
+/** Live Inzhur REIT certificate prices from the public offer page (no official public API). */
+export async function getInzhurReitQuote(): Promise<InzhurReitQuote> {
+  return remember("inzhur:reit", 60_000, async () => {
+    const res = await fetch("https://www.inzhur.reit/offer/inzhur-reit", {
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": "invest-cortex/1.0",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`Inzhur REIT ${res.status}`);
+    const html = await res.text();
+
+    const pair = html.match(
+      /\{"buy":\d+,"sell":\d+,"nav":\d+,"buyUAH":\d+,"sellUAH":\d+,"navUAH":\d+,"buyUSD":\d+,"sellUSD":\d+,"navUSD":\d+\},(1[0-9]\.\d+),(1[0-9]\.\d+),(0\.\d+),(0\.\d+)/,
+    );
+    if (pair) {
+      return {
+        buyUah: Number(pair[1]),
+        sellUah: Number(pair[2]),
+        buyUsd: Number(pair[3]),
+        sellUsd: Number(pair[4]),
+      };
+    }
+
+    const buyOnly =
+      html.match(
+        /Ціна купівлі 1 сертифіката&quot;\],&quot;icon&quot;:\[0,null\],&quot;value&quot;:\[0,&quot;(\d+\.\d+)&quot;]/,
+      ) ??
+      html.match(/Ціна купівлі 1 сертифіката.*?value&quot;:\[0,&quot;(\d+\.\d+)&quot;]/);
+    const buyUah = buyOnly ? Number(buyOnly[1]) : NaN;
+    if (!buyUah) throw new Error("Немає курсу Inzhur REIT");
+    return { buyUah, sellUah: buyUah, buyUsd: null, sellUsd: null };
+  });
+}
+
 export async function lockPurchaseQuote(input: {
   type: string;
   symbol?: string | null;
+  name?: string | null;
   purchaseDate: Date;
 }): Promise<{ price: number; currency: string; label: string } | null> {
   if (input.type === "crypto" && input.symbol) {
@@ -267,6 +320,10 @@ export async function lockPurchaseQuote(input: {
     const price = await getStockUsdOn(input.symbol, input.purchaseDate);
     return { price, currency: "USD", label: `${input.symbol.toUpperCase()}/USD` };
   }
+  if (input.type === "inzhur" && isInzhurReit(input.symbol, input.name)) {
+    const quote = await getInzhurReitQuote();
+    return { price: quote.buyUah, currency: "UAH", label: "Inzhur REIT купівля" };
+  }
   if (input.type === "real_estate" || input.type === "bond" || input.type === "inzhur") {
     const price = await getUsdUah(input.purchaseDate);
     return { price, currency: "UAH", label: "USD/UAH" };
@@ -277,14 +334,31 @@ export async function lockPurchaseQuote(input: {
 export async function currentMarketQuote(input: {
   type: string;
   symbol?: string | null;
-}): Promise<{ price: number; label: string } | null> {
+  name?: string | null;
+}): Promise<{ price: number; currency: "USD" | "UAH"; label: string } | null> {
   if (input.type === "crypto" && input.symbol) {
     const price = await getCryptoUsd(input.symbol);
-    return { price, label: `${input.symbol.toUpperCase()} $${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}` };
+    return {
+      price,
+      currency: "USD",
+      label: `${input.symbol.toUpperCase()} $${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}`,
+    };
   }
   if ((input.type === "stock" || input.type === "fund") && input.symbol) {
     const price = await getStockUsd(input.symbol);
-    return { price, label: `${input.symbol.toUpperCase()} $${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}` };
+    return {
+      price,
+      currency: "USD",
+      label: `${input.symbol.toUpperCase()} $${price.toLocaleString("en-US", { maximumFractionDigits: 2 })}`,
+    };
+  }
+  if (input.type === "inzhur" && isInzhurReit(input.symbol, input.name)) {
+    const quote = await getInzhurReitQuote();
+    return {
+      price: quote.sellUah,
+      currency: "UAH",
+      label: `Inzhur REIT ${quote.sellUah.toFixed(4)} грн (куп. ${quote.buyUah.toFixed(4)})`,
+    };
   }
   return null;
 }

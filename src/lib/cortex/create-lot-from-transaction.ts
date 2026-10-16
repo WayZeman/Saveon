@@ -35,7 +35,7 @@ async function lockQuote(type: string, symbol: string | null, purchaseDate: Date
       return { price, currency: "UAH", label: "USD/UAH" };
     }
     const live = await currentMarketQuote({ type, symbol });
-    if (live) return { price: live.price, currency: "USD", label: live.label };
+    if (live) return { price: live.price, currency: live.currency, label: live.label };
   } catch {
     return null;
   }
